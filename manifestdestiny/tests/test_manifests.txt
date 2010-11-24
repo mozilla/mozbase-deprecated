@@ -16,3 +16,14 @@ Ensure that capitalization and order aren't an issue:
     >>> lines == file('mozmill-example.ini').read().strip().splitlines()
     True
 
+Show how you select subsets of tests:
+
+    >>> parser.read('mozmill-restart-example.ini')
+    >>> restart_tests = parser.get(type='restart')
+    >>> len(restart_tests) < len(parser.tests)
+    True
+    >>> assert not [i for i in restart_tests if restart_tests[i]['manifest'] != 'mozmill-restart-example.ini']
+    >>> parser.get('foo').keys()
+    ['restartTests/testExtensionInstallUninstall/test2.js', 'restartTests/testExtensionInstallUninstall/test1.js']
+    >>> parser.get(foo='bar').keys()
+    ['restartTests/testExtensionInstallUninstall/test2.js']

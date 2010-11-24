@@ -1436,6 +1436,18 @@ class ManifestParser(object):
                 self.tests[section]['path'] = os.path.join(here, section)
                 self.tests[section]['manifest'] = filename
 
+    def get(self, *tags, **kwargs):
+        tags = set(tags)
+        tests = [test for test in self.tests
+                 if tags.issubset(self.tests[test].keys())]
+        retval = OrderedDict()
+        for test in tests:
+            for key, value in kwargs.items():
+                if self.tests[test].get(key) != value:
+                    break
+            else:
+                retval[test] = self.tests[test]
+        return retval
 
 def main(args=sys.argv[1:]):
     usage = '%prog [options] manifest <manifest> <...>'
