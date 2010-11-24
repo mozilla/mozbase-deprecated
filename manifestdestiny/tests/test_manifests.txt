@@ -6,14 +6,13 @@ Ensure basic parser is sane:
     >>> from manifestdestiny import ManifestParser
     >>> parser = ManifestParser()
     >>> parser.read('mozmill-example.ini')
-    ['mozmill-example.ini']
-    >>> sections = parser.sections()
-    >>> len(sections) == len(file('mozmill-example.ini').read().strip().splitlines())
+    >>> tests = parser.tests
+    >>> len(tests) == len(file('mozmill-example.ini').read().strip().splitlines())
     True
     
 Ensure that capitalization and order aren't an issue:
 
-    >>> lines = ['[%s]' % section for section in sections]
+    >>> lines = ['[%s]' % test for test in tests]
     >>> lines == file('mozmill-example.ini').read().strip().splitlines()
     True
 

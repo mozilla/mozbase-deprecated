@@ -1,3 +1,5 @@
+#!/usr/bin/env python
+
 # odict.py
 # An Ordered Dictionary object
 # Copyright (C) 2005 Nicola Larosa, Michael Foord
@@ -1387,9 +1389,65 @@ class SequenceOrderedDict(OrderedDict):
 
 __all__ = ['ManifestParser']
 
+import os
+from optparse import OptionParser
 from ConfigParser import ConfigParser
 
-class ManifestParser(ConfigParser):
-  def __init__(self, defaults=None):
-    ConfigParser.__init__(self, defaults=None, dict_type=OrderedDict)
-    self.optionxform = str
+class ManifestParser(object):
+    def __init__(self, defaults=None):
+        self._defaults = defaults or {}
+        self.tests = OrderedDict()
+
+    def read(self, *filenames, **defaults):
+
+        # ensure all files exist
+        missing = [ filename for filename in filenames
+                    if not os.path.exists(filename) ]
+        if missing:
+            raise IOError('Missing files: %s' % ', '.join(missing))
+
+        # process each file
+        for filename in filenames:
+
+            # set the per file defaults
+            defaults = defaults.copy() or self._defaults.copy()
+            here = os.path.dirname(os.path.abspath(filename))
+            defaults['here'] = here
+            
+            # read the configuration
+            configparser = ConfigParser(defaults=defaults,
+                                        dict_type=OrderedDict)
+            configparser.optionxform = str
+            configparser.read(filename)
+
+            # get the tests
+            for section in configparser.sections():
+
+                # a file to include
+                if section.startswith('include:'):
+                    include_file = section.split('include:', 1)[-1]
+                    include_file = os.path.join(here, include_file)
+                    assert os.path.exists(include_file)
+                    include_defaults = dict(configparser.items(section))
+                    self.read(filename, **include_defaults)
+
+                # otherwise a test
+                self.tests[section] = dict(configparser.items(section))
+                self.tests[section]['path'] = os.path.join(here, section)
+                self.tests[section]['manifest'] = filename
+
+
+def main(args=sys.argv[1:]):
+    usage = '%prog [options] manifest <manifest> <...>'
+    parser = OptionParser(usage=usage)
+    options, args = parser.parse_args(args)
+    if not args:
+        parser.print_usage()
+        parser.exit()
+
+    manifests = ManifestParser()
+    manifests.read(*args)
+    
+
+if __name__ == '__main__':
+    main()
