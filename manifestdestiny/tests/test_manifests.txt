@@ -1,0 +1,19 @@
+Test the manifest parser
+========================
+
+Ensure basic parser is sane:
+
+    >>> from manifestdestiny import ManifestParser
+    >>> parser = ManifestParser()
+    >>> parser.read('mozmill-example.ini')
+    ['mozmill-example.ini']
+    >>> sections = parser.sections()
+    >>> len(sections) == len(file('mozmill-example.ini').read().strip().splitlines())
+    True
+    
+Ensure that capitalization and order aren't an issue:
+
+    >>> lines = ['[%s]' % section for section in sections]
+    >>> lines == file('mozmill-example.ini').read().strip().splitlines()
+    True
+
