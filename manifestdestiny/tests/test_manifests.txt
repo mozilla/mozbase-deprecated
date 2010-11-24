@@ -22,6 +22,8 @@ Show how you select subsets of tests:
     >>> restart_tests = parser.get(type='restart')
     >>> len(restart_tests) < len(parser.tests)
     True
+    >>> len(restart_tests) == len(parser.get(manifest='mozmill-restart-example.ini'))
+    True
     >>> assert not [i for i in restart_tests if restart_tests[i]['manifest'] != 'mozmill-restart-example.ini']
     >>> parser.get('foo').keys()
     ['restartTests/testExtensionInstallUninstall/test2.js', 'restartTests/testExtensionInstallUninstall/test1.js']
