@@ -29,3 +29,40 @@ Show how you select subsets of tests:
     ['restartTests/testExtensionInstallUninstall/test2.js', 'restartTests/testExtensionInstallUninstall/test1.js']
     >>> parser.get(foo='bar').keys()
     ['restartTests/testExtensionInstallUninstall/test2.js']
+
+Illustrate how include works:
+
+    >>> parser = ManifestParser()
+    >>> parser.read('include-example.ini')
+
+All of the tests should be included, in order:
+
+    >>> import os    
+    >>> parser.tests.keys()
+    ['crash-handling', 'fleem', 'flowers']
+    >>> [(key, os.path.basename(parser.tests[key]['manifest'])) for key in parser.tests]
+    [('crash-handling', 'bar.ini'), ('fleem', 'include-example.ini'), ('flowers', 'foo.ini')]
+
+DEFAULT values should persist across includes, unless they're
+overwritten.  In this example, include-example.ini sets foo=bar, but
+its overridden to fleem in bar.ini:
+
+    >>> parser.get(foo='bar').keys()
+    ['fleem', 'flowers']
+    >>> parser.get(foo='fleem').keys()
+    ['crash-handling']
+
+Passing parameters in the include section allows defining variables in
+the submodule scope:
+
+    >>> parser.get('red').keys()
+    ['flowers']
+
+However, this should be overridable from the DEFAULT section in the
+included file and that overridable via the key directly connected to
+the test:
+
+    >>> parser.tests['flowers']['blue']
+    'ocean'
+    >>> parser.tests['flowers']['yellow']
+    'submarine'

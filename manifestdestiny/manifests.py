@@ -1429,7 +1429,8 @@ class ManifestParser(object):
                     include_file = os.path.join(here, include_file)
                     assert os.path.exists(include_file)
                     include_defaults = dict(configparser.items(section))
-                    self.read(filename, **include_defaults)
+                    self.read(include_file, **include_defaults)
+                    continue
 
                 # otherwise a test
                 self.tests[section] = dict(configparser.items(section))
