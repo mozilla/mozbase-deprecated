@@ -1,0 +1,69 @@
+- right now there is a ``.get()`` function that will return tests with
+  matching tags and tags matching specific values.  However, all this
+  does is "and" logic.  There is no good way to get functions without
+  a certain tag or value or any way to "or" them together.  Maybe
+  there should be a ``query()`` function too?  How should this look
+  like?
+
+- currently, all values are just strings.  This probably isn't
+  sufficient.  It will probably be necessary to get bools, ints,
+  lists, floats, and maybe dicts out of these.  This should look
+  something like:
+
+"""
+[foo]
+intval = 1
+boolval = True
+listval = foo,bar, baz
+dictval = foo: bar, baz: fleem
+floatval = 1.23
+"""
+
+   None of this is hard to do.  ConfigParser already has some of these
+   facilities and the others are not hard to add.
+
+   However, how do you tell ManifestParser what values are what?  I
+   can think of two possibly reasonable ways:
+
+   1. A dict is passed in to ManifestParser.__init__ that gives
+   mappings to keys, e.g. {'count': int, 'platforms': list,} etc, with
+   an internal mapping of how to convert to each type (and users could
+   add their own presumedly).  
+
+   2. A special section is dictated in the manifest itself,
+   e.g. [:types:], that dictates what is what.  This will behave and
+   obey the rules of other sections.
+
+   I'm more in favor of 1. but could go either way.
+
+- This does not degrade to process plain text lists of manifests.
+  http://k0s.org/mozilla/hg/ManifestDestiny/file/tip/manifestdestiny/tests/mozmill-example.ini
+  shows an example of how "just list the damn files" manifests would
+  work in this system.  If a file doesn't contain '[' or ']' we could
+  just treat them like a flat file list.  Is this desired?  Do we want
+  to support different formats? Or just these two?  Note that mixing
+  them (having .ini files but treating plain listings as just files)
+  is not only confusing, but is also probably not trivial to do with
+  ConfigParser 
+
+- Currently, files are keyed by name as it appears in the manifest
+  with a 'path' value that gives the full path.  This might be bad, if
+  there is the use case where multiple tests have the same name (as it
+  appears in the manifest) but different paths (since the path is
+  relative to the manifest).  Maybe this should be reversed? (keyed by
+  absolute path but with a 'name' attribute as appears in the manifest)
+
+- I didn't add in the case where files were given an absolute path.
+  Not a big deal, just not done.
+
+- The elephant in the room:  currently, all this does is parse the
+  manifests and gives a simple way of querying them.  This is....fine
+  for ManifestParser.  But there should probably be another class that
+  adds logic to them so that the runner doesn't have to.  e.g. "Give
+  me all the tests that work on the platform I'm on."  While this code
+  should live in the same repo, maybe even the same file, its really a
+  consumer of the ManifestParser vs. an extension of it.  We can add
+  this functionality as needed (which, assuming we get to put this in
+  a harness soon, will probably be sooner vs. later).
+
+- feel free to add anything I've forgotten!
