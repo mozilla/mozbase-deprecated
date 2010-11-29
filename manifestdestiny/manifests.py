@@ -1450,17 +1450,85 @@ class ManifestParser(object):
                 retval[test] = self.tests[test]
         return retval
 
+    def write(self, fp,
+              global_tags=None, global_kwargs=None,
+              local_tags=None, local_kwargs=None):
+        """
+        TODO: write a manifest given a query
+        global and local options will be munged to do the query
+        globals will be written to the top of the file
+        locals (if given) will be written per test
+        """
+              
+
+class ParserError(Exception):
+  """error for exceptions while parsing the command line"""
+
+def parse_args(_args):
+
+  # return values
+  _dict = {}
+  tags = []
+  args = []
+
+  # parse the arguments
+  key = None
+  for arg in _args:
+    if arg.startswith('---'):
+      raise ParserError("arguments should start with '-' or '--' only")
+    elif arg.startswith('--'):
+      if key:
+        raise ParserError("Key %s still open" % key)
+      key = arg[2:]
+      if '=' in key:
+        key, value = key.split('=', 1)
+        _dict[key] = value
+        key = None
+        continue
+    elif arg.startswith('-'):
+      if key:
+        raise ParserError("Key %s still open" % key)
+      tags.append(arg[1:])
+      continue
+    else:
+      if key:
+        _dict[key] = arg
+        continue
+      args.append(arg)
+
+  # return values
+  return (_dict, tags, args)
+
 def main(args=sys.argv[1:]):
+
+    # set up an option parser ...this is mostly for show
     usage = '%prog [options] manifest <manifest> <...>'
     parser = OptionParser(usage=usage)
-    options, args = parser.parse_args(args)
+
+    # actually parse the arguments in an unrelated way
+    try:
+        kwargs, tags, args = parse_args(args)
+    except ParserError, e:
+        parser.error(e.message)
+
+    # make sure we have some manifests, otherwise it will
+    # be quite boring
     if not args:
         parser.print_usage()
         parser.exit()
 
+    # read the manifests
     manifests = ManifestParser()
     manifests.read(*args)
-    
+
+    # perform a query
+    tests = manifests.get(*tags, **kwargs)
+
+    # print the results
+    # TODO: print these in a manner such that they are written out to
+    # a new manifest!
+    for test, data in tests.items():
+        print '%s: %s' % (test, data)
 
 if __name__ == '__main__':
     main()
