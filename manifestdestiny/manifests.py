@@ -1437,6 +1437,16 @@ class ManifestParser(object):
                 self.tests[section]['path'] = os.path.join(here, section)
                 self.tests[section]['manifest'] = filename
 
+    def query(self, *checks):
+        retval = []
+        for test in self.tests:
+            for check in checks:
+                if not check(test):
+                    break
+            else:
+                retval.append(test)
+        return retval
+
     def get(self, *tags, **kwargs):
         tags = set(tags)
         tests = [test for test in self.tests
@@ -1450,7 +1460,7 @@ class ManifestParser(object):
                 retval[test] = self.tests[test]
         return retval
 
-    def write(self, fp,
+    def write(self, fp=sys.stdout,
               global_tags=None, global_kwargs=None,
               local_tags=None, local_kwargs=None):
         """
