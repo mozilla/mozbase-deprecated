@@ -1496,7 +1496,6 @@ class ManifestParser(object):
         return [test for test in tests
                 if not os.path.exists(test['path'])]
         
-
     def write(self, fp=sys.stdout,
               global_tags=None, global_kwargs=None,
               local_tags=None, local_kwargs=None):

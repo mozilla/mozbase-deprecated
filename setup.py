@@ -20,6 +20,7 @@ setup(name='ManifestDestiny',
           # -*- Extra requirements: -*-
       ],
       entry_points="""
-      # -*- Entry points: -*-
+      [console_scripts]
+      create-manifest = manifestdestiny.convert:main
       """,
       )

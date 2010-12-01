@@ -3,11 +3,13 @@
 convert a directory to a simple manifest
 """
 
+
 import os
 import sys
+from fnmatch import fnmatch
 from optparse import OptionParser
 
-def convert(*directories):
+def convert(directories, pattern=None):
   retval = []
   for directory in directories:
     for dirpath, dirnames, filenames in os.walk(directory):
@@ -15,6 +17,12 @@ def convert(*directories):
       # reference only the subdirectory
       dirpath = dirpath.split(directory, 1)[-1]
 
+      # filter by glob
+      if pattern:
+        filenames = [filename for filename in filenames
+                     if fnmatch(filename, pattern)]
+      
+      # add to the list
       retval.extend([os.path.join(dirpath, filename)
                      for filename in filenames])
   retval.sort()
@@ -22,8 +30,10 @@ def convert(*directories):
   return '\n'.join(retval)
 
 def main(args=sys.argv[1:]):
-  usage = '%prog [options] directory'
+  usage = '%prog [options] directory <directory> <...>'
   parser = OptionParser(usage=usage)
+  parser.add_option('-p', '--pattern', dest='pattern',
+                    help="glob pattern for files")
   options, args = parser.parse_args(args)
   if not len(args):
     parser.print_usage()
@@ -31,7 +41,7 @@ def main(args=sys.argv[1:]):
   for arg in args:
     assert os.path.exists(arg)
     assert os.path.isdir(arg)
-  print convert(*args)
+  print convert(args, pattern=options.pattern)
 
 if __name__ == '__main__':
   main()
