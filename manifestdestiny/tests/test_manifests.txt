@@ -32,8 +32,7 @@ Show how you select subsets of tests:
 
 Illustrate how include works:
 
-    >>> parser = ManifestParser()
-    >>> parser.read('include-example.ini')
+    >>> parser = ManifestParser(manifests=('include-example.ini',))
 
 All of the tests should be included, in order:
 

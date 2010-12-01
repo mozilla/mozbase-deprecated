@@ -1394,9 +1394,11 @@ from optparse import OptionParser
 from ConfigParser import ConfigParser
 
 class ManifestParser(object):
-    def __init__(self, defaults=None):
+    def __init__(self, manifests=(), defaults=None):
         self._defaults = defaults or {}
         self.tests = []
+        if manifests:
+            self.read(*manifests)
 
     def read(self, *filenames, **defaults):
 
