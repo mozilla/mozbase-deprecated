@@ -54,7 +54,7 @@ its overridden to fleem in bar.ini:
 Passing parameters in the include section allows defining variables in
 the submodule scope:
 
-    >>> parser.get('name', ['red'])
+    >>> parser.get('name', tags=['red'])
     ['flowers']
 
 However, this should be overridable from the DEFAULT section in the
@@ -65,3 +65,8 @@ the test:
     'ocean'
     >>> parser.get(name='flowers')[0]['yellow']
     'submarine'
+
+Using the inverse flag should invert the set of tests returned:
+
+    >>> parser.get('name', inverse=True, tags=['red'])
+    ['crash-handling', 'fleem']

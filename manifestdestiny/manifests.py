@@ -1454,7 +1454,7 @@ class ManifestParser(object):
         return retval
 
 
-    def get(self, _key=None, tags=None, **kwargs):
+    def get(self, _key=None, inverse=False, tags=None, **kwargs):
 
         # fix up tags
         if tags:
@@ -1463,12 +1463,20 @@ class ManifestParser(object):
             tags = set()
 
         # make some check functions
-        has_tags = lambda test: tags.issubset(test.keys())
-        def dict_query(test):
-            for key, value in kwargs.items():
-                if test.get(key) != value:
-                    return False
-            return True
+        if inverse:
+            has_tags = lambda test: tags.isdisjoint(test.keys())
+            def dict_query(test):
+                for key, value in kwargs.items():
+                    if test.get(key) == value:
+                        return False
+                return True
+        else:
+            has_tags = lambda test: tags.issubset(test.keys())
+            def dict_query(test):
+                for key, value in kwargs.items():
+                    if test.get(key) != value:
+                        return False
+                return True
 
         # query the tests
         tests = self.query(has_tags, dict_query)
@@ -1480,6 +1488,8 @@ class ManifestParser(object):
 
         # return the tests
         return tests
+
+    
 
     def write(self, fp=sys.stdout,
               global_tags=None, global_kwargs=None,
