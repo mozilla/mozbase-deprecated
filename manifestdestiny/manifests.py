@@ -1489,6 +1489,14 @@ class ManifestParser(object):
         # return the tests
         return tests
 
+    def missing(self, tests=None):
+        """return list of tests that do not exist on the filesystem"""
+        if tests is None:
+            tests = self.tests
+        return [test for test in tests
+                if not os.path.exists(test['path'])]
+        
+
     def write(self, fp=sys.stdout,
               global_tags=None, global_kwargs=None,
               local_tags=None, local_kwargs=None):
@@ -1510,7 +1518,7 @@ class TestManifest(ManifestParser):
         # ignore disabled tests
         tests = self.get(inverse=True, tags=['disabled'])
 
-        # TODO: could filter out by current platform, etc
+        # TODO: could filter out by current platform, existence, etc
         
         return tests
 
