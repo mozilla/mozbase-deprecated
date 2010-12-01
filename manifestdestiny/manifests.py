@@ -1453,23 +1453,33 @@ class ManifestParser(object):
                 retval.append(test)
         return retval
 
+
     def get(self, _key=None, tags=None, **kwargs):
+
+        # fix up tags
         if tags:
             tags = set(tags)
         else:
             tags = set()
-        tests = [test for test in self.tests
-                 if tags.issubset(test.keys())]
-        retval = []
-        for test in tests:
+
+        # make some check functions
+        has_tags = lambda test: tags.issubset(test.keys())
+        def dict_query(test):
             for key, value in kwargs.items():
                 if test.get(key) != value:
-                    break
-            else:
-                retval.append(test)
+                    return False
+            return True
+
+        # query the tests
+        tests = self.query(has_tags, dict_query)
+
+        # if a key is given, return only a list of that key
+        # useful for keys like 'name' or 'path'
         if _key:
-            return [test[_key] for test in retval]
-        return retval
+            return [test[_key] for test in tests]
+
+        # return the tests
+        return tests
 
     def write(self, fp=sys.stdout,
               global_tags=None, global_kwargs=None,
