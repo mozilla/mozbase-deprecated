@@ -1489,8 +1489,6 @@ class ManifestParser(object):
         # return the tests
         return tests
 
-    
-
     def write(self, fp=sys.stdout,
               global_tags=None, global_kwargs=None,
               local_tags=None, local_kwargs=None):
@@ -1501,6 +1499,23 @@ class ManifestParser(object):
         locals (if given) will be written per test
         """
               
+class TestManifest(ManifestParser):
+    """
+    apply logic to manifests;  this is your integration layer :)
+    specific harnesses may subclass from this if they need more logic
+    """
+
+    def active_tests(self):
+        
+        # ignore disabled tests
+        tests = self.get(inverse=True, tags=['disabled'])
+
+        # TODO: could filter out by current platform, etc
+        
+        return tests
+
+    def test_paths(self):
+        return [test['path'] for test in self.active_tests()]
 
 class ParserError(Exception):
   """error for exceptions while parsing the command line"""
