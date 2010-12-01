@@ -1396,7 +1396,7 @@ from ConfigParser import ConfigParser
 class ManifestParser(object):
     def __init__(self, defaults=None):
         self._defaults = defaults or {}
-        self.tests = OrderedDict()
+        self.tests = []
 
     def read(self, *filenames, **defaults):
 
@@ -1433,9 +1433,11 @@ class ManifestParser(object):
                     continue
 
                 # otherwise a test
-                self.tests[section] = dict(configparser.items(section))
-                self.tests[section]['path'] = os.path.join(here, section)
-                self.tests[section]['manifest'] = filename
+                test = dict(configparser.items(section))
+                test['name'] = section
+                test['path'] = os.path.join(here, section)
+                test['manifest'] = filename
+                self.tests.append(test)
 
     def query(self, *checks):
         retval = []
@@ -1447,17 +1449,22 @@ class ManifestParser(object):
                 retval.append(test)
         return retval
 
-    def get(self, *tags, **kwargs):
-        tags = set(tags)
+    def get(self, _key=None, tags=None, **kwargs):
+        if tags:
+            tags = set(tags)
+        else:
+            tags = set()
         tests = [test for test in self.tests
-                 if tags.issubset(self.tests[test].keys())]
-        retval = OrderedDict()
+                 if tags.issubset(test.keys())]
+        retval = []
         for test in tests:
             for key, value in kwargs.items():
-                if self.tests[test].get(key) != value:
+                if test.get(key) != value:
                     break
             else:
-                retval[test] = self.tests[test]
+                retval.append(test)
+        if _key:
+            return [test[_key] for test in retval]
         return retval
 
     def write(self, fp=sys.stdout,
@@ -1537,8 +1544,8 @@ def main(args=sys.argv[1:]):
     # print the results
     # TODO: print these in a manner such that they are written out to
     # a new manifest!
-    for test, data in tests.items():
-        print '%s: %s' % (test, data)
+    for test in tests:
+        print test
 
 if __name__ == '__main__':
     main()

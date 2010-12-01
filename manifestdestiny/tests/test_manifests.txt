@@ -12,7 +12,7 @@ Ensure basic parser is sane:
     
 Ensure that capitalization and order aren't an issue:
 
-    >>> lines = ['[%s]' % test for test in tests]
+    >>> lines = ['[%s]' % test['name'] for test in tests]
     >>> lines == file('mozmill-example.ini').read().strip().splitlines()
     True
 
@@ -24,10 +24,10 @@ Show how you select subsets of tests:
     True
     >>> len(restart_tests) == len(parser.get(manifest='mozmill-restart-example.ini'))
     True
-    >>> assert not [i for i in restart_tests if restart_tests[i]['manifest'] != 'mozmill-restart-example.ini']
-    >>> parser.get('foo').keys()
+    >>> assert not [test for test in restart_tests if test['manifest'] != 'mozmill-restart-example.ini']
+    >>> parser.get('name', tags=['foo'])
     ['restartTests/testExtensionInstallUninstall/test2.js', 'restartTests/testExtensionInstallUninstall/test1.js']
-    >>> parser.get(foo='bar').keys()
+    >>> parser.get('name', foo='bar')
     ['restartTests/testExtensionInstallUninstall/test2.js']
 
 Illustrate how include works:
@@ -38,31 +38,31 @@ Illustrate how include works:
 All of the tests should be included, in order:
 
     >>> import os    
-    >>> parser.tests.keys()
+    >>> parser.get('name')
     ['crash-handling', 'fleem', 'flowers']
-    >>> [(key, os.path.basename(parser.tests[key]['manifest'])) for key in parser.tests]
+    >>> [(test['name'], os.path.basename(test['manifest'])) for test in parser.tests]
     [('crash-handling', 'bar.ini'), ('fleem', 'include-example.ini'), ('flowers', 'foo.ini')]
 
 DEFAULT values should persist across includes, unless they're
 overwritten.  In this example, include-example.ini sets foo=bar, but
 its overridden to fleem in bar.ini:
 
-    >>> parser.get(foo='bar').keys()
+    >>> parser.get('name', foo='bar')
     ['fleem', 'flowers']
-    >>> parser.get(foo='fleem').keys()
+    >>> parser.get('name', foo='fleem')
     ['crash-handling']
 
 Passing parameters in the include section allows defining variables in
 the submodule scope:
 
-    >>> parser.get('red').keys()
+    >>> parser.get('name', ['red'])
     ['flowers']
 
 However, this should be overridable from the DEFAULT section in the
 included file and that overridable via the key directly connected to
 the test:
 
-    >>> parser.tests['flowers']['blue']
+    >>> parser.get(name='flowers')[0]['blue']
     'ocean'
-    >>> parser.tests['flowers']['yellow']
+    >>> parser.get(name='flowers')[0]['yellow']
     'submarine'
