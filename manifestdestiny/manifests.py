@@ -1394,6 +1394,8 @@ from optparse import OptionParser
 from ConfigParser import ConfigParser
 
 class ManifestParser(object):
+    """read .ini manifests"""
+    
     def __init__(self, manifests=(), defaults=None):
         self._defaults = defaults or {}
         self.tests = []
