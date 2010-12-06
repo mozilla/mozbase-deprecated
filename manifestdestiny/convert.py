@@ -34,7 +34,7 @@ def convert(directories, pattern=None, ignore=(), write=None):
       if write:
         manifest = file(os.path.join(_dirpath, write), 'w')
         for dirname in dirnames:
-          print >> manifest, '[include:%s]' % dirname
+          print >> manifest, '[include:%s]' % os.path.join(dirname, write)
         for filename in filenames:
           print >> manifest, '[%s]' % filename
         manifest.close()
