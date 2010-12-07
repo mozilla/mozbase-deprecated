@@ -170,9 +170,10 @@ if __name__ == '__main__':
 class ManifestParser(object):
     """read .ini manifests"""
 
-    def __init__(self, manifests=(), defaults=None):
+    def __init__(self, manifests=(), defaults=None, strict=True):
         self._defaults = defaults or {}
         self.tests = []
+        self.strict = strict
         if manifests:
             self.read(*manifests)
 
@@ -202,7 +203,11 @@ class ManifestParser(object):
                 if section.startswith('include:'):
                     include_file = section.split('include:', 1)[-1]
                     include_file = os.path.join(here, include_file)
-                    assert os.path.exists(include_file)
+                    if not os.path.exists(include_file):
+                      if strict:
+                        raise IOError("File '%s' does not exist" % include_file)
+                      else:
+                        continue
                     include_defaults = data.copy()
                     self.read(include_file, **include_defaults)
                     continue
