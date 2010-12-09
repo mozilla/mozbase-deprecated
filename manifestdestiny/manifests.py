@@ -158,13 +158,6 @@ def read(fp, variables=None, default='DEFAULT',
   sections = [(i, interpret_variables(variables, j)) for i, j in sections]
   return sections
 
-if __name__ == '__main__':
-  import sys
-  for i in sys.argv[1:]:
-    path = os.path.abspath(i)
-    print read(i, strict=False, variables=dict(here=os.path.dirname(path)))
-
-
 ###
 
 class ManifestParser(object):
