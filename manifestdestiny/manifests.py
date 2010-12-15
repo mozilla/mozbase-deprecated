@@ -200,14 +200,18 @@ class ManifestParser(object):
                 self.tests.append(test)
 
     def query(self, *checks):
-        retval = []
-        for test in self.tests:
-            for check in checks:
-                if not check(test):
-                    break
-            else:
-                retval.append(test)
-        return retval
+      """
+      general query function for tests
+      - checks : callable conditions to test if the test fulfills the query
+      """
+      retval = []
+      for test in self.tests:
+        for check in checks:
+          if not check(test):
+            break
+        else:
+          retval.append(test)
+      return retval
 
     def get(self, _key=None, inverse=False, tags=None, **kwargs):
 
