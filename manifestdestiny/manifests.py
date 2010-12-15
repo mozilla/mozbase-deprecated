@@ -77,7 +77,7 @@ def read(fp, variables=None, default='DEFAULT',
 
     # ignore blank lines
     if not stripped:
-      # XXX should probably reset key and value to avoid continuation lines
+      # reset key and value to avoid continuation lines
       key = value = None
       continue
 
