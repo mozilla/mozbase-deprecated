@@ -209,7 +209,6 @@ class ManifestParser(object):
                 retval.append(test)
         return retval
 
-
     def get(self, _key=None, inverse=False, tags=None, **kwargs):
 
         # fix up tags
