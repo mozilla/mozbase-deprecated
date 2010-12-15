@@ -47,9 +47,9 @@ import os
 import sys
 from optparse import OptionParser
 
-def read(fp, variables=None, default='DEFAULT',
-         comments=';#', separators=('=', ':'),
-         strict=True):
+def read_ini(fp, variables=None, default='DEFAULT',
+             comments=';#', separators=('=', ':'),
+             strict=True):
   """
   read an .ini file and return a list of [(section, values)]
   - fp : file pointer or name to read
@@ -174,7 +174,7 @@ class ManifestParser(object):
             defaults['here'] = here
 
             # read the configuration
-            sections = read(filename, variables=defaults)
+            sections = read_ini(filename, variables=defaults)
 
             # get the tests
             for section, data in sections:
