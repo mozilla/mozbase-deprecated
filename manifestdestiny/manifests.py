@@ -283,6 +283,8 @@ class TestManifest(ManifestParser):
     def test_paths(self):
         return [test['path'] for test in self.active_tests()]
 
+### command line functions
+
 class ParserError(Exception):
   """error for exceptions while parsing the command line"""
 
