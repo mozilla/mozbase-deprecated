@@ -44,7 +44,7 @@ To recap:
 - you can use it however you want or process it further as you need
 
 Tests are denoted by sections in an .ini file (see
-http://k0s.org/mozilla/hg/ManifestDestiny/file/tip/manifestdestiny/tests/mozmill-example.ini). 
+http://hg.mozilla.org/automation/ManifestDestiny/file/tip/manifestdestiny/tests/mozmill-example.ini). 
 
 Additional manifest files may be included with a [include:] directive:
 

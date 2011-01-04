@@ -52,7 +52,7 @@ def read_ini(fp, variables=None, default='DEFAULT',
              strict=True):
   """
   read an .ini file and return a list of [(section, values)]
-  - fp : file pointer or name to read
+  - fp : file pointer or path to read
   - variables : default set of variables
   - default : name of the section for the default section
   - comments : characters that if they start a line denote a comment
@@ -145,7 +145,7 @@ def read_ini(fp, variables=None, default='DEFAULT',
   sections = [(i, interpret_variables(variables, j)) for i, j in sections]
   return sections
 
-###
+### objects for parsing manifests
 
 class ManifestParser(object):
     """read .ini manifests"""
