@@ -36,10 +36,10 @@
 # ***** END LICENSE BLOCK *****
 from setuptools import setup, find_packages
 
-version = '0.1.1'
+version = '0.1.2'
 
 try:
-    filename = os.path.join(os.path.dirname(__file__), 'ROADMAP.txt')
+    filename = os.path.join(os.path.dirname(__file__), 'README.txt')
     description = file(filename).read()
 except:    
     description = ''
