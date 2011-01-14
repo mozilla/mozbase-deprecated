@@ -83,3 +83,47 @@ Write the output to a manifest:
     >>> parser.write(fp=buffer, global_kwargs={'foo': 'bar'})
     >>> buffer.getvalue().strip()
     '[DEFAULT]\nfoo = bar\n\n[fleem]\n\n[include/flowers]\nblue = ocean\nred = roses\nyellow = submarine'
+
+Test our ability to convert a static directory structure to a
+manifest. First, stub out a directory with files in it::
+
+    >>> import shutil, tempfile
+    >>> def create_stub():
+    ...     directory = tempfile.mkdtemp()
+    ...     for i in 'foo', 'bar', 'fleem':
+    ...         file(os.path.join(directory, i), 'w').write(i)
+    ...     subdir = os.path.join(directory, 'subdir')
+    ...     os.mkdir(subdir)
+    ...     file(os.path.join(subdir, 'subfile'), 'w').write('baz')
+    ...     return directory
+    >>> stub = create_stub()
+    >>> os.path.exists(stub) and os.path.isdir(stub)
+    True
+
+Make a manifest for it:
+
+    >>> from manifestdestiny import convert
+    >>> print convert.convert([stub])
+    [bar]
+    [fleem]
+    [foo]
+    [subdir/subfile]
+    >>> shutil.rmtree(stub)
+
+Now do the same thing but keep the manifests in place:
+
+    >>> stub = create_stub()
+    >>> convert.convert([stub], write='manifest.ini')
+    >>> sorted(os.listdir(stub))
+    ['bar', 'fleem', 'foo', 'manifest.ini', 'subdir']
+    >>> parser = ManifestParser()
+    >>> parser.read(os.path.join(stub, 'manifest.ini'))
+    >>> [i['name'] for i in parser.tests]
+    ['subfile', 'bar', 'fleem', 'foo']
+    >>> parser = ManifestParser()
+    >>> parser.read(os.path.join(stub, 'subdir', 'manifest.ini'))
+    >>> len(parser.tests)
+    1
+    >>> parser.tests[0]['name']
+    'subfile'
+    >>> shutil.rmtree(stub)

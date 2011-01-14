@@ -83,7 +83,8 @@ def convert(directories, pattern=None, ignore=(), write=None):
                      for filename in filenames])
 
   if write:
-    return
+    return # the manifests have already been written!
+  
   retval.sort()
   retval = ['[%s]' % filename for filename in retval]
   return '\n'.join(retval)
