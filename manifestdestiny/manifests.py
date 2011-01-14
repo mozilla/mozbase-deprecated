@@ -154,6 +154,7 @@ class ManifestParser(object):
         self._defaults = defaults or {}
         self.tests = []
         self.strict = strict
+        self.root = None
         if manifests:
             self.read(*manifests)
 
@@ -168,10 +169,16 @@ class ManifestParser(object):
         # process each file
         for filename in filenames:
 
+
             # set the per file defaults
             defaults = defaults.copy() or self._defaults.copy()
             here = os.path.dirname(os.path.abspath(filename))
             defaults['here'] = here
+
+            if self.root is None:
+                # set the root directory
+                # == the directory of the first manifest given
+                self.root = here
 
             # read the configuration
             sections = read_ini(filename, variables=defaults)
@@ -301,7 +308,10 @@ class ManifestParser(object):
         for test in tests:
           test = test.copy() # don't overwrite
 
-          print >> fp, '[%s]' % test['name']
+          path = test['name']
+          if not os.path.isabs(path):
+            path = os.path.relpath(test['path'], self.root)
+          print >> fp, '[%s]' % path
           
           # reserved keywords:
           reserved = ['path', 'name', 'here', 'manifest']

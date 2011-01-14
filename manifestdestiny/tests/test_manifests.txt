@@ -82,4 +82,4 @@ Write the output to a manifest:
     >>> buffer = StringIO()
     >>> parser.write(fp=buffer, global_kwargs={'foo': 'bar'})
     >>> buffer.getvalue().strip()
-    '[DEFAULT]\nfoo = bar\n\n[fleem]\n\n[flowers]\nblue = ocean\nred = roses\nyellow = submarine'
+    '[DEFAULT]\nfoo = bar\n\n[fleem]\n\n[include/flowers]\nblue = ocean\nred = roses\nyellow = submarine'
