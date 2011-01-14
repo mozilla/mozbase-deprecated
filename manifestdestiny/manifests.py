@@ -296,12 +296,24 @@ class ManifestParser(object):
             print >> fp, '%s =' % tag
           for key, value in global_kwargs.items():
             print >> fp, '%s = %s' % (key, value)
+          print >> fp
 
         for test in tests:
           test = test.copy() # don't overwrite
 
+          print >> fp, '[%s]' % test['name']
+          
           # reserved keywords:
-          # path, name, here, manifest
+          reserved = ['path', 'name', 'here', 'manifest']
+          for key in sorted(test.keys()):
+            if key in reserved:
+              continue
+            if key in global_kwargs:
+              continue
+            if key in global_tags and not test[key]:
+              continue
+            print >> fp, '%s = %s' % (key, test[key])
+          print >> fp
 
 class TestManifest(ManifestParser):
     """
@@ -386,14 +398,8 @@ def main(args=sys.argv[1:]):
     manifests = ManifestParser()
     manifests.read(*args)
 
-    # perform a query
-    tests = manifests.get(*tags, **kwargs)
-
-    # print the results
-    # TODO: print these in a manner such that they are written out to
-    # a new manifest!
-    for test in tests:
-        print test
+    # print the resultant query
+    manifests.write(global_tags=tags, global_kwargs=kwargs)
 
 if __name__ == '__main__':
     main()
