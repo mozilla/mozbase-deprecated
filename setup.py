@@ -40,7 +40,8 @@ from setuptools import setup, find_packages
 version = '0.1.3'
 
 try:
-    filename = os.path.join(os.path.dirname(__file__), 'README.txt')
+    here = os.path.dirname(os.path.abspath(__file__))
+    filename = os.path.join(here, 'README.txt')
     description = file(filename).read()
 except:    
     description = ''

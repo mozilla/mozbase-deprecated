@@ -1,23 +1,43 @@
 ManifestDestiny
 ===============
 
+Universal manifests for Mozilla test harnesses
+
+
+What is ManifestDestiny?
+------------------------
+
 What ManifestDestiny gives you is:
-- manifests are (ordered) lists of tests
-- tests may have an arbitrary number of key, value pairs
-- the parser returns an ordered list of test data structures, which
+
+* manifests are (ordered) lists of tests
+* tests may have an arbitrary number of key, value pairs
+* the parser returns an ordered list of test data structures, which
   are just dicts with some keys.  For example, a test with no
   user-specified metadata looks like this::
 
-  {'path':
-   '/home/jhammel/mozmill/src/ManifestDestiny/manifestdestiny/tests/testToolbar/testBackForwardButtons.js',
-   'name': 'testToolbar/testBackForwardButtons.js', 'here':
-   '/home/jhammel/mozmill/src/ManifestDestiny/manifestdestiny/tests',
-   'manifest': 'tests/mozmill-example.ini'}
+  [{'path':
+    '/home/jhammel/mozmill/src/ManifestDestiny/manifestdestiny/tests/testToolbar/testBackForwardButtons.js',
+    'name': 'testToolbar/testBackForwardButtons.js', 'here':
+    '/home/jhammel/mozmill/src/ManifestDestiny/manifestdestiny/tests',
+    'manifest': 'tests/mozmill-example.ini'}]
+
+The keys displayed here (path, name, here, and manifest) are reserved
+words for ManifestDestiny and any consuming APIs.
+
+* path: path to the test
+* name: short name of the test; this is the (usually) relative path
+  specified in the section name
+* here: the parent directory of the manifest
+* manifest: the path to the manifest
+
+This data corresponds to a one-line manifest:
+
+ [testToolbar/testBackForwardButtons.js]
 
 If additional key, values were specified, they would be in this dict
 as well.
 
-Outside of 'path' (the path to the test), the remaining key, values
+Outside of the reserved keys, the remaining key, values
 are up to convention to use.  There is a (currently very minimal)
 generic integration layer in ManifestDestiny for use of all tests.
 For instance, if the 'disabled' key is present, you can get the set of
@@ -39,20 +59,45 @@ mondays for a certain class of tests::
         tests.append(test)
 
 To recap:
-- the manifests allow you to specify test data
-- the parser gives you this data
-- you can use it however you want or process it further as you need
+* the manifests allow you to specify test data
+* the parser gives you this data
+* you can use it however you want or process it further as you need
 
 Tests are denoted by sections in an .ini file (see
 http://hg.mozilla.org/automation/ManifestDestiny/file/tip/manifestdestiny/tests/mozmill-example.ini). 
 
-Additional manifest files may be included with a [include:] directive:
+Additional manifest files may be included with a [include:] directive::
 
-[include:path-to-additional-file.manifest]
+ [include:path-to-additional-file.manifest]
 
 The path to included files is relative to the current manifest.
 
-The [DEFAULT] section contains variables that all tests inherit from.
+The ``[DEFAULT]`` section contains variables that all tests inherit from.
 
 Included files will inherit the top-level variables but may override
-in their own [DEFAULT] section.
+in their own ``[DEFAULT]`` section.
+
+
+Creating Manifests
+------------------
+
+ManifestDestiny comes with a console script, ``create-manifest``, that
+may be used to create a seed manifest structure from a directory of
+files.  Run ``create-manifest --help`` for usage information.
+
+
+Copying Manifests
+-----------------
+
+[TODO]
+
+
+Tests
+-----
+
+ManifestDestiny includes a suite of tests:
+
+http://hg.mozilla.org/automation/ManifestDestiny/file/tip/manifestdestiny/tests
+
+``test_manifest.txt`` is a doctest that may be helpful in figuring out
+how to use the API.  Tests are run via ``python test.py``.
