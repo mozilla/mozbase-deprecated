@@ -180,6 +180,8 @@ class ManifestParser(object):
             for section, data in sections:
 
                 # a file to include
+                # TODO: keep track of structure:
+                # self.manifests = {'manifest.ini': 'relative/path.ini'}
                 if section.startswith('include:'):
                     include_file = section.split('include:', 1)[-1]
                     include_file = os.path.join(here, include_file)
@@ -214,6 +216,11 @@ class ManifestParser(object):
       return retval
 
     def get(self, _key=None, inverse=False, tags=None, **kwargs):
+        # TODO: pass a dict instead of kwargs since you might hav
+        # e.g. 'inverse' as a key in the dict
+
+        # TODO: tags should just be part of kwargs with None values
+        # (None == any is kinda weird, but probably still better)
 
         # fix up tags
         if tags:
@@ -264,6 +271,37 @@ class ManifestParser(object):
         globals will be written to the top of the file
         locals (if given) will be written per test
         """
+
+        # sanitize input
+        global_tags = global_tags or set()
+        local_tags = local_tags or set()
+        global_kwargs = global_kwargs or {}
+        local_kwargs = local_kwargs or {}
+        
+        # create the query
+        tags = set([])
+        tags.update(global_tags)
+        tags.update(local_tags)
+        kwargs = {}
+        kwargs.update(global_kwargs)
+        kwargs.update(local_kwargs)
+
+        # get matching tests
+        tests = self.get(tags=tags, **kwargs)
+
+        # print the .ini manifest
+        if global_tags or global_kwargs:
+          print >> fp, '[DEFAULT]'
+          for tag in global_tags:
+            print >> fp, '%s =' % tag
+          for key, value in global_kwargs.items():
+            print >> fp, '%s = %s' % (key, value)
+
+        for test in tests:
+          test = test.copy() # don't overwrite
+
+          # reserved keywords:
+          # path, name, here, manifest
 
 class TestManifest(ManifestParser):
     """
@@ -326,8 +364,10 @@ def parse_args(_args):
 def main(args=sys.argv[1:]):
 
     # set up an option parser ...this is mostly for show
-    usage = '%prog [options] manifest <manifest> <...>'
-    parser = OptionParser(usage=usage)
+    usage = '%prog -tag <...> --key=value <...> manifest <manifest> <...>'
+    description = __doc__
+    description += '\nget tests with given keys and/or values'
+    parser = OptionParser(usage=usage, description=description)
 
     # actually parse the arguments in an unrelated way
     try:
@@ -339,6 +379,7 @@ def main(args=sys.argv[1:]):
     # be quite boring
     if not args:
         parser.print_usage()
+        print parser.description
         parser.exit()
 
     # read the manifests

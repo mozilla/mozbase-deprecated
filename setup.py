@@ -34,9 +34,10 @@
 # the terms of any one of the MPL, the GPL or the LGPL.
 # 
 # ***** END LICENSE BLOCK *****
+import os
 from setuptools import setup, find_packages
 
-version = '0.1.2'
+version = '0.1.3'
 
 try:
     filename = os.path.join(os.path.dirname(__file__), 'README.txt')
@@ -63,5 +64,6 @@ setup(name='ManifestDestiny',
       entry_points="""
       [console_scripts]
       create-manifest = manifestdestiny.convert:main
+      query-manifest = manifestdestiny.manifests:main
       """,
       )
