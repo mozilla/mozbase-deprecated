@@ -68,7 +68,9 @@ def convert(directories, pattern=None, ignore=(), write=None):
                      if fnmatch(filename, pattern)]
 
       filenames.sort()
-      if write:
+
+      # write a manifest for each directory
+      if write and (dirnames or filenames):
         manifest = file(os.path.join(_dirpath, write), 'w')
         for dirname in dirnames:
           print >> manifest, '[include:%s]' % os.path.join(dirname, write)
