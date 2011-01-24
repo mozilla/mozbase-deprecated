@@ -127,3 +127,8 @@ Now do the same thing but keep the manifests in place:
     >>> parser.tests[0]['name']
     'subfile'
     >>> shutil.rmtree(stub)
+
+Test our ability to copy a set of manifests:
+
+    >>> stub = create_stub()
+    >>> shutil.rmtree(stub)
