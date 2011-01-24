@@ -22,9 +22,10 @@ Show how you select subsets of tests:
     >>> restart_tests = parser.get(type='restart')
     >>> len(restart_tests) < len(parser.tests)
     True
-    >>> len(restart_tests) == len(parser.get(manifest='mozmill-restart-example.ini'))
+    >>> import os
+    >>> len(restart_tests) == len(parser.get(manifest=os.path.abspath('mozmill-restart-example.ini')))
     True
-    >>> assert not [test for test in restart_tests if test['manifest'] != 'mozmill-restart-example.ini']
+    >>> assert not [test for test in restart_tests if test['manifest'] != os.path.abspath('mozmill-restart-example.ini')]
     >>> parser.get('name', tags=['foo'])
     ['restartTests/testExtensionInstallUninstall/test2.js', 'restartTests/testExtensionInstallUninstall/test1.js']
     >>> parser.get('name', foo='bar')
@@ -130,5 +131,8 @@ Now do the same thing but keep the manifests in place:
 
 Test our ability to copy a set of manifests:
 
-    >>> stub = create_stub()
-    >>> shutil.rmtree(stub)
+    >>> tempdir = tempfile.mkdtemp()
+    >>> to_manifest = os.path.join(tempdir, 'to_manifest.ini')
+    >>> from manifestdestiny.copy import copy
+    >>> copy('include-example.ini', to_manifest)
+    >>> shutil.rmtree(tempdir)

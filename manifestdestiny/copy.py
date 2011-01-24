@@ -14,11 +14,6 @@ def copy(from_manifest, to_manifest, *tags, **kwargs):
     from_dir = os.path.dirname(os.path.abspath(from_manifest))
     manifest = manifests.ManifestParser(manifests=(from_manifest,))
 
-    # tests to copy
-    copy_tests = []
-    for test in manifest.tests:
-        pass
-
     # destination
     if os.path.isdir(to_manifest):
         to_dir = os.path.abspath(to_manifest)
@@ -39,8 +34,14 @@ def copy(from_manifest, to_manifest, *tags, **kwargs):
                 # sanity check
                 assert os.path.isdir(to_dir)
 
+    # tests to copy
+    tests = manifest.get(tags=tags, **kwargs)
+
     # copy the damn things
-    
+    if not tests:
+        return # nothing to do!
+    _manifests = [test['manifest'] for test in tests]
+    _manifests = [os.path.relpath(_manifest) for _manifest in _manifests]
 
 
 def main(args=sys.argv[1:]):

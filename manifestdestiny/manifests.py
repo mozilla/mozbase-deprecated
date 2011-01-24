@@ -169,7 +169,6 @@ class ManifestParser(object):
         # process each file
         for filename in filenames:
 
-
             # set the per file defaults
             defaults = defaults.copy() or self._defaults.copy()
             here = os.path.dirname(os.path.abspath(filename))
@@ -205,7 +204,7 @@ class ManifestParser(object):
                 test = data
                 test['name'] = section
                 test['path'] = os.path.join(here, section)
-                test['manifest'] = filename
+                test['manifest'] = os.path.abspath(filename)
                 self.tests.append(test)
 
     def query(self, *checks):
