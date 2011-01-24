@@ -72,10 +72,10 @@ Using the inverse flag should invert the set of tests returned:
     >>> parser.get('name', inverse=True, tags=['red'])
     ['crash-handling', 'fleem']
 
-All of the include tests don't actually exist:
+All of the included tests actually exist:
 
     >>> [i['name'] for i in parser.missing()]
-    ['crash-handling', 'fleem', 'flowers']
+    []
 
 Write the output to a manifest:
 
@@ -136,5 +136,7 @@ Test our ability to copy a set of manifests:
     >>> from manifestdestiny.copy import copy
     >>> copy('include-example.ini', to_manifest)
     >>> sorted(os.listdir(tempdir))
-    ['include', 'include-example.ini']
+    ['fleem', 'include', 'include-example.ini']
+    >>> sorted(os.listdir(os.path.join(tempdir, 'include')))
+    ['bar.ini', 'crash-handling', 'flowers', 'foo.ini']
     >>> shutil.rmtree(tempdir)

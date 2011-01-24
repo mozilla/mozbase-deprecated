@@ -56,14 +56,13 @@ def copy(from_manifest, to_manifest, *tags, **kwargs):
             assert os.path.isdir(dirname)
         shutil.copy(os.path.join(from_dir, _manifest), destination)
     for test in tests:
-        path = test['name']
-        if not os.path.isabs(path):
-            source = os.path.join(os.path.dirname(test['manifest']), path)
+        if not os.path.isabs(test['name']):
+            source = test['path']
             if not os.path.exists(source):
                 print >> sys.stderr, "Missing test: '%s' does not exist!" % source
                 continue
-            shutil.copy(source,
-                        os.path.join(to_dir, path))
+            destination = os.path.join(to_dir, os.path.relpath(test['path'], from_dir))
+            shutil.copy(source, destination)
             # TODO: ensure that all of the tests are below the from_dir
         
             
