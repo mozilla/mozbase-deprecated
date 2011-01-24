@@ -58,7 +58,7 @@ def copy(from_manifest, to_manifest, *tags, **kwargs):
     for test in tests:
         path = test['name']
         if not os.path.isabs(path):
-            source = os.path.join(from_dir, path)
+            source = os.path.join(os.path.dirname(test['manifest']), path)
             if not os.path.exists(source):
                 print >> sys.stderr, "Missing test: '%s' does not exist!" % source
                 continue
