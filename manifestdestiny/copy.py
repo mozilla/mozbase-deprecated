@@ -81,7 +81,7 @@ def update(manifest, from_dir, *tags, **kwargs):
     - tags : keys the tests must have
     - kwargs : key, values the tests must match
     """
-
+    
     # parse the manifests
     assert os.path.exists(manifest), "'%s' does not exist"
     manifest_dir = os.path.dirname(os.path.abspath(manifest))
@@ -93,12 +93,13 @@ def update(manifest, from_dir, *tags, **kwargs):
     # copy them!
     for test in tests:
         if not os.path.isabs(test['name']):
-            source = os.path.join(from_dir, test['name'])
+            relpath = os.path.relpath(test['path'], manifest_dir)
+            source = os.path.join(from_dir, relpath)
             if not os.path.exists(source):
-                print >> sys.stderr, "Missing test: '%s'; skipping" % test['path']
+                print >> sys.stderr, "Missing test: '%s'; skipping" % test['name']
                 continue
-            destination = os.path.join(manifest_dir, test['name'])
-    
+            destination = os.path.join(manifest_dir, relpath)
+            shutil.copy(source, destination)
 
 ### command line entry points
             

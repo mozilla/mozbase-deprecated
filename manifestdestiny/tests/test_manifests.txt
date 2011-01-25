@@ -1,7 +1,7 @@
 Test the manifest parser
 ========================
 
-Ensure basic parser is sane:
+Ensure basic parser is sane::
 
     >>> from manifestdestiny import ManifestParser
     >>> parser = ManifestParser()
@@ -101,7 +101,7 @@ manifest. First, stub out a directory with files in it::
     >>> os.path.exists(stub) and os.path.isdir(stub)
     True
 
-Make a manifest for it:
+Make a manifest for it::
 
     >>> from manifestdestiny import convert
     >>> print convert.convert([stub])
@@ -111,7 +111,7 @@ Make a manifest for it:
     [subdir/subfile]
     >>> shutil.rmtree(stub)
 
-Now do the same thing but keep the manifests in place:
+Now do the same thing but keep the manifests in place::
 
     >>> stub = create_stub()
     >>> convert.convert([stub], write='manifest.ini')
@@ -129,7 +129,7 @@ Now do the same thing but keep the manifests in place:
     'subfile'
     >>> shutil.rmtree(stub)
 
-Test our ability to copy a set of manifests:
+Test our ability to copy a set of manifests::
 
     >>> tempdir = tempfile.mkdtemp()
     >>> to_manifest = os.path.join(tempdir, 'to_manifest.ini')
@@ -144,3 +144,48 @@ Test our ability to copy a set of manifests:
     >>> to_manifest.get('name') == from_manifest.get('name')
     True
     >>> shutil.rmtree(tempdir)
+
+Test our ability to update tests from a manifest and a directory of
+files::
+
+    >>> tempdir = tempfile.mkdtemp()
+    >>> for i in range(10):
+    ...     file(os.path.join(tempdir, str(i)), 'w').write(str(i))
+
+First, make a manifest::
+
+    >>> manifest = convert.convert([tempdir])
+    >>> newtempdir = tempfile.mkdtemp()
+    >>> manifest_file = os.path.join(newtempdir, 'manifest.ini')
+    >>> file(manifest_file,'w').write(manifest)
+    >>> manifest = ManifestParser(manifests=(manifest_file,))
+    >>> manifest.get('name') == [str(i) for i in range(10)]
+    True
+
+All of the tests are initially missing::
+
+    >>> [i['name'] for i in manifest.missing()] == [str(i) for i in range(10)]
+    True
+
+But then we copy one over::
+
+    >>> manifest.get('name', name='1')
+    ['1']
+    >>> from manifestdestiny.copy import update
+    >>> update(manifest_file, tempdir, name='1')
+    >>> sorted(os.listdir(newtempdir))
+    ['1', 'manifest.ini']
+
+Update that one file and copy all the "tests"::
+   
+    >>> file(os.path.join(tempdir, '1'), 'w').write('secret door')
+    >>> update(manifest_file, tempdir)
+    >>> sorted(os.listdir(newtempdir))
+    ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'manifest.ini']
+    >>> file(os.path.join(newtempdir, '1')).read().strip()
+    'secret door'
+
+Clean up::
+
+    >>> shutil.rmtree(tempdir)
+    >>> shutil.rmtree(newtempdir)
