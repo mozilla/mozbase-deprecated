@@ -93,10 +93,11 @@ def update(manifest, from_dir, *tags, **kwargs):
     # copy them!
     for test in tests:
         if not os.path.isabs(test['name']):
-            if not os.path.exists(test['path']):
+            source = os.path.join(from_dir, test['name'])
+            if not os.path.exists(source):
                 print >> sys.stderr, "Missing test: '%s'; skipping" % test['path']
                 continue
-            destination = os.path.join(manifest_dir, os.path.relpath, test['path'], from_dir)
+            destination = os.path.join(manifest_dir, test['name'])
     
 
 ### command line entry points
