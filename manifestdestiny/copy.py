@@ -44,8 +44,8 @@ def copy(from_manifest, to_manifest, *tags, **kwargs):
     _manifests = [test['manifest'] for test in tests
                   if test['manifest'] != os.path.abspath(from_manifest)]
     _manifests = [os.path.relpath(_manifest, from_dir) for _manifest in _manifests]
-    _manifests.append(os.path.basename(from_manifest))
     _manifests = set(_manifests)
+    shutil.copy(from_manifest, to_manifest)
     for _manifest in _manifests:
         destination = os.path.join(to_dir, _manifest)
         dirname = os.path.dirname(destination)

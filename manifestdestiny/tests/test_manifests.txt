@@ -136,7 +136,9 @@ Test our ability to copy a set of manifests:
     >>> from manifestdestiny.copy import copy
     >>> copy('include-example.ini', to_manifest)
     >>> sorted(os.listdir(tempdir))
-    ['fleem', 'include', 'include-example.ini']
+    ['fleem', 'include', 'to_manifest.ini']
     >>> sorted(os.listdir(os.path.join(tempdir, 'include')))
     ['bar.ini', 'crash-handling', 'flowers', 'foo.ini']
+    >>> from_manifest = ManifestParser(manifests=('include-example.ini',))
+    >>> to_manifest = ManifestParser(manifests=(to_manifest,))
     >>> shutil.rmtree(tempdir)
