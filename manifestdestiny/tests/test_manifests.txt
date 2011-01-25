@@ -141,4 +141,5 @@ Test our ability to copy a set of manifests:
     ['bar.ini', 'crash-handling', 'flowers', 'foo.ini']
     >>> from_manifest = ManifestParser(manifests=('include-example.ini',))
     >>> to_manifest = ManifestParser(manifests=(to_manifest,))
+    >>> to_manifest.get('name')
     >>> shutil.rmtree(tempdir)
