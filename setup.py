@@ -64,8 +64,9 @@ setup(name='ManifestDestiny',
       ],
       entry_points="""
       [console_scripts]
-      copy-manifest = manifestdestiny.copy:main
+      copy-manifest = manifestdestiny.copy:copy_main
       create-manifest = manifestdestiny.convert:main
       query-manifest = manifestdestiny.manifests:main
+      update-manifest = manifestdestiny.copy:update_main
       """,
       )
