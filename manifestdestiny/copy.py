@@ -104,7 +104,7 @@ def update(manifest, from_dir, *tags, **kwargs):
             
 def copy_main(args=sys.argv[1:]):
 
-    # set up option parser
+    # set up an option parser
     usage = '%prog [options] from_manifest.ini to_manifest.ini'
     parser = OptionParser(usage=usage, description=__doc__)
     options, args = parser.parse_args(args)
@@ -118,9 +118,20 @@ def copy_main(args=sys.argv[1:]):
     copy(args[0], args[1])
 
 def update_main(args=sys.argv[1:]):
+
+    # set up an option parser
     usage = '%prog [options] manifest from_dir'
     parser = OptionParser(usage=usage,
                           description='update the tests associated with a manifest')
+
+
+    # ensure correct number of arguments are passed
+    if len(args) != 2:
+        parser.print_usage()
+        parser.exit()
+
+    # do the thing
+    update(args[0], args[1])
 
 if __name__ == '__main__':
     copy_main() # only get one choice
