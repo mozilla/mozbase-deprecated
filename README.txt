@@ -142,3 +142,26 @@ http://hg.mozilla.org/automation/ManifestDestiny/file/tip/manifestdestiny/tests
 
 ``test_manifest.txt`` is a doctest that may be helpful in figuring out
 how to use the API.  Tests are run via ``python test.py``.
+
+
+CLI
+---
+
+[TODO: this is all spec; not implemented yet]
+
+To create a manifest from a set of directories::
+
+ manifests [options] create directory <directory> <...> [create-options]
+
+To output a manifest of tests::
+
+ manifests [options] write manifest <manifest> <...> -tag1 -tag2 --key1=value1 --key2=value2 ...
+
+To copy tests and manifests from a source::
+
+ manifests [options] copy from_manifest to_manifest -tag1 -tag2 --key1=value1 key2=value2 ...
+
+To update the tests associated with with a manifest from a source
+directory::
+
+ manifests [options] update manifest from_directory -tag1 -tag2 --key1=value1 --key2=value2 ...
