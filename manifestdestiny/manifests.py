@@ -280,16 +280,33 @@ class ManifestParser(object):
         """
         if tests is None:
             tests = self.tests
+        manifests = []
+        for test in tests:
+            manifest = test.get('manifest')
+            if not manifest:
+                continue
+            if manifest not in manifests:
+                manifests.append(manifest)
+        return manifests
 
     def rootdir(self, tests=None):
         """
-        return the root directory of all tests + manifests
-        that aren't absolute paths
+        return the root directory of all manifests
         """
-
         if tests is None:
             tests = self.tests
-        raise NotImplementedError # TODO!
+        rootdir = None
+        for test in tests:
+            here = test.get('here')
+            if not here:
+                continue
+            if rootdir is None:
+                rootdir = here
+                continue
+            shorter, longer = sorted([rootdir, here])
+            assert longer.startswith(shorter)
+            rootdir = shorter
+        return rootdir
 
     ### methods for outputting from manifests
 
