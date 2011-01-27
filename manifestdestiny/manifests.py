@@ -44,6 +44,7 @@ Mozilla universal manifest parser
 __all__ = ['ManifestParser', 'TestManifest', 'convert']
 
 import os
+import shutil
 import sys
 from fnmatch import fnmatch
 from optparse import OptionParser
@@ -407,25 +408,24 @@ class ManifestParser(object):
       - kwargs : key, values the tests must match
       """
     
-
       # get the tests
       tests = self.get(tags=tags, **kwargs)
 
       # get the root directory
       if not rootdir:
-        rootdir = self.rootdir(tests)
-
+          rootdir = self.rootdir(tests)
 
       # copy them!
       for test in tests:
-        if not os.path.isabs(test['name']):
-          relpath = os.path.relpath(test['path'], roodir)
-          source = os.path.join(from_dir, relpath)
-          if not os.path.exists(source):
-            print >> sys.stderr, "Missing test: '%s'; skipping" % test['name']
-            continue
-          destination = os.path.join(manifest_dir, relpath)
-          shutil.copy(source, destination)
+          if not os.path.isabs(test['name']):
+              relpath = os.path.relpath(test['path'], rootdir)
+              source = os.path.join(from_dir, relpath)
+              if not os.path.exists(source):
+                  # TODO err on strict
+                  print >> sys.stderr, "Missing test: '%s'; skipping" % test['name']
+                  continue
+              destination = os.path.join(rootdir, relpath)
+              shutil.copy(source, destination)
 
 
 class TestManifest(ManifestParser):
@@ -655,10 +655,10 @@ class UpdateCLI(CLICommand):
       manifests.update(args[1])
 
 
-
 # command -> class mapping
 commands = { 'create': CreateCLI,
              'help': HelpCLI,
+             'update': UpdateCLI,
              'write': WriteCLI }
 
 def main(args=sys.argv[1:]):

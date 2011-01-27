@@ -73,34 +73,6 @@ def copy(from_manifest, to_manifest, *tags, **kwargs):
             shutil.copy(source, destination)
             # TODO: ensure that all of the tests are below the from_dir
 
-def update(manifest, from_dir, *tags, **kwargs):
-    """
-    update the tests as listed in a manifest from a directory
-    - manifest : manifest to update tests for and relative to
-    - from_dir : directory where the tests live
-    - tags : keys the tests must have
-    - kwargs : key, values the tests must match
-    """
-    
-    # parse the manifests
-    assert os.path.exists(manifest), "'%s' does not exist"
-    manifest_dir = os.path.dirname(os.path.abspath(manifest))
-    manifest = manifests.ManifestParser(manifests=(manifest,))
-
-    # get the tests
-    tests = manifest.get(tags=tags, **kwargs)
-
-    # copy them!
-    for test in tests:
-        if not os.path.isabs(test['name']):
-            relpath = os.path.relpath(test['path'], manifest_dir)
-            source = os.path.join(from_dir, relpath)
-            if not os.path.exists(source):
-                print >> sys.stderr, "Missing test: '%s'; skipping" % test['name']
-                continue
-            destination = os.path.join(manifest_dir, relpath)
-            shutil.copy(source, destination)
-
 ### command line entry points
             
 def copy_main(args=sys.argv[1:]):
@@ -117,22 +89,6 @@ def copy_main(args=sys.argv[1:]):
 
     # do the thing
     copy(args[0], args[1])
-
-def update_main(args=sys.argv[1:]):
-
-    # set up an option parser
-    usage = '%prog [options] manifest from_dir'
-    parser = OptionParser(usage=usage,
-                          description='update the tests associated with a manifest')
-
-
-    # ensure correct number of arguments are passed
-    if len(args) != 2:
-        parser.print_usage()
-        parser.exit()
-
-    # do the thing
-    update(args[0], args[1])
 
 if __name__ == '__main__':
     copy_main() # only get one choice
