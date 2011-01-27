@@ -51,100 +51,100 @@ from optparse import OptionParser
 def read_ini(fp, variables=None, default='DEFAULT',
              comments=';#', separators=('=', ':'),
              strict=True):
-  """
-  read an .ini file and return a list of [(section, values)]
-  - fp : file pointer or path to read
-  - variables : default set of variables
-  - default : name of the section for the default section
-  - comments : characters that if they start a line denote a comment
-  - separators : strings that denote key, value separation in order
-  - strict : whether to be strict about parsing
-  """
+    """
+    read an .ini file and return a list of [(section, values)]
+    - fp : file pointer or path to read
+    - variables : default set of variables
+    - default : name of the section for the default section
+    - comments : characters that if they start a line denote a comment
+    - separators : strings that denote key, value separation in order
+    - strict : whether to be strict about parsing
+    """
 
-  if variables is None:
-    variables = {}
+    if variables is None:
+        variables = {}
 
-  if isinstance(fp, basestring):
-    fp = file(fp)
+    if isinstance(fp, basestring):
+        fp = file(fp)
 
-  sections = []
-  key = value = None
-  section_names = set([])
+    sections = []
+    key = value = None
+    section_names = set([])
 
-  # read the lines
-  for line in fp.readlines():
+    # read the lines
+    for line in fp.readlines():
 
-    stripped = line.strip()
+        stripped = line.strip()
 
-    # ignore blank lines
-    if not stripped:
-      # reset key and value to avoid continuation lines
-      key = value = None
-      continue
+        # ignore blank lines
+        if not stripped:
+            # reset key and value to avoid continuation lines
+            key = value = None
+            continue
 
-    # ignore comment lines
-    if stripped[0] in comments:
-      continue
+        # ignore comment lines
+        if stripped[0] in comments:
+            continue
 
-    # check for a new section
-    if len(stripped) > 2 and stripped[0] == '[' and stripped[-1] == ']':
-      section = stripped[1:-1].strip()
-      key = value = None
+        # check for a new section
+        if len(stripped) > 2 and stripped[0] == '[' and stripped[-1] == ']':
+            section = stripped[1:-1].strip()
+            key = value = None
 
-      # deal with DEFAULT section
-      if section.lower() == default.lower():
-        if strict:
-          assert default not in section_names
-        section_names.add(default)
-        current_section = variables
-        continue
+            # deal with DEFAULT section
+            if section.lower() == default.lower():
+                if strict:
+                    assert default not in section_names
+                section_names.add(default)
+                current_section = variables
+                continue
 
-      if strict:
-        # make sure this section doesn't already exist
-        assert section not in section_names
+            if strict:
+                # make sure this section doesn't already exist
+                assert section not in section_names
 
-      section_names.add(section)
+            section_names.add(section)
 
-      current_section = {}
-      sections.append((section, current_section))
-      continue
+            current_section = {}
+            sections.append((section, current_section))
+            continue
 
-    # if there aren't any sections yet, something bad happen
-    if not section_names:
-      raise Exception('No sections yet :(')
+        # if there aren't any sections yet, something bad happen
+        if not section_names:
+            raise Exception('No sections yet :(')
 
-    # (key, value) pair
-    for separator in separators:
-      if separator in stripped:
-        key, value = stripped.split(separator, 1)
-        key = key.strip()
-        value = value.strip()
+        # (key, value) pair
+        for separator in separators:
+            if separator in stripped:
+                key, value = stripped.split(separator, 1)
+                key = key.strip()
+                value = value.strip()
 
-        if strict:
-          # make sure this key isn't already in the section or empty
-          assert key
-          if current_section is not variables:
-            assert key not in current_section
+                if strict:
+                    # make sure this key isn't already in the section or empty
+                    assert key
+                    if current_section is not variables:
+                        assert key not in current_section
 
-        current_section[key] = value
-        break
-    else:
-      # continuation line ?
-      if line[0].isspace() and key:
-        value = '%s%s%s' % (value, os.linesep, stripped)
-        current_section[key] = value
-      else:
-        # something bad happen!
-        raise Exception("Not sure what you're trying to do")
+                current_section[key] = value
+                break
+        else:
+            # continuation line ?
+            if line[0].isspace() and key:
+                value = '%s%s%s' % (value, os.linesep, stripped)
+                current_section[key] = value
+            else:
+                # something bad happen!
+                raise Exception("Not sure what you're trying to do")
 
-  # interpret the variables
-  def interpret_variables(global_dict, local_dict):
-    variables = global_dict.copy()
-    variables.update(local_dict)
-    return variables
+    # interpret the variables
+    def interpret_variables(global_dict, local_dict):
+        variables = global_dict.copy()
+        variables.update(local_dict)
+        return variables
 
-  sections = [(i, interpret_variables(variables, j)) for i, j in sections]
-  return sections
+    sections = [(i, interpret_variables(variables, j)) for i, j in sections]
+    return sections
 
 
 ### objects for parsing manifests
@@ -274,12 +274,22 @@ class ManifestParser(object):
         return [test for test in tests
                 if not os.path.exists(test['path'])]
 
-    def rootdir(self):
-      """
-      return the root directory of all tests + manifests
-      that aren't absolute paths
-      """
-      
+    def manifests(self, tests=None):
+        """
+        return manifests in order in which they appear in the tests
+        """
+        if tests is None:
+            tests = self.tests
+
+    def rootdir(self, tests=None):
+        """
+        return the root directory of all tests + manifests
+        that aren't absolute paths
+        """
+
+        if tests is None:
+            tests = self.tests
+        raise NotImplementedError # TODO!
 
     ### methods for outputting from manifests
 
@@ -370,6 +380,35 @@ class ManifestParser(object):
 
       # tests to copy
       tests = manifest.get(tags=tags, **kwargs)
+
+    def update(self, from_dir, rootdir=None, *tags, **kwargs):
+      """
+      update the tests as listed in a manifest from a directory
+      - manifest : manifest to update tests for and relative to
+      - from_dir : directory where the tests live
+      - tags : keys the tests must have
+      - kwargs : key, values the tests must match
+      """
+    
+
+      # get the tests
+      tests = self.get(tags=tags, **kwargs)
+
+      # get the root directory
+      if not rootdir:
+        rootdir = self.rootdir(tests)
+
+
+      # copy them!
+      for test in tests:
+        if not os.path.isabs(test['name']):
+          relpath = os.path.relpath(test['path'], roodir)
+          source = os.path.join(from_dir, relpath)
+          if not os.path.exists(source):
+            print >> sys.stderr, "Missing test: '%s'; skipping" % test['name']
+            continue
+          destination = os.path.join(manifest_dir, relpath)
+          shutil.copy(source, destination)
 
 
 class TestManifest(ManifestParser):
@@ -486,9 +525,9 @@ def parse_args(_args):
 ### classes for subcommands
 
 class CLICommand(object):
+    usage = '%prog [options] command'
     def __init__(self, parser):
       self._parser = parser # master parser
-  
     def parser(self):
       return OptionParser(usage=self.usage, description=self.__doc__,
                           add_help_option=False)
@@ -535,7 +574,8 @@ class WriteCLI(CLICommand):
     """
     usage = '%prog [options] write manifest <manifest> -tag1 -tag2 --key1=value1 --key2=value2 ...'
     def __call__(self, options, args):
-      # actually parse the arguments in an unrelated way
+
+      # parse the arguments
       try:
         kwargs, tags, args = parse_args(args)
       except ParserError, e:
@@ -570,6 +610,34 @@ class HelpCLI(CLICommand):
           print '\nCommands:'
           for command in sorted(commands):
             print '  %s : %s' % (command, commands[command].__doc__.strip())
+
+class UpdateCLI(CLICommand):
+    """
+    update the tests as listed in a manifest from a directory
+    """
+    usage = '%prog [options] write manifest directory -tag1 -tag2 --key1=value1 --key2=value2 ...'
+    def __call__(self, options, args):
+      # parse the arguments
+      try:
+        kwargs, tags, args = parse_args(args)
+      except ParserError, e:
+        self._parser.error(e.message)
+
+      # make sure we have some manifests, otherwise it will
+      # be quite boring
+      if not len(args) == 2:
+        HelpCLI(self._parser)(options, ['write'])
+        return
+
+      # read the manifests
+      # TODO: should probably ensure these exist here
+      manifests = ManifestParser()
+      manifests.read(args[0])
+
+      # print the resultant query
+      manifests.update(args[1])
+
+
 
 # command -> class mapping
 commands = { 'create': CreateCLI,
