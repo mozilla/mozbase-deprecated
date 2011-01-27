@@ -24,11 +24,52 @@ What ManifestDestiny gives you is:
 The keys displayed here (path, name, here, and manifest) are reserved
 words for ManifestDestiny and any consuming APIs.
 
-* path: path to the test
+
+Manifest Format
+---------------
+
+Manifests are .ini file with the section names denoting the path
+relative to the manifest::
+
+ [foo.js]
+ [bar.js]
+ [fleem.js]
+
+The sections are read in order. In addition, tests may include
+arbitrary key, value metadata to be used by the harness.  You can also
+have a ``[DEFAULT]`` section that will give key, value pairs that will
+be inherited by each test unless overridden::
+
+ [DEFAULT]
+ type = restart
+
+ [lilies.js]
+ color = white
+
+ [daffodils.js]
+ color = yellow
+ type = 
+ # override type from DEFAULT
+
+ [roses.js]
+ color = red
+
+You can also include other manifests::
+
+ [include:subdir/anothermanifest.ini]
+
+
+Data
+----
+
+Manifest Destiny gives tests as a list of dictionary (in python
+terms). 
+
+* path: full path to the test
 * name: short name of the test; this is the (usually) relative path
   specified in the section name
 * here: the parent directory of the manifest
-* manifest: the path to the manifest
+* manifest: the path to the manifest containing the test
 
 This data corresponds to a one-line manifest:
 
