@@ -37,7 +37,6 @@ Illustrate how include works:
 
 All of the tests should be included, in order:
 
-    >>> import os    
     >>> parser.get('name')
     ['crash-handling', 'fleem', 'flowers']
     >>> [(test['name'], os.path.basename(test['manifest'])) for test in parser.tests]
@@ -104,7 +103,7 @@ manifest. First, stub out a directory with files in it::
 Make a manifest for it::
 
     >>> from manifestdestiny import convert
-    >>> print convert.convert([stub])
+    >>> print convert([stub])
     [bar]
     [fleem]
     [foo]
@@ -114,7 +113,7 @@ Make a manifest for it::
 Now do the same thing but keep the manifests in place::
 
     >>> stub = create_stub()
-    >>> convert.convert([stub], write='manifest.ini')
+    >>> convert([stub], write='manifest.ini')
     >>> sorted(os.listdir(stub))
     ['bar', 'fleem', 'foo', 'manifest.ini', 'subdir']
     >>> parser = ManifestParser()
@@ -154,7 +153,7 @@ files::
 
 First, make a manifest::
 
-    >>> manifest = convert.convert([tempdir])
+    >>> manifest = convert([tempdir])
     >>> newtempdir = tempfile.mkdtemp()
     >>> manifest_file = os.path.join(newtempdir, 'manifest.ini')
     >>> file(manifest_file,'w').write(manifest)

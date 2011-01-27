@@ -41,10 +41,11 @@
 Mozilla universal manifest parser
 """
 
-__all__ = ['ManifestParser', 'TestManifest']
+__all__ = ['ManifestParser', 'TestManifest', 'convert']
 
 import os
 import sys
+from fnmatch import fnmatch
 from optparse import OptionParser
 
 def read_ini(fp, variables=None, default='DEFAULT',
@@ -371,8 +372,6 @@ class ManifestParser(object):
       tests = manifest.get(tags=tags, **kwargs)
 
 
-
-
 class TestManifest(ManifestParser):
     """
     apply logic to manifests;  this is your integration layer :)
@@ -391,7 +390,59 @@ class TestManifest(ManifestParser):
     def test_paths(self):
         return [test['path'] for test in self.active_tests()]
 
-### command line functions
+
+### utility function(s); probably belongs elsewhere
+
+def convert(directories, pattern=None, ignore=(), write=None):
+  """
+  convert directories to a simple manifest
+  """
+
+  retval = []
+  include = []
+  for directory in directories:
+    for dirpath, dirnames, filenames in os.walk(directory):
+
+      # filter out directory names
+      dirnames = [ i for i in dirnames if i not in ignore ]
+
+      # reference only the subdirectory
+      _dirpath = dirpath
+      dirpath = dirpath.split(directory, 1)[-1].strip('/')
+
+      if dirpath.split(os.path.sep)[0] in ignore:
+        continue
+
+      # filter by glob
+      if pattern:
+        filenames = [filename for filename in filenames
+                     if fnmatch(filename, pattern)]
+
+      filenames.sort()
+
+      # write a manifest for each directory
+      if write and (dirnames or filenames):
+        manifest = file(os.path.join(_dirpath, write), 'w')
+        for dirname in dirnames:
+          print >> manifest, '[include:%s]' % os.path.join(dirname, write)
+        for filename in filenames:
+          print >> manifest, '[%s]' % filename
+        manifest.close()
+
+      # add to the list
+      retval.extend([os.path.join(dirpath, filename)
+                     for filename in filenames])
+
+  if write:
+    return # the manifests have already been written!
+  
+  retval.sort()
+  retval = ['[%s]' % filename for filename in retval]
+  return '\n'.join(retval)
+
+
+
+### command line attributes
 
 class ParserError(Exception):
   """error for exceptions while parsing the command line"""
@@ -448,8 +499,35 @@ class CreateCLI(CLICommand):
     """
     usage = '%prog [options] create directory <directory> <...>'
 
-    def __call__(self, options, args):
-      raise NotImplementedError
+    def parser(self):
+      parser = CLICommand.parser(self)
+      parser.add_option('-p', '--pattern', dest='pattern',
+                        help="glob pattern for files")
+      parser.add_option('-i', '--ignore', dest='ignore',
+                        default=[], action='append',
+                        help='directories to ignore')
+      parser.add_option('-w', '--in-place', dest='in_place',
+                        help='Write .ini files in place; filename to write to')
+      return parser
+
+    def __call__(self, _options, args):
+        parser = self.parser()
+        options, args = parser.parse_args(args)
+
+        # need some directories
+        if not len(args):
+          parser.print_usage()
+          return
+
+        # add the directories to the manifest
+        for arg in args:
+          assert os.path.exists(arg)
+          assert os.path.isdir(arg)
+          manifest = convert(args, pattern=options.pattern, ignore=options.ignore,
+                             write=options.in_place)
+        if manifest:
+          print manifest
+
 
 class WriteCLI(CLICommand):
     """
