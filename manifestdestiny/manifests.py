@@ -145,10 +145,13 @@ def read_ini(fp, variables=None, default='DEFAULT',
   sections = [(i, interpret_variables(variables, j)) for i, j in sections]
   return sections
 
+
 ### objects for parsing manifests
 
 class ManifestParser(object):
     """read .ini manifests"""
+
+    ### methods for reading manifests
 
     def __init__(self, manifests=(), defaults=None, strict=True):
         self._defaults = defaults or {}
@@ -206,6 +209,8 @@ class ManifestParser(object):
                 test['path'] = os.path.join(here, section)
                 test['manifest'] = os.path.abspath(filename)
                 self.tests.append(test)
+
+    ### methods for querying manifests
 
     def query(self, *checks):
       """
@@ -268,6 +273,15 @@ class ManifestParser(object):
         return [test for test in tests
                 if not os.path.exists(test['path'])]
 
+    def rootdir(self):
+      """
+      return the root directory of all tests + manifests
+      that aren't absolute paths
+      """
+      
+
+    ### methods for outputting from manifests
+
     def write(self, fp=sys.stdout,
               global_tags=None, global_kwargs=None,
               local_tags=None, local_kwargs=None):
@@ -323,6 +337,41 @@ class ManifestParser(object):
               continue
             print >> fp, '%s = %s' % (key, test[key])
           print >> fp
+
+    def copy(to_manifest, *tags, **kwargs):
+      """
+      copy the manifests and associated tests
+      - from_manifest : manifest to copy from
+      - to_manifest : manifest or directory to copy to
+      - tags : keywords the tests must have
+      - kwargs : key, values the tests must match
+      """
+
+      # destination
+      if os.path.isdir(to_manifest):
+        to_dir = os.path.abspath(to_manifest)
+        to_manifest = os.path.join(to_dir, os.path.basename(from_manifest))
+      else:
+        if os.path.exists(to_manifest):
+            # if the manifest exists, overwrite the manifest (be careful!)
+            to_dir = os.path.dirname(os.path.abspath(to_manifest))
+            to_manifest = os.path.abspath(to_manifest)
+        else:
+            # assert that what is given is a file name
+            # (not a directory)
+            to_manifest = os.path.abspath(to_manifest)
+            to_dir = os.path.dirname(to_manifest)
+            if not os.path.exists(to_dir):
+                os.path.makedirs(to_dir)
+            else:
+                # sanity check
+                assert os.path.isdir(to_dir)
+
+      # tests to copy
+      tests = manifest.get(tags=tags, **kwargs)
+
+
+
 
 class TestManifest(ManifestParser):
     """
