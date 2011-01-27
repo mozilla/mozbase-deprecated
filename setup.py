@@ -37,7 +37,7 @@
 import os
 from setuptools import setup, find_packages
 
-version = '0.1.5'
+version = '0.2'
 
 try:
     here = os.path.dirname(os.path.abspath(__file__))
@@ -64,9 +64,6 @@ setup(name='ManifestDestiny',
       ],
       entry_points="""
       [console_scripts]
-      copy-manifest = manifestdestiny.copy:copy_main
-      create-manifest = manifestdestiny.convert:main
-      query-manifest = manifestdestiny.manifests:main
-      update-manifest = manifestdestiny.copy:update_main
+      manifests = manifestdestiny.manifests:main
       """,
       )
