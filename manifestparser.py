@@ -488,6 +488,7 @@ def convert(directories, pattern=None, ignore=(), write=None):
 
             # filter out directory names
             dirnames = [ i for i in dirnames if i not in ignore ]
+            dirnames.sort()
 
             # reference only the subdirectory
             _dirpath = dirpath
