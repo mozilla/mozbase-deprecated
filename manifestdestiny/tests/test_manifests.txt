@@ -141,14 +141,14 @@ Now do the same thing but keep the manifests in place::
 Test our ability to copy a set of manifests::
 
     >>> tempdir = tempfile.mkdtemp()
-    >>> to_manifest = os.path.join(tempdir, 'to_manifest.ini')
-    >>> from manifestdestiny.copy import copy
-    >>> copy('include-example.ini', to_manifest)
+    >>> manifest = ManifestParser(manifests=('include-example.ini',))
+    >>> manifest.copy(tempdir)
     >>> sorted(os.listdir(tempdir))
-    ['fleem', 'include', 'to_manifest.ini']
+    ['fleem', 'include', 'include-example.ini']
     >>> sorted(os.listdir(os.path.join(tempdir, 'include')))
     ['bar.ini', 'crash-handling', 'flowers', 'foo.ini']
     >>> from_manifest = ManifestParser(manifests=('include-example.ini',))
+    >>> to_manifest = os.path.join(tempdir, 'include-example.ini')
     >>> to_manifest = ManifestParser(manifests=(to_manifest,))
     >>> to_manifest.get('name') == from_manifest.get('name')
     True

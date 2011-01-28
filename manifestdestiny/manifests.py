@@ -367,43 +367,64 @@ class ManifestParser(object):
             print >> fp, '%s = %s' % (key, test[key])
           print >> fp
 
-    def copy(to_manifest, *tags, **kwargs):
-      """
-      copy the manifests and associated tests
-      - from_manifest : manifest to copy from
-      - to_manifest : manifest or directory to copy to
-      - tags : keywords the tests must have
-      - kwargs : key, values the tests must match
-      """
-
-      # destination
-      if os.path.isdir(to_manifest):
-        to_dir = os.path.abspath(to_manifest)
-        to_manifest = os.path.join(to_dir, os.path.basename(from_manifest))
-      else:
-        if os.path.exists(to_manifest):
-            # if the manifest exists, overwrite the manifest (be careful!)
-            to_dir = os.path.dirname(os.path.abspath(to_manifest))
-            to_manifest = os.path.abspath(to_manifest)
+    def copy(self, directory, rootdir=None, *tags, **kwargs):
+        """
+        copy the manifests and associated tests
+        - directory : directory to copy to
+        - rootdir : root directory to copy to (if not given from manifests)
+        - tags : keywords the tests must have
+        - kwargs : key, values the tests must match
+        """
+        # XXX note that copy does *not* filter the tests out of the
+        # resulting manifest; it just stupidly copies them over.
+        # ideally, it would reread the manifests and filter out the
+        # tests that don't match *tags and **kwargs
+        
+        # destination
+        if not os.path.exists(directory):
+            os.path.makedirs(directory)
         else:
-            # assert that what is given is a file name
-            # (not a directory)
-            to_manifest = os.path.abspath(to_manifest)
-            to_dir = os.path.dirname(to_manifest)
-            if not os.path.exists(to_dir):
-                os.path.makedirs(to_dir)
+            # sanity check
+            assert os.path.isdir(directory)
+
+        # tests to copy
+        tests = self.get(tags=tags, **kwargs)
+        if not tests:
+            return # nothing to do!
+
+        # root directory
+        if rootdir is None:
+            rootdir = self.rootdir(tests)
+
+        # copy the damn things
+        manifests = [os.path.relpath(manifest, rootdir) for manifest in self.manifests()]
+        for manifest in manifests:
+            destination = os.path.join(directory, manifest)
+            dirname = os.path.dirname(destination)
+            if not os.path.exists(dirname):
+                os.makedirs(dirname)
             else:
                 # sanity check
-                assert os.path.isdir(to_dir)
+                assert os.path.isdir(dirname)
+            shutil.copy(os.path.join(rootdir, manifest), destination)
+        for test in tests:
+            if os.path.isabs(test['name']):
+                continue
+            source = test['path']
+            if not os.path.exists(source):
+                print >> sys.stderr, "Missing test: '%s' does not exist!" % source
+                continue
+                # TODO: should err on strict
+            destination = os.path.join(directory, os.path.relpath(test['path'], rootdir))
+            shutil.copy(source, destination)
+            # TODO: ensure that all of the tests are below the from_dir
 
-      # tests to copy
-      tests = manifest.get(tags=tags, **kwargs)
 
     def update(self, from_dir, rootdir=None, *tags, **kwargs):
       """
       update the tests as listed in a manifest from a directory
-      - manifest : manifest to update tests for and relative to
       - from_dir : directory where the tests live
+      - rootdir : root directory to copy to (if not given from manifests)
       - tags : keys the tests must have
       - kwargs : key, values the tests must match
       """
