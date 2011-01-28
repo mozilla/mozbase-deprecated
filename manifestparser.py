@@ -49,6 +49,12 @@ import sys
 from fnmatch import fnmatch
 from optparse import OptionParser
 
+version = '0.2' # package version
+try:
+    from setuptools import setup
+except ImportError:
+    setup = None
+
 def read_ini(fp, variables=None, default='DEFAULT',
              comments=';#', separators=('=', ':'),
              strict=True):
@@ -105,7 +111,6 @@ def read_ini(fp, variables=None, default='DEFAULT',
                 assert section not in section_names
 
             section_names.add(section)
-
             current_section = {}
             sections.append((section, current_section))
             continue
@@ -197,10 +202,10 @@ class ManifestParser(object):
                     include_file = section.split('include:', 1)[-1]
                     include_file = os.path.join(here, include_file)
                     if not os.path.exists(include_file):
-                      if strict:
-                        raise IOError("File '%s' does not exist" % include_file)
-                      else:
-                        continue
+                        if strict:
+                            raise IOError("File '%s' does not exist" % include_file)
+                        else:
+                            continue
                     include_defaults = data.copy()
                     self.read(include_file, **include_defaults)
                     continue
@@ -215,18 +220,18 @@ class ManifestParser(object):
     ### methods for querying manifests
 
     def query(self, *checks):
-      """
-      general query function for tests
-      - checks : callable conditions to test if the test fulfills the query
-      """
-      retval = []
-      for test in self.tests:
-        for check in checks:
-          if not check(test):
-            break
-        else:
-          retval.append(test)
-      return retval
+        """
+        general query function for tests
+        - checks : callable conditions to test if the test fulfills the query
+        """
+        retval = []
+        for test in self.tests:
+            for check in checks:
+                if not check(test):
+                    break
+            else:
+                retval.append(test)
+        return retval
 
     def get(self, _key=None, inverse=False, tags=None, **kwargs):
         # TODO: pass a dict instead of kwargs since you might hav
@@ -340,32 +345,32 @@ class ManifestParser(object):
 
         # print the .ini manifest
         if global_tags or global_kwargs:
-          print >> fp, '[DEFAULT]'
-          for tag in global_tags:
-            print >> fp, '%s =' % tag
-          for key, value in global_kwargs.items():
-            print >> fp, '%s = %s' % (key, value)
-          print >> fp
+            print >> fp, '[DEFAULT]'
+            for tag in global_tags:
+                print >> fp, '%s =' % tag
+            for key, value in global_kwargs.items():
+                print >> fp, '%s = %s' % (key, value)
+            print >> fp
 
         for test in tests:
-          test = test.copy() # don't overwrite
+            test = test.copy() # don't overwrite
 
-          path = test['name']
-          if not os.path.isabs(path):
-            path = os.path.relpath(test['path'], self.root)
-          print >> fp, '[%s]' % path
+            path = test['name']
+            if not os.path.isabs(path):
+                path = os.path.relpath(test['path'], self.root)
+            print >> fp, '[%s]' % path
           
-          # reserved keywords:
-          reserved = ['path', 'name', 'here', 'manifest']
-          for key in sorted(test.keys()):
-            if key in reserved:
-              continue
-            if key in global_kwargs:
-              continue
-            if key in global_tags and not test[key]:
-              continue
-            print >> fp, '%s = %s' % (key, test[key])
-          print >> fp
+            # reserved keywords:
+            reserved = ['path', 'name', 'here', 'manifest']
+            for key in sorted(test.keys()):
+                if key in reserved:
+                    continue
+                if key in global_kwargs:
+                    continue
+                if key in global_tags and not test[key]:
+                    continue
+                print >> fp, '%s = %s' % (key, test[key])
+            print >> fp
 
     def copy(self, directory, rootdir=None, *tags, **kwargs):
         """
@@ -396,7 +401,7 @@ class ManifestParser(object):
         if rootdir is None:
             rootdir = self.rootdir(tests)
 
-        # copy the damn things
+        # copy the manifests + tests
         manifests = [os.path.relpath(manifest, rootdir) for manifest in self.manifests()]
         for manifest in manifests:
             destination = os.path.join(directory, manifest)
@@ -419,34 +424,33 @@ class ManifestParser(object):
             shutil.copy(source, destination)
             # TODO: ensure that all of the tests are below the from_dir
 
-
     def update(self, from_dir, rootdir=None, *tags, **kwargs):
-      """
-      update the tests as listed in a manifest from a directory
-      - from_dir : directory where the tests live
-      - rootdir : root directory to copy to (if not given from manifests)
-      - tags : keys the tests must have
-      - kwargs : key, values the tests must match
-      """
+        """
+        update the tests as listed in a manifest from a directory
+        - from_dir : directory where the tests live
+        - rootdir : root directory to copy to (if not given from manifests)
+        - tags : keys the tests must have
+        - kwargs : key, values the tests must match
+        """
     
-      # get the tests
-      tests = self.get(tags=tags, **kwargs)
+        # get the tests
+        tests = self.get(tags=tags, **kwargs)
 
-      # get the root directory
-      if not rootdir:
-          rootdir = self.rootdir(tests)
+        # get the root directory
+        if not rootdir:
+            rootdir = self.rootdir(tests)
 
-      # copy them!
-      for test in tests:
-          if not os.path.isabs(test['name']):
-              relpath = os.path.relpath(test['path'], rootdir)
-              source = os.path.join(from_dir, relpath)
-              if not os.path.exists(source):
-                  # TODO err on strict
-                  print >> sys.stderr, "Missing test: '%s'; skipping" % test['name']
-                  continue
-              destination = os.path.join(rootdir, relpath)
-              shutil.copy(source, destination)
+        # copy them!
+        for test in tests:
+            if not os.path.isabs(test['name']):
+                relpath = os.path.relpath(test['path'], rootdir)
+                source = os.path.join(from_dir, relpath)
+                if not os.path.exists(source):
+                    # TODO err on strict
+                    print >> sys.stderr, "Missing test: '%s'; skipping" % test['name']
+                    continue
+                destination = os.path.join(rootdir, relpath)
+                shutil.copy(source, destination)
 
 
 class TestManifest(ManifestParser):
@@ -461,7 +465,6 @@ class TestManifest(ManifestParser):
         tests = self.get(inverse=True, tags=['disabled'])
 
         # TODO: could filter out by current platform, existence, etc
-
         return tests
 
     def test_paths(self):
@@ -471,53 +474,51 @@ class TestManifest(ManifestParser):
 ### utility function(s); probably belongs elsewhere
 
 def convert(directories, pattern=None, ignore=(), write=None):
-  """
-  convert directories to a simple manifest
-  """
+    """
+    convert directories to a simple manifest
+    """
 
-  retval = []
-  include = []
-  for directory in directories:
-    for dirpath, dirnames, filenames in os.walk(directory):
+    retval = []
+    include = []
+    for directory in directories:
+        for dirpath, dirnames, filenames in os.walk(directory):
 
-      # filter out directory names
-      dirnames = [ i for i in dirnames if i not in ignore ]
+            # filter out directory names
+            dirnames = [ i for i in dirnames if i not in ignore ]
 
-      # reference only the subdirectory
-      _dirpath = dirpath
-      dirpath = dirpath.split(directory, 1)[-1].strip('/')
+            # reference only the subdirectory
+            _dirpath = dirpath
+            dirpath = dirpath.split(directory, 1)[-1].strip('/')
 
-      if dirpath.split(os.path.sep)[0] in ignore:
-        continue
+            if dirpath.split(os.path.sep)[0] in ignore:
+                continue
 
-      # filter by glob
-      if pattern:
-        filenames = [filename for filename in filenames
-                     if fnmatch(filename, pattern)]
+            # filter by glob
+            if pattern:
+                filenames = [filename for filename in filenames
+                             if fnmatch(filename, pattern)]
 
-      filenames.sort()
+            filenames.sort()
 
-      # write a manifest for each directory
-      if write and (dirnames or filenames):
-        manifest = file(os.path.join(_dirpath, write), 'w')
-        for dirname in dirnames:
-          print >> manifest, '[include:%s]' % os.path.join(dirname, write)
-        for filename in filenames:
-          print >> manifest, '[%s]' % filename
-        manifest.close()
+            # write a manifest for each directory
+            if write and (dirnames or filenames):
+                manifest = file(os.path.join(_dirpath, write), 'w')
+                for dirname in dirnames:
+                    print >> manifest, '[include:%s]' % os.path.join(dirname, write)
+                for filename in filenames:
+                    print >> manifest, '[%s]' % filename
+                manifest.close()
 
-      # add to the list
-      retval.extend([os.path.join(dirpath, filename)
-                     for filename in filenames])
+            # add to the list
+            retval.extend([os.path.join(dirpath, filename)
+                           for filename in filenames])
 
-  if write:
-    return # the manifests have already been written!
+    if write:
+        return # the manifests have already been written!
   
-  retval.sort()
-  retval = ['[%s]' % filename for filename in retval]
-  return '\n'.join(retval)
-
-
+    retval.sort()
+    retval = ['[%s]' % filename for filename in retval]
+    return '\n'.join(retval)
 
 ### command line attributes
 
@@ -680,10 +681,7 @@ class SetupCLI(CLICommand):
     usage = '%prog [options] setup [setuptools options]'
     def __call__(self, options, args):
         sys.argv = [sys.argv[0]] + args
-        from setuptools import setup
-
-        version = '0.2'
-
+        assert setup is not None, "You must have setuptools installed to use SetupCLI"
         here = os.path.dirname(os.path.abspath(__file__))
         try:
             filename = os.path.join(here, 'README.txt')
@@ -744,9 +742,10 @@ class UpdateCLI(CLICommand):
 # command -> class mapping
 commands = { 'create': CreateCLI,
              'help': HelpCLI,
-             'setup': SetupCLI,
              'update': UpdateCLI,
              'write': WriteCLI }
+if setup is not None:
+    commands['setup'] = SetupCLI
 
 def main(args=sys.argv[1:]):
     """console_script entry point"""

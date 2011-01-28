@@ -1,9 +1,12 @@
 Test the manifest parser
 ========================
 
+You must have ManifestDestiny installed before running these tests.
+Run ``python manifestparser.py setup develop`` with setuptools installed.
+
 Ensure basic parser is sane::
 
-    >>> from manifests import ManifestParser
+    >>> from manifestparser import ManifestParser
     >>> parser = ManifestParser()
     >>> parser.read('mozmill-example.ini')
     >>> tests = parser.tests
@@ -112,7 +115,7 @@ manifest. First, stub out a directory with files in it::
 
 Make a manifest for it::
 
-    >>> from manifests import convert
+    >>> from manifestparser import convert
     >>> print convert([stub])
     [bar]
     [fleem]
