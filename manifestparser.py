@@ -41,6 +41,9 @@
 Mozilla universal manifest parser
 """
 
+# this file lives at
+# http://hg.mozilla.org/automation/ManifestDestiny/raw-file/tip/manifestparser.py
+
 __all__ = ['ManifestParser', 'TestManifest', 'convert']
 
 import os
