@@ -19,7 +19,7 @@ What ManifestDestiny gives you is:
     '/home/jhammel/mozmill/src/ManifestDestiny/manifestdestiny/tests/testToolbar/testBackForwardButtons.js',
     'name': 'testToolbar/testBackForwardButtons.js', 'here':
     '/home/jhammel/mozmill/src/ManifestDestiny/manifestdestiny/tests',
-    'manifest': 'tests/mozmill-example.ini'}]
+    'manifest': '/home/jhammel/mozmill/src/ManifestDestiny/manifestdestiny/tests',}]
 
 The keys displayed here (path, name, here, and manifest) are reserved
 words for ManifestDestiny and any consuming APIs.
@@ -48,7 +48,7 @@ be inherited by each test unless overridden::
 
  [daffodils.js]
  color = yellow
- type = 
+ type = other
  # override type from DEFAULT
 
  [roses.js]
@@ -71,7 +71,7 @@ terms).
 * here: the parent directory of the manifest
 * manifest: the path to the manifest containing the test
 
-This data corresponds to a one-line manifest:
+This data corresponds to a one-line manifest::
 
  [testToolbar/testBackForwardButtons.js]
 
@@ -122,15 +122,26 @@ in their own ``[DEFAULT]`` section.
 Creating Manifests
 ------------------
 
-ManifestDestiny comes with a console script, ``create-manifest``, that
+ManifestDestiny comes with a console script, ``manifests create``, that
 may be used to create a seed manifest structure from a directory of
-files.  Run ``create-manifest --help`` for usage information.
+files.  Run ``manifests help create`` for usage information.
 
 
 Copying Manifests
 -----------------
 
-[TODO]
+To copy tests and manifests from a source::
+
+ manifests [options] copy from_manifest to_directory -tag1 -tag2 --key1=value1 key2=value2 ...
+
+
+Upating Tests
+-------------
+
+To update the tests associated with with a manifest from a source
+directory::
+
+ manifests [options] update manifest from_directory -tag1 -tag2 --key1=value1 --key2=value2 ...
 
 
 Tests
@@ -147,7 +158,7 @@ how to use the API.  Tests are run via ``python test.py``.
 CLI
 ---
 
-[TODO: this is all spec; not implemented yet]
+Run ``manifests help`` for usage information.
 
 To create a manifest from a set of directories::
 
