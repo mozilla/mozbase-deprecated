@@ -167,7 +167,7 @@ class ManifestParser(object):
         self._defaults = defaults or {}
         self.tests = []
         self.strict = strict
-        self.root = None
+        self.rootdir = None
         if manifests:
             self.read(*manifests)
 
@@ -187,10 +187,10 @@ class ManifestParser(object):
             here = os.path.dirname(os.path.abspath(filename))
             defaults['here'] = here
 
-            if self.root is None:
+            if self.rootdir is None:
                 # set the root directory
                 # == the directory of the first manifest given
-                self.root = here
+                self.rootdir = here
 
             # read the configuration
             sections = read_ini(filename, variables=defaults)
@@ -298,36 +298,22 @@ class ManifestParser(object):
                 manifests.append(manifest)
         return manifests
 
-    def rootdir(self, tests=None):
-        """
-        return the root directory of all manifests
-        """
-        if tests is None:
-            tests = self.tests
-        rootdir = None
-        for test in tests:
-            here = test.get('here')
-            if not here:
-                continue
-            if rootdir is None:
-                rootdir = here
-                continue
-            shorter, longer = sorted([rootdir, here])
-            assert longer.startswith(shorter)
-            rootdir = shorter
-        return rootdir
 
     ### methods for outputting from manifests
 
-    def write(self, fp=sys.stdout,
+    def write(self, fp=sys.stdout, rootdir=None,
               global_tags=None, global_kwargs=None,
               local_tags=None, local_kwargs=None):
         """
-        TODO: write a manifest given a query
+        write a manifest given a query
         global and local options will be munged to do the query
         globals will be written to the top of the file
         locals (if given) will be written per test
         """
+
+        # root directory
+        if rootdir is None:
+            rootdir = self.rootdir
 
         # sanitize input
         global_tags = global_tags or set()
@@ -360,7 +346,7 @@ class ManifestParser(object):
 
             path = test['name']
             if not os.path.isabs(path):
-                path = os.path.relpath(test['path'], self.root)
+                path = os.path.relpath(test['path'], self.rootdir)
             print >> fp, '[%s]' % path
           
             # reserved keywords:
@@ -402,7 +388,7 @@ class ManifestParser(object):
 
         # root directory
         if rootdir is None:
-            rootdir = self.rootdir(tests)
+            rootdir = self.rootdir
 
         # copy the manifests + tests
         manifests = [os.path.relpath(manifest, rootdir) for manifest in self.manifests()]
@@ -441,7 +427,7 @@ class ManifestParser(object):
 
         # get the root directory
         if not rootdir:
-            rootdir = self.rootdir(tests)
+            rootdir = self.rootdir
 
         # copy them!
         for test in tests:

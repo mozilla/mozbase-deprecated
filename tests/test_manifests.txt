@@ -52,7 +52,7 @@ The manifests should be there too::
 
 We're already in the root directory::
 
-    >>> os.getcwd() == parser.rootdir()
+    >>> os.getcwd() == parser.rootdir
     True
 
 DEFAULT values should persist across includes, unless they're
