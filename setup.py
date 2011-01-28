@@ -39,10 +39,10 @@
 
 # The real details are in manifestparser.py; this is just a front-end
 
-import os
-import subprocess
+
 import sys
-here = os.path.dirname(os.path.abspath(__file__))
-os.chdir(here)
-subprocess.call([sys.executable, 'manifestparser.py', 'setup'] + sys.argv[1:])
+from manifestparser import SetupCLI
+SetupCLI(None)(None, sys.argv[1:])
+
+
                  
