@@ -3,7 +3,7 @@ Test the manifest parser
 
 Ensure basic parser is sane::
 
-    >>> from manifestdestiny import ManifestParser
+    >>> from manifests import ManifestParser
     >>> parser = ManifestParser()
     >>> parser.read('mozmill-example.ini')
     >>> tests = parser.tests
@@ -112,7 +112,7 @@ manifest. First, stub out a directory with files in it::
 
 Make a manifest for it::
 
-    >>> from manifestdestiny import convert
+    >>> from manifests import convert
     >>> print convert([stub])
     [bar]
     [fleem]
