@@ -526,39 +526,46 @@ class ParserError(Exception):
   """error for exceptions while parsing the command line"""
 
 def parse_args(_args):
+    """
+    parse and return:
+    --keys=value (or --key value)
+    -tags
+    args
+    """
 
-  # return values
-  _dict = {}
-  tags = []
-  args = []
 
-  # parse the arguments
-  key = None
-  for arg in _args:
-    if arg.startswith('---'):
-      raise ParserError("arguments should start with '-' or '--' only")
-    elif arg.startswith('--'):
-      if key:
-        raise ParserError("Key %s still open" % key)
-      key = arg[2:]
-      if '=' in key:
-        key, value = key.split('=', 1)
-        _dict[key] = value
-        key = None
-        continue
-    elif arg.startswith('-'):
-      if key:
-        raise ParserError("Key %s still open" % key)
-      tags.append(arg[1:])
-      continue
-    else:
-      if key:
-        _dict[key] = arg
-        continue
-      args.append(arg)
+    # return values
+    _dict = {}
+    tags = []
+    args = []
 
-  # return values
-  return (_dict, tags, args)
+    # parse the arguments
+    key = None
+    for arg in _args:
+        if arg.startswith('---'):
+            raise ParserError("arguments should start with '-' or '--' only")
+        elif arg.startswith('--'):
+            if key:
+                raise ParserError("Key %s still open" % key)
+            key = arg[2:]
+            if '=' in key:
+                key, value = key.split('=', 1)
+                _dict[key] = value
+                key = None
+                continue
+        elif arg.startswith('-'):
+            if key:
+                raise ParserError("Key %s still open" % key)
+            tags.append(arg[1:])
+            continue
+        else:
+            if key:
+                _dict[key] = arg
+                continue
+            args.append(arg)
+
+    # return values
+    return (_dict, tags, args)
 
 
 ### classes for subcommands
@@ -602,15 +609,15 @@ class CreateCLI(CLICommand):
     usage = '%prog [options] create directory <directory> <...>'
 
     def parser(self):
-      parser = CLICommand.parser(self)
-      parser.add_option('-p', '--pattern', dest='pattern',
-                        help="glob pattern for files")
-      parser.add_option('-i', '--ignore', dest='ignore',
-                        default=[], action='append',
-                        help='directories to ignore')
-      parser.add_option('-w', '--in-place', dest='in_place',
-                        help='Write .ini files in place; filename to write to')
-      return parser
+        parser = CLICommand.parser(self)
+        parser.add_option('-p', '--pattern', dest='pattern',
+                          help="glob pattern for files")
+        parser.add_option('-i', '--ignore', dest='ignore',
+                          default=[], action='append',
+                          help='directories to ignore')
+        parser.add_option('-w', '--in-place', dest='in_place',
+                          help='Write .ini files in place; filename to write to')
+        return parser
 
     def __call__(self, _options, args):
         parser = self.parser()
@@ -618,17 +625,17 @@ class CreateCLI(CLICommand):
 
         # need some directories
         if not len(args):
-          parser.print_usage()
-          return
+            parser.print_usage()
+            return
 
         # add the directories to the manifest
         for arg in args:
-          assert os.path.exists(arg)
-          assert os.path.isdir(arg)
-          manifest = convert(args, pattern=options.pattern, ignore=options.ignore,
-                             write=options.in_place)
+            assert os.path.exists(arg)
+            assert os.path.isdir(arg)
+            manifest = convert(args, pattern=options.pattern, ignore=options.ignore,
+                               write=options.in_place)
         if manifest:
-          print manifest
+            print manifest
 
 
 class WriteCLI(CLICommand):
@@ -638,25 +645,25 @@ class WriteCLI(CLICommand):
     usage = '%prog [options] write manifest <manifest> -tag1 -tag2 --key1=value1 --key2=value2 ...'
     def __call__(self, options, args):
 
-      # parse the arguments
-      try:
-        kwargs, tags, args = parse_args(args)
-      except ParserError, e:
-        self._parser.error(e.message)
+        # parse the arguments
+        try:
+            kwargs, tags, args = parse_args(args)
+        except ParserError, e:
+            self._parser.error(e.message)
 
-      # make sure we have some manifests, otherwise it will
-      # be quite boring
-      if not args:
-        HelpCLI(self._parser)(options, ['write'])
-        return
+        # make sure we have some manifests, otherwise it will
+        # be quite boring
+        if not args:
+            HelpCLI(self._parser)(options, ['write'])
+            return
 
-      # read the manifests
-      # TODO: should probably ensure these exist here
-      manifests = ManifestParser()
-      manifests.read(*args)
+        # read the manifests
+        # TODO: should probably ensure these exist here
+        manifests = ManifestParser()
+        manifests.read(*args)
 
-      # print the resultant query
-      manifests.write(global_tags=tags, global_kwargs=kwargs)
+        # print the resultant query
+        manifests.write(global_tags=tags, global_kwargs=kwargs)
       
 
 class HelpCLI(CLICommand):
@@ -667,18 +674,19 @@ class HelpCLI(CLICommand):
 
     def __call__(self, options, args):
         if len(args) == 1 and args[0] in commands:
-          commands[args[0]](self._parser).parser().print_help()
+            commands[args[0]](self._parser).parser().print_help()
         else:
-          self._parser.print_help()
-          print '\nCommands:'
-          for command in sorted(commands):
-            print '  %s : %s' % (command, commands[command].__doc__.strip())
+            self._parser.print_help()
+            print '\nCommands:'
+            for command in sorted(commands):
+                print '  %s : %s' % (command, commands[command].__doc__.strip())
 
 class SetupCLI(CLICommand):
     """
     setup using setuptools
     """
     usage = '%prog [options] setup [setuptools options]'
+    
     def __call__(self, options, args):
         sys.argv = [sys.argv[0]] + args
         assert setup is not None, "You must have setuptools installed to use SetupCLI"
@@ -717,26 +725,27 @@ class UpdateCLI(CLICommand):
     update the tests as listed in a manifest from a directory
     """
     usage = '%prog [options] write manifest directory -tag1 -tag2 --key1=value1 --key2=value2 ...'
+
     def __call__(self, options, args):
-      # parse the arguments
-      try:
-        kwargs, tags, args = parse_args(args)
-      except ParserError, e:
-        self._parser.error(e.message)
+        # parse the arguments
+        try:
+            kwargs, tags, args = parse_args(args)
+        except ParserError, e:
+            self._parser.error(e.message)
 
-      # make sure we have some manifests, otherwise it will
-      # be quite boring
-      if not len(args) == 2:
-        HelpCLI(self._parser)(options, ['update'])
-        return
+        # make sure we have some manifests, otherwise it will
+        # be quite boring
+        if not len(args) == 2:
+            HelpCLI(self._parser)(options, ['update'])
+            return
 
-      # read the manifests
-      # TODO: should probably ensure these exist here
-      manifests = ManifestParser()
-      manifests.read(args[0])
+        # read the manifests
+        # TODO: should probably ensure these exist here
+        manifests = ManifestParser()
+        manifests.read(args[0])
 
-      # print the resultant query
-      manifests.update(args[1], None, *tags, **kwargs)
+        # print the resultant query
+        manifests.update(args[1], None, *tags, **kwargs)
 
 
 # command -> class mapping
@@ -762,13 +771,13 @@ def main(args=sys.argv[1:]):
     options, args = parser.parse_args(args)
 
     if not args:
-      HelpCLI(parser)(options, args)
-      parser.exit()
+        HelpCLI(parser)(options, args)
+        parser.exit()
 
     # get the command
     command = args[0]
     if command not in commands:
-      parser.error("Command must be one of %s (you gave '%s')" % (', '.join(sorted(commands.keys())), command))
+        parser.error("Command must be one of %s (you gave '%s')" % (', '.join(sorted(commands.keys())), command))
 
     handler = commands[command](parser)
     handler(options, args[1:])
