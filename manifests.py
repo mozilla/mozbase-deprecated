@@ -570,6 +570,30 @@ class CLICommand(object):
       return OptionParser(usage=self.usage, description=self.__doc__,
                           add_help_option=False)
 
+class Copy(CLICommand):
+    usage = '%prog [options] copy manifest directory -tag1 -tag2 --key1=value1 --key2=value2 ...'
+    def __call__(self, options, args):
+      # parse the arguments
+      try:
+        kwargs, tags, args = parse_args(args)
+      except ParserError, e:
+        self._parser.error(e.message)
+
+      # make sure we have some manifests, otherwise it will
+      # be quite boring
+      if not len(args) == 2:
+        HelpCLI(self._parser)(options, ['copy'])
+        return
+
+      # read the manifests
+      # TODO: should probably ensure these exist here
+      manifests = ManifestParser()
+      manifests.read(args[0])
+
+      # print the resultant query
+      manifests.copy(args[1], None, *tags, **kwargs)
+
+
 class CreateCLI(CLICommand):
     """
     create a manifest from a list of directories
@@ -664,7 +688,7 @@ class UpdateCLI(CLICommand):
       # make sure we have some manifests, otherwise it will
       # be quite boring
       if not len(args) == 2:
-        HelpCLI(self._parser)(options, ['write'])
+        HelpCLI(self._parser)(options, ['update'])
         return
 
       # read the manifests
@@ -673,7 +697,7 @@ class UpdateCLI(CLICommand):
       manifests.read(args[0])
 
       # print the resultant query
-      manifests.update(args[1])
+      manifests.update(args[1], None, *tags, **kwargs)
 
 
 # command -> class mapping
