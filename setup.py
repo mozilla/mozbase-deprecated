@@ -51,19 +51,18 @@ setup(name='ManifestDestiny',
       description="universal reader for manifests",
       long_description=description,
       classifiers=[], # Get strings from http://pypi.python.org/pypi?%3Aaction=list_classifiers
-      keywords='',
+      keywords='mozilla manifests',
       author='Jeff Hammel',
       author_email='jhammel@mozilla.com',
       url='https://wiki.mozilla.org/Auto-tools/Projects/ManifestDestiny',
       license='MPL',
-      packages=find_packages(exclude=['ez_setup', 'examples', 'tests']),
-      include_package_data=True,
       zip_safe=False,
+      py_modules=['manifests'],
       install_requires=[
           # -*- Extra requirements: -*-
       ],
       entry_points="""
       [console_scripts]
-      manifests = manifestdestiny.manifests:main
+      manifests = manifests:main
       """,
       )
