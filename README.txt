@@ -122,9 +122,9 @@ in their own ``[DEFAULT]`` section.
 Creating Manifests
 ------------------
 
-ManifestDestiny comes with a console script, ``manifests create``, that
+ManifestDestiny comes with a console script, ``manifestparser create``, that
 may be used to create a seed manifest structure from a directory of
-files.  Run ``manifests help create`` for usage information.
+files.  Run ``manifestparser help create`` for usage information.
 
 
 Copying Manifests
@@ -132,7 +132,7 @@ Copying Manifests
 
 To copy tests and manifests from a source::
 
- manifests [options] copy from_manifest to_directory -tag1 -tag2 --key1=value1 key2=value2 ...
+ manifestparser [options] copy from_manifest to_directory -tag1 -tag2 --key1=value1 key2=value2 ...
 
 
 Upating Tests
@@ -141,7 +141,7 @@ Upating Tests
 To update the tests associated with with a manifest from a source
 directory::
 
- manifests [options] update manifest from_directory -tag1 -tag2 --key1=value1 --key2=value2 ...
+ manifestparser [options] update manifest from_directory -tag1 -tag2 --key1=value1 --key2=value2 ...
 
 
 Tests
@@ -158,21 +158,21 @@ how to use the API.  Tests are run via ``python test.py``.
 CLI
 ---
 
-Run ``manifests help`` for usage information.
+Run ``manifestparser help`` for usage information.
 
 To create a manifest from a set of directories::
 
- manifests [options] create directory <directory> <...> [create-options]
+ manifestparser [options] create directory <directory> <...> [create-options]
 
 To output a manifest of tests::
 
- manifests [options] write manifest <manifest> <...> -tag1 -tag2 --key1=value1 --key2=value2 ...
+ manifestparser [options] write manifest <manifest> <...> -tag1 -tag2 --key1=value1 --key2=value2 ...
 
 To copy tests and manifests from a source::
 
- manifests [options] copy from_manifest to_manifest -tag1 -tag2 --key1=value1 key2=value2 ...
+ manifestparser [options] copy from_manifest to_manifest -tag1 -tag2 --key1=value1 key2=value2 ...
 
 To update the tests associated with with a manifest from a source
 directory::
 
- manifests [options] update manifest from_directory -tag1 -tag2 --key1=value1 --key2=value2 ...
+ manifestparser [options] update manifest from_directory -tag1 -tag2 --key1=value1 --key2=value2 ...

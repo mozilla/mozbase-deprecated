@@ -35,7 +35,7 @@
 # 
 # ***** END LICENSE BLOCK *****
 import os
-from setuptools import setup, find_packages
+from setuptools import setup
 
 version = '0.2'
 
@@ -57,12 +57,12 @@ setup(name='ManifestDestiny',
       url='https://wiki.mozilla.org/Auto-tools/Projects/ManifestDestiny',
       license='MPL',
       zip_safe=False,
-      py_modules=['manifests'],
+      py_modules=['manifestparser'],
       install_requires=[
           # -*- Extra requirements: -*-
       ],
       entry_points="""
       [console_scripts]
-      manifests = manifests:main
+      manifestparser = manifestparser:main
       """,
       )
