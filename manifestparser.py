@@ -673,6 +673,47 @@ class HelpCLI(CLICommand):
           for command in sorted(commands):
             print '  %s : %s' % (command, commands[command].__doc__.strip())
 
+class SetupCLI(CLICommand):
+    """
+    setup using setuptools
+    """
+    usage = '%prog [options] setup [setuptools options]'
+    def __call__(self, options, args):
+        sys.argv = [sys.argv[0]] + args
+        from setuptools import setup
+
+        version = '0.2'
+
+        here = os.path.dirname(os.path.abspath(__file__))
+        try:
+            filename = os.path.join(here, 'README.txt')
+            description = file(filename).read()
+        except:    
+            description = ''
+        os.chdir(here)
+
+        setup(name='ManifestDestiny',
+              version=version,
+              description="universal reader for manifests",
+              long_description=description,
+              classifiers=[], # Get strings from http://pypi.python.org/pypi?%3Aaction=list_classifiers
+              keywords='mozilla manifests',
+              author='Jeff Hammel',
+              author_email='jhammel@mozilla.com',
+              url='https://wiki.mozilla.org/Auto-tools/Projects/ManifestDestiny',
+              license='MPL',
+              zip_safe=False,
+              py_modules=['manifestparser'],
+              install_requires=[
+                  # -*- Extra requirements: -*-
+                  ],
+              entry_points="""
+              [console_scripts]
+              manifestparser = manifestparser:main
+              """,
+              )
+
+
 class UpdateCLI(CLICommand):
     """
     update the tests as listed in a manifest from a directory
@@ -703,6 +744,7 @@ class UpdateCLI(CLICommand):
 # command -> class mapping
 commands = { 'create': CreateCLI,
              'help': HelpCLI,
+             'setup': SetupCLI,
              'update': UpdateCLI,
              'write': WriteCLI }
 
