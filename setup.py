@@ -38,7 +38,9 @@
 # ***** END LICENSE BLOCK *****
 
 # The real details are in manifestparser.py; this is just a front-end
-
+# BUT use this file when you want to distribute to python!
+# otherwise setuptools will complain that it can't find setup.py
+# and result in a useless package
 
 import sys
 from manifestparser import SetupCLI

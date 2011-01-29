@@ -52,7 +52,7 @@ import sys
 from fnmatch import fnmatch
 from optparse import OptionParser
 
-version = '0.2' # package version
+version = '0.2.2' # package version
 try:
     from setuptools import setup
 except ImportError:
@@ -675,6 +675,10 @@ class SetupCLI(CLICommand):
     """
     setup using setuptools
     """
+    # use setup.py from the repo when you want to distribute to python!
+    # otherwise setuptools will complain that it can't find setup.py
+    # and result in a useless package
+    
     usage = '%prog [options] setup [setuptools options]'
     
     def __call__(self, options, args):
