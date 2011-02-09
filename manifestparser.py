@@ -193,7 +193,7 @@ class ManifestParser(object):
                 self.rootdir = here
 
             # read the configuration
-            sections = read_ini(filename, variables=defaults)
+            sections = read_ini(fp=filename, variables=defaults, strict=self.strict)
 
             # get the tests
             for section, data in sections:
@@ -205,7 +205,7 @@ class ManifestParser(object):
                     include_file = section.split('include:', 1)[-1]
                     include_file = os.path.join(here, include_file)
                     if not os.path.exists(include_file):
-                        if strict:
+                        if self.strict:
                             raise IOError("File '%s' does not exist" % include_file)
                         else:
                             continue
