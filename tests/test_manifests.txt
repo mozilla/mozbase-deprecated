@@ -200,3 +200,17 @@ Clean up::
 
     >>> shutil.rmtree(tempdir)
     >>> shutil.rmtree(newtempdir)
+
+Test filtering based on platform::
+
+    >>> from manifestparser import TestManifest
+    >>> manifest = TestManifest(manifests=('filter-example.ini',))
+    >>> [i['name'] for i in manifest.active_tests(os='win', exists=False)]
+    ['windowstest', 'fleem']
+    >>> [i['name'] for i in manifest.active_tests(os='linux', exists=False)]
+    ['fleem', 'linuxtest']
+
+Look for existing tests.  There is only one::
+
+    >>> [i['name'] for i in manifest.active_tests()]
+    ['fleem']

@@ -298,7 +298,6 @@ class ManifestParser(object):
                 manifests.append(manifest)
         return manifests
 
-
     ### methods for outputting from manifests
 
     def write(self, fp=sys.stdout, rootdir=None,
@@ -448,12 +447,45 @@ class TestManifest(ManifestParser):
     specific harnesses may subclass from this if they need more logic
     """
 
-    def active_tests(self):
+    def filter(self, tag, value, tests=None):
+        """
+        filter on a specific list tag, e.g.:
+        os = win linux
+        os.ignore = mac
+        """
+        
+        if tests is None:
+            tests = self.tests[:]
+        tests = [test for test in tests
+                 if value in test.get(tag, value).split()]
+        tests = [test for test in tests
+                 if value not in test.get(tag + '.ignore', '').split()]
+        return tests
+        
 
+    def active_tests(self, exists=True, disabled=False, **tags):
+        """
+        - exists : return only existing tests
+        - disabled : whether to return disabled tests
+        - tags : keys and values to filter on (e.g. `os = linux mac`)
+        """
+
+        tests = self.tests[:]
+        
         # ignore disabled tests
-        tests = self.get(inverse=True, tags=['disabled'])
+        if not disabled:
+            tests = [test for test in tests
+                     if not 'disabled' in test]
 
-        # TODO: could filter out by current platform, existence, etc
+        # ignore tests that do not exist
+        if exists:
+            tests = [test for test in tests if os.path.exists(test['path'])]
+
+        # filter by tags
+        for tag, value in tags.items():
+            tests = self.filter(tag, value, tests)
+
+        # return active tests
         return tests
 
     def test_paths(self):
@@ -522,7 +554,6 @@ def parse_args(_args):
     -tags
     args
     """
-
 
     # return values
     _dict = {}
