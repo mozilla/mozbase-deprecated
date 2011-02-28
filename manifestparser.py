@@ -58,6 +58,12 @@ try:
 except ImportError:
     setup = None
 
+def normalize_path(path):
+    """normalize a relative path"""
+    if sys.platform.startswith('win'):
+        return path.replace('/', os.path.sep)
+    return path
+
 def read_ini(fp, variables=None, default='DEFAULT',
              comments=';#', separators=('=', ':'),
              strict=True):
@@ -203,7 +209,9 @@ class ManifestParser(object):
                 # self.manifests = {'manifest.ini': 'relative/path.ini'}
                 if section.startswith('include:'):
                     include_file = section.split('include:', 1)[-1]
-                    include_file = os.path.join(here, include_file)
+                    include_file = normalize_path(include_file)
+                    if not os.path.isabs(include_file):
+                        include_file = os.path.join(here, include_file)
                     if not os.path.exists(include_file):
                         if self.strict:
                             raise IOError("File '%s' does not exist" % include_file)
@@ -216,7 +224,9 @@ class ManifestParser(object):
                 # otherwise a test
                 test = data
                 test['name'] = section
-                test['path'] = os.path.join(here, section)
+                test['path'] = normalize_path(section)
+                if not os.path.isabs(test['path']):
+                    test['path'] = os.path.join(here, section)
                 test['manifest'] = os.path.abspath(filename)
                 self.tests.append(test)
 
