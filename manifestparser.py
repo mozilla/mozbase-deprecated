@@ -509,7 +509,6 @@ class TestManifest(ManifestParser):
         
         # ignore tests that do not exist
         if exists:
-            # XXX should probably just add a disabled flag
             tests = [test for test in tests if os.path.exists(test['path'])]
 
         # filter by tags
