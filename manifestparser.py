@@ -467,40 +467,59 @@ class TestManifest(ManifestParser):
     def filter(self, tag, value, tests=None):
         """
         filter on a specific list tag, e.g.:
-        os = win linux
-        os.ignore = mac
+        run-if.os = win linux
+        skip-if.os = mac
         """
-        
-        if tests is None:
-            tests = self.tests[:]
-        tests = [test for test in tests
-                 if value in test.get(tag, value).split()]
-        tests = [test for test in tests
-                 if value not in test.get(tag + '.ignore', '').split()]
-        return tests
-        
 
-    def active_tests(self, exists=True, disabled=False, **tags):
+        if tests is None:
+            tests = self.tests
+        
+        # tags:
+        run_tag = 'run-if.' + tag
+        skip_tag = 'skip-if.' + tag        
+
+        # loop over test
+        for test in tests:
+            reason = None # reason to disable
+            
+            # tagged-values to run
+            if run_tag in test:
+                values = test[run_tag].split()
+                if value not in values:
+                    reason = '%s %s not in run values %s' % (tag, value, values)
+
+            # tagged-values to skip
+            if skip_tag in test:
+                values = test[skip_tag].split()
+                if value in values:
+                    reason = '%s %s in skipped values %s' % (tag, value, values)
+
+            # mark test as disabled if there's a reason
+            if reason:
+                test.setdefault('disabled', reason)        
+
+    def active_tests(self, exists=True, disabled=True, **tags):
         """
         - exists : return only existing tests
         - disabled : whether to return disabled tests
         - tags : keys and values to filter on (e.g. `os = linux mac`)
         """
 
-        tests = self.tests[:]
+        tests = [i.copy() for i in self.tests] # shallow copy
         
-        # ignore disabled tests
-        if not disabled:
-            tests = [test for test in tests
-                     if not 'disabled' in test]
-
         # ignore tests that do not exist
         if exists:
+            # XXX should probably just add a disabled flag
             tests = [test for test in tests if os.path.exists(test['path'])]
 
         # filter by tags
         for tag, value in tags.items():
-            tests = self.filter(tag, value, tests)
+            self.filter(tag, value, tests)
+
+        # ignore disabled tests if specified
+        if not disabled:
+            tests = [test for test in tests
+                     if not 'disabled' in test]
 
         # return active tests
         return tests
