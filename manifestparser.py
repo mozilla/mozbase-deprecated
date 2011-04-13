@@ -228,9 +228,10 @@ class ManifestParser(object):
 
                 # determine the path
                 path = test.get('path', section)
-                path = normalize_path(path)
-                if not os.path.isabs(path):
-                    path = os.path.join(here, section)
+                if '://' not in path: # don't futz with URLs
+                    path = normalize_path(path)
+                    if not os.path.isabs(path):
+                        path = os.path.join(here, section)
                 test['path'] = path
 
                 # append the item
