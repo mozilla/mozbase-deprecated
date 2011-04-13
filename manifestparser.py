@@ -205,7 +205,7 @@ class ManifestParser(object):
             for section, data in sections:
 
                 # a file to include
-                # TODO: keep track of structure:
+                # TODO: keep track of included file structure:
                 # self.manifests = {'manifest.ini': 'relative/path.ini'}
                 if section.startswith('include:'):
                     include_file = section.split('include:', 1)[-1]
@@ -221,13 +221,19 @@ class ManifestParser(object):
                     self.read(include_file, **include_defaults)
                     continue
 
-                # otherwise a test
+                # otherwise an item
                 test = data
                 test['name'] = section
-                test['path'] = normalize_path(section)
-                if not os.path.isabs(test['path']):
-                    test['path'] = os.path.join(here, section)
                 test['manifest'] = os.path.abspath(filename)
+
+                # determine the path
+                path = test.get('path', section)
+                path = normalize_path(path)
+                if not os.path.isabs(path):
+                    path = os.path.join(here, section)
+                test['path'] = path
+
+                # append the item
                 self.tests.append(test)
 
     ### methods for querying manifests
