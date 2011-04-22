@@ -214,3 +214,10 @@ Look for existing tests.  There is only one::
 
     >>> [i['name'] for i in manifest.active_tests()]
     ['fleem']
+
+You can override the path in the section too.  This shows that you can
+use a relative path::
+
+    >>> manifest = ManifestParser(manifests=('path-example.ini',))
+    >>> manifest.tests[0]['path'] == os.path.abspath('fleem')
+    True

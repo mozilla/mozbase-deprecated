@@ -52,7 +52,7 @@ import sys
 from fnmatch import fnmatch
 from optparse import OptionParser
 
-version = '0.3' # package version
+version = '0.3.1' # package version
 try:
     from setuptools import setup
 except ImportError:
@@ -231,7 +231,7 @@ class ManifestParser(object):
                 if '://' not in path: # don't futz with URLs
                     path = normalize_path(path)
                     if not os.path.isabs(path):
-                        path = os.path.join(here, section)
+                        path = os.path.join(here, path)
                 test['path'] = path
 
                 # append the item
