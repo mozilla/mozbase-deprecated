@@ -45,7 +45,7 @@ def run_tests():
     tests =  [ test for test in os.listdir(directory) if test.endswith('.txt') ]
     os.chdir(directory)
     for test in tests:
-        doctest.testfile(test)
+        doctest.testfile(test, module_relative=False)
 
 if __name__ == '__main__':
     run_tests()
