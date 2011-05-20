@@ -247,6 +247,16 @@ http://hg.mozilla.org/automation/ManifestDestiny/file/tip/manifestdestiny/tests
 how to use the API.  Tests are run via ``python test.py``.
 
 
+Bugs
+----
+
+Please file any bugs or feature requests at 
+
+https://bugzilla.mozilla.org/enter_bug.cgi?product=Testing&component=ManifestParser
+
+Or contact jhammel @mozilla.org or in #ateam on irc.mozilla.org
+
+
 CLI
 ---
 
