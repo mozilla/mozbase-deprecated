@@ -308,6 +308,7 @@ through several design considerations.
   which is also a working python package deployed to PyPI for easy
   installation. 
 
+
 Historical Reference
 --------------------
 
@@ -317,6 +318,8 @@ Ordered list of links about how manifests came to be where they are today::
 * http://alice.nodelman.net/blog/post/2010/05/
 * http://alice.nodelman.net/blog/post/universal-manifest-for-unit-tests-a-proposal/
 * https://elvis314.wordpress.com/2010/07/27/types-of-data-we-care-about-in-a-manifest/
+* https://bugzilla.mozilla.org/show_bug.cgi?id=585106
 * http://elvis314.wordpress.com/2011/05/20/converting-xpcshell-from-listing-directories-to-a-manifest/
 * https://bugzilla.mozilla.org/show_bug.cgi?id=616999
+* https://wiki.mozilla.org/Auto-tools/Projects/ManifestDestiny
 * https://developer.mozilla.org/en/Writing_xpcshell-based_unit_tests#Adding_your_tests_to_the_xpcshell_manifest
