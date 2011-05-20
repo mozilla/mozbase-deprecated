@@ -7,7 +7,7 @@ Universal manifests for Mozilla test harnesses
 What is ManifestDestiny?
 ------------------------
 
-What ManifestDestiny gives you is:
+What ManifestDestiny gives you::
 
 * manifests are (ordered) lists of tests
 * tests may have an arbitrary number of key, value pairs
@@ -22,7 +22,39 @@ What ManifestDestiny gives you is:
     'manifest': '/home/jhammel/mozmill/src/ManifestDestiny/manifestdestiny/tests',}]
 
 The keys displayed here (path, name, here, and manifest) are reserved
-words for ManifestDestiny and any consuming APIs.
+words for ManifestDestiny and any consuming APIs.  You can add
+additional key, value metadata to each test.
+
+
+Why have test manifests?
+------------------------
+
+Most Mozilla test harnesses work by crawling a directory structure.
+While this is straight-forward, manifests offer several practical
+advantages::
+
+* ability to turn a test off easily: if a test is broken on m-c
+  currently, the only way to turn it off, generally speaking, is just
+  removing the test.  Often this is undesirable, as if the test should
+  be dismissed because other people want to land and it can't be
+  investigated in real time (is it a failure? is the test bad? is no
+  one around that knows the test?), then backing out a test is at best
+  problematic.  With a manifest, a test may be disabled without
+  removing it from the tree
+
+* ability to run different (subsets of) tests on different
+  platforms. Traditionally, we've done a bit of magic or had the test
+  know what platform it would or would not run on. With manifests, you
+  can mark what platforms a test will or will not run on and change
+  these without changing the test.
+
+* ability to markup tests with metadata. We have a large, complicated,
+  and always changing infrastructure.  key, value metadata may be used
+  as an annotation to a test and appropriately curated and mined.  For
+  instance, we could mark certain tests as randomorange with a bug
+  number, if it were desirable.
+
+* ability to have sane and well-defined test-runs
 
 
 Manifest Format
@@ -58,11 +90,14 @@ You can also include other manifests::
 
  [include:subdir/anothermanifest.ini]
 
+Manifests are included relative to the directory of the manifest with
+the ``[include:]`` directive unless they are absolute paths.
+
 
 Data
 ----
 
-Manifest Destiny gives tests as a list of dictionary (in python
+Manifest Destiny gives tests as a list of dictionaries (in python
 terms). 
 
 * path: full path to the test
@@ -117,6 +152,60 @@ The ``[DEFAULT]`` section contains variables that all tests inherit from.
 
 Included files will inherit the top-level variables but may override
 in their own ``[DEFAULT]`` section.
+
+
+
+ManifestDestiny Architecture
+----------------------------
+
+There is a two- or three-layered approach to the ManifestDestiny
+architecture, depending on your needs::
+
+1. ManifestParser: this is a generic parser for .ini manifests that
+facilitates the `[include:]` logic and the inheritence of
+metadata. Despite the internal variable being called ``self.tests``
+(an oversight), this layer has nothing in particular to do with tests.
+
+2. TestManifest: this is a harness-agnostic integration layer that is
+test-specific. TestManifest faciliates ``skip-if`` and ``run-if``
+logic.
+
+3. Optionally, a harness will have an integration layer than inherits
+from TestManifest if more harness-specific customization is desired at
+the manifest level.
+
+See the source code at http://hg.mozilla.org/automation/ManifestDestiny
+and
+http://hg.mozilla.org/automation/ManifestDestiny/file/tip/manifestparser.py
+in particular.
+
+
+Using Manifests
+---------------
+
+A test harness will normally call ``TestManifest.active_tests`` (
+http://hg.mozilla.org/automation/ManifestDestiny/file/c0399fbfa830/manifestparser.py#l506 )::
+
+   506     def active_tests(self, exists=True, disabled=True, **tags):
+
+The manifests are passed to the ``__init__`` or ``read`` methods with
+appropriate arguments.  ``active_tests`` then allows you to select the
+tests you want::
+
+- exists : return only existing tests
+- disabled : whether to return disabled tests; if not these will be
+  filtered out; if True (the default), the ``disabled`` key of a
+  test's metadata will be present and will be set to the reason that a
+  test is disabled
+- tags : keys and values to filter on (e.g. ``os='linux'``)
+
+``active_tests`` looks for tests with ``skip-if.${TAG}`` or
+``run-if.${TAG}``.  If the condition is or is not fulfilled,
+respectively, the test is marked as disabled.  For instance, if you
+pass ``**dict(os='linux')`` as ``**tags``, if a test contains a line
+``skip-if.os = linux`` this test will be disabled, or 
+``run-if.os = win`` in which case the test will also be disabled.  It
+is up to the harness to pass in tags appropriate to its usage.
 
 
 Creating Manifests
@@ -176,3 +265,57 @@ To update the tests associated with with a manifest from a source
 directory::
 
  manifestparser [options] update manifest from_directory -tag1 -tag2 --key1=value1 --key2=value2 ...
+
+
+Design Considerations
+---------------------
+
+Contrary to some opinion, manifestparser.py and the associated .ini
+format were not magically plucked from the sky but were descended upon
+through several design considerations.
+
+* test manifests should be ordered.  While python 2.6 and greater has
+  a ConfigParser that can use an ordered dictionary, it is a
+  requirement that we support python 2.4 for the build + testing
+  environment.  To that end, a ``read_ini`` function was implemented
+  in manifestparser.py that should be the equivalent of the .ini
+  dialect used by ConfigParser.
+
+* the manifest format should be easily human readable/writable.  While
+  there was initially some thought of using JSON, there was pushback
+  that JSON was not easily editable.  An ideal manifest format would
+  degenerate to a line-separated list of files.  While .ini format
+  requires an additional ``[]`` per line, and while there have been
+  complaints about this, hopefully this is good enough.
+
+* python does not have an in-built YAML parser.  Since it was
+  undesirable for manifestparser.py to have any dependencies, YAML was
+  dismissed as a format.
+
+* we could have used a proprietary format but decided against it.
+  Everyone knows .ini and there are good tools to deal with it.
+  However, since read_ini is the only function that transforms a
+  manifest to a list of key, value pairs, while the implications for
+  changing the format impacts downstream code, doing so should be
+  programmatically simple.
+
+* there should be a single file that may easily be
+  transported. Traditionally, test harnesses have lived in
+  mozilla-central. This is less true these days and it is increasingly
+  likely that more tests will not live in mozilla-central going
+  forward.  So ``manifestparser.py`` should be highly consumable. To
+  this end, it is a single file, as appropriate to mozilla-central,
+  which is also a working python package deployed to PyPI for easy
+  installation. 
+
+Historical Reference
+--------------------
+
+Ordered list of links about how manifests came to be where they are today::
+
+* http://alice.nodelman.net/blog/post/2010/05/
+* http://alice.nodelman.net/blog/post/universal-manifest-for-unit-tests-a-proposal/
+* https://elvis314.wordpress.com/2010/07/27/types-of-data-we-care-about-in-a-manifest/
+* http://elvis314.wordpress.com/2011/05/20/converting-xpcshell-from-listing-directories-to-a-manifest/
+* https://bugzilla.mozilla.org/show_bug.cgi?id=616999
+* https://developer.mozilla.org/en/Writing_xpcshell-based_unit_tests#Adding_your_tests_to_the_xpcshell_manifest

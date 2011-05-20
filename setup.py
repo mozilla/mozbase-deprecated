@@ -45,6 +45,3 @@
 import sys
 from manifestparser import SetupCLI
 SetupCLI(None)(None, sys.argv[1:])
-
-
-                 

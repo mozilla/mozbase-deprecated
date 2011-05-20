@@ -52,7 +52,7 @@ import sys
 from fnmatch import fnmatch
 from optparse import OptionParser
 
-version = '0.3.1' # package version
+version = '0.3.2' # package version
 try:
     from setuptools import setup
 except ImportError:
@@ -765,7 +765,7 @@ class SetupCLI(CLICommand):
 
         setup(name='ManifestDestiny',
               version=version,
-              description="universal reader for manifests",
+              description="Universal manifests for Mozilla test harnesses",
               long_description=description,
               classifiers=[], # Get strings from http://pypi.python.org/pypi?%3Aaction=list_classifiers
               keywords='mozilla manifests',
