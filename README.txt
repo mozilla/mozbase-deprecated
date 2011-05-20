@@ -205,7 +205,10 @@ respectively, the test is marked as disabled.  For instance, if you
 pass ``**dict(os='linux')`` as ``**tags``, if a test contains a line
 ``skip-if.os = linux`` this test will be disabled, or 
 ``run-if.os = win`` in which case the test will also be disabled.  It
-is up to the harness to pass in tags appropriate to its usage.
+is up to the harness to pass in tags appropriate to its usage.  
+
+Multiple values in in the manifest line should be whitespace-separated
+(e.g. ``os = linux mac``).
 
 
 Creating Manifests
