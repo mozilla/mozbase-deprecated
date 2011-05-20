@@ -313,6 +313,7 @@ Historical Reference
 
 Ordered list of links about how manifests came to be where they are today::
 
+* https://wiki.mozilla.org/Auto-tools/Projects/UniversalManifest
 * http://alice.nodelman.net/blog/post/2010/05/
 * http://alice.nodelman.net/blog/post/universal-manifest-for-unit-tests-a-proposal/
 * https://elvis314.wordpress.com/2010/07/27/types-of-data-we-care-about-in-a-manifest/
