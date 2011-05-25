@@ -468,19 +468,17 @@ class TestManifest(ManifestParser):
     specific harnesses may subclass from this if they need more logic
     """
 
-    def filter(self, tag, value, tests=None):
+    def filter(self, tag, value, tests):
         """
         filter on a specific list tag, e.g.:
         run-if.os = win linux
         skip-if.os = mac
         """
 
-        if tests is None:
-            tests = self.tests
-        
         # tags:
         run_tag = 'run-if.' + tag
-        skip_tag = 'skip-if.' + tag        
+        skip_tag = 'skip-if.' + tag
+        fail_tag = 'fail-if.' + tag
 
         # loop over test
         for test in tests:
@@ -502,6 +500,12 @@ class TestManifest(ManifestParser):
             if reason:
                 test.setdefault('disabled', reason)        
 
+            # mark test as a fail if so indicated
+            if fail_tag in test:
+                values = test[fail_tag].split()
+                if value in values:
+                    test['expected'] = 'fail'
+
     def active_tests(self, exists=True, disabled=True, **tags):
         """
         - exists : return only existing tests
@@ -510,6 +514,10 @@ class TestManifest(ManifestParser):
         """
 
         tests = [i.copy() for i in self.tests] # shallow copy
+
+        # mark all tests as passing unless indicated otherwise
+        for test in tests:
+            test['expected'] = 'pass'
         
         # ignore tests that do not exist
         if exists:

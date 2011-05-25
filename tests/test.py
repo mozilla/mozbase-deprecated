@@ -60,7 +60,8 @@ def run_tests(raise_on_error=False, report_first=False):
                                 
     # gather tests
     directory = os.path.dirname(os.path.abspath(__file__))
-    tests =  [ test for test in os.listdir(directory) if test.endswith('.txt') ]
+    tests =  [ test for test in os.listdir(directory)
+               if test.endswith('.txt') and test.startswith('test_')]
     os.chdir(directory)
 
     # run the tests
