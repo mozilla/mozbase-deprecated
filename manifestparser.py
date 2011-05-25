@@ -243,13 +243,16 @@ class ManifestParser(object):
 
     ### methods for querying manifests
 
-    def query(self, *checks):
+    def query(self, *checks, **kw):
         """
         general query function for tests
         - checks : callable conditions to test if the test fulfills the query
         """
+        tests = kw.get('tests', None)
+        if tests is None:
+            tests = self.tests
         retval = []
-        for test in self.tests:
+        for test in tests:
             for check in checks:
                 if not check(test):
                     break
@@ -257,7 +260,7 @@ class ManifestParser(object):
                 retval.append(test)
         return retval
 
-    def get(self, _key=None, inverse=False, tags=None, **kwargs):
+    def get(self, _key=None, inverse=False, tags=None, tests=None, **kwargs):
         # TODO: pass a dict instead of kwargs since you might hav
         # e.g. 'inverse' as a key in the dict
 
@@ -287,7 +290,7 @@ class ManifestParser(object):
                 return True
 
         # query the tests
-        tests = self.query(has_tags, dict_query)
+        tests = self.query(has_tags, dict_query, tests=tests)
 
         # if a key is given, return only a list of that key
         # useful for keys like 'name' or 'path'
