@@ -37,15 +37,61 @@
 # 
 # ***** END LICENSE BLOCK *****
 
+"""tests for ManifestDestiny"""
+
 import doctest
 import os
+import sys
+from optparse import OptionParser
 
-def run_tests():
+def run_tests(raise_on_error=False, report_first=False):
+
+    # add results here
+    results = {}
+
+    # doctest arguments
+    directory = os.path.dirname(os.path.abspath(__file__))
+    extraglobs = {}
+    doctest_args = dict(extraglobs=extraglobs,
+                        module_relative=False,
+                        raise_on_error=raise_on_error)
+    if report_first:
+        doctest_args['optionflags'] = doctest.REPORT_ONLY_FIRST_FAILURE
+                                
+    # gather tests
     directory = os.path.dirname(os.path.abspath(__file__))
     tests =  [ test for test in os.listdir(directory) if test.endswith('.txt') ]
     os.chdir(directory)
-    for test in tests:
-        doctest.testfile(test, module_relative=False)
 
+    # run the tests
+    for test in tests:
+        try:
+            results[test] = doctest.testfile(test, **doctest_args)
+        except doctest.DocTestFailure, failure:
+            raise
+        except doctest.UnexpectedException, failure:
+            raise failure.exc_info[0], failure.exc_info[1], failure.exc_info[2]
+        
+    return results
+                                
+
+def main(args=sys.argv[1:]):
+
+    # parse command line options
+    parser = OptionParser(description=__doc__)
+    parser.add_option('--raise', dest='raise_on_error',
+                      default=False, action='store_true',
+                      help="raise on first error")
+    parser.add_option('--report-first', dest='report_first',
+                      default=False, action='store_true',
+                      help="report the first error only (all tests will still run)")
+    options, args = parser.parse_args(args)
+
+    # run the tests
+    results = run_tests(**options.__dict__)
+
+    if sum([i.failed for i in results.values()]):
+        sys.exit(1) # error
+               
 if __name__ == '__main__':
-    run_tests()
+    main()
