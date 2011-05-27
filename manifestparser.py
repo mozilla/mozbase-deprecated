@@ -520,7 +520,7 @@ class TestManifest(ManifestParser):
 
         # mark all tests as passing unless indicated otherwise
         for test in tests:
-            test['expected'] = 'pass'
+            test['expected'] = test.get('expected', 'pass')
         
         # ignore tests that do not exist
         if exists:
