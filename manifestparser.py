@@ -44,9 +44,12 @@ Mozilla universal manifest parser
 # this file lives at
 # http://hg.mozilla.org/automation/ManifestDestiny/raw-file/tip/manifestparser.py
 
-__all__ = ['ManifestParser', 'TestManifest', 'convert']
+__all__ = ['read_ini', # .ini reader
+           'ManifestParser', 'TestManifest', 'convert', # manifest handling
+           'parse', 'ParseError', 'ExpressionParser'] # conditional expression parser
 
 import os
+import re
 import shutil
 import sys
 from fnmatch import fnmatch
@@ -57,6 +60,223 @@ try:
     from setuptools import setup
 except ImportError:
     setup = None
+
+# expr.py
+# from:
+# http://k0s.org/mozilla/hg/expressionparser
+# http://hg.mozilla.org/users/tmielczarek_mozilla.com/expressionparser
+
+# Implements a top-down parser/evaluator for simple boolean expressions.
+# ideas taken from http://effbot.org/zone/simple-top-down-parsing.htm
+#
+# Rough grammar:
+# expr := literal
+#       | '(' expr ')'
+#       | expr '&&' expr
+#       | expr '||' expr
+#       | expr '==' expr
+#       | expr '!=' expr
+# literal := BOOL
+#          | INT
+#          | STRING
+#          | IDENT
+# BOOL   := true|false
+# INT    := [0-9]+
+# STRING := "[^"]*"
+# IDENT  := [A-Za-z_]\w*
+
+# Identifiers take their values from a mapping dictionary passed as the second
+# argument.
+
+# Glossary (see above URL for details):
+# - nud: null denotation
+# - led: left detonation
+# - lbp: left binding power
+# - rbp: right binding power
+
+class ident_token(object):
+    def __init__(self, value):
+        self.value = value
+    def nud(self, parser):
+        # identifiers take their value from the value mappings passed
+        # to the parser
+        return parser.value(self.value)
+
+class literal_token(object):
+    def __init__(self, value):
+        self.value = value
+    def nud(self, parser):
+        return self.value
+
+class eq_op_token(object):
+    "=="
+    def led(self, parser, left):
+        return left == parser.expression(self.lbp)
+    
+class neq_op_token(object):
+    "!="
+    def led(self, parser, left):
+        return left != parser.expression(self.lbp)
+
+class not_op_token(object):
+    "!"
+    def nud(self, parser):
+        return not parser.expression()
+
+class and_op_token(object):
+    "&&"
+    def led(self, parser, left):
+        right = parser.expression(self.lbp)
+        return left and right
+    
+class or_op_token(object):
+    "||"
+    def led(self, parser, left):
+        right = parser.expression(self.lbp)
+        return left or right
+
+class lparen_token(object):
+    "("
+    def nud(self, parser):
+        expr = parser.expression()
+        parser.advance(rparen_token)
+        return expr
+
+class rparen_token(object):
+    ")"
+
+class end_token(object):
+    """always ends parsing"""
+
+### derived literal tokens
+
+class bool_token(literal_token):
+    def __init__(self, value):
+        value = {'true':True, 'false':False}[value]
+        literal_token.__init__(self, value)
+
+class int_token(literal_token):
+    def __init__(self, value):
+        literal_token.__init__(self, int(value))
+
+class string_token(literal_token):
+    def __init__(self, value):
+        literal_token.__init__(self, value[1:-1])
+
+precedence = [(end_token, rparen_token),
+              (or_op_token,),
+              (and_op_token,),
+              (eq_op_token, neq_op_token),
+              (lparen_token,),
+              ]
+for index, rank in enumerate(precedence):
+    for token in rank:
+        token.lbp = index # lbp = lowest left binding power
+
+class ParseError(Exception):
+    """errror parsing conditional expression"""
+
+class ExpressionParser(object):
+    def __init__(self, text, valuemapping, strict=False):
+        """
+        Initialize the parser with input |text|, and |valuemapping| as
+        a dict mapping identifier names to values.
+        """
+        self.text = text
+        self.valuemapping = valuemapping
+        self.strict = strict
+
+    def _tokenize(self):
+        """
+        Lex the input text into tokens and yield them in sequence.
+        """
+        # scanner callbacks
+        def bool_(scanner, t): return bool_token(t)
+        def identifier(scanner, t): return ident_token(t)
+        def integer(scanner, t): return int_token(t)
+        def eq(scanner, t): return eq_op_token()
+        def neq(scanner, t): return neq_op_token()
+        def or_(scanner, t): return or_op_token()
+        def and_(scanner, t): return and_op_token()
+        def lparen(scanner, t): return lparen_token()
+        def rparen(scanner, t): return rparen_token()
+        def string_(scanner, t): return string_token(t)
+        def not_(scanner, t): return not_op_token()
+
+        scanner = re.Scanner([
+            (r"true|false", bool_),
+            (r"[a-zA-Z_]\w*", identifier),
+            (r"[0-9]+", integer),
+            (r'("[^"]*")|(\'[^\']*\')', string_),
+            (r"==", eq),
+            (r"!=", neq),
+            (r"\|\|", or_),
+            (r"!", not_),
+            (r"&&", and_),
+            (r"\(", lparen),
+            (r"\)", rparen),
+            (r"\s+", None), # skip whitespace
+            ])
+        tokens, remainder = scanner.scan(self.text)
+        for t in tokens:
+            yield t
+        yield end_token()
+
+    def value(self, ident):
+        """
+        Look up the value of |ident| in the value mapping passed in the
+        constructor.
+        """
+        if self.strict:
+            return self.valuemapping[ident]
+        else:
+            return self.valuemapping.get(ident, None)
+
+    def advance(self, expected):
+        """
+        Assert that the next token is an instance of |expected|, and advance
+        to the next token.
+        """
+        if not isinstance(self.token, expected):
+            raise Exception, "Unexpected token!"
+        self.token = self.iter.next()
+        
+    def expression(self, rbp=0):
+        """
+        Parse and return the value of an expression until a token with
+        right binding power greater than rbp is encountered.
+        """
+        t = self.token
+        self.token = self.iter.next()
+        left = t.nud(self)
+        while rbp < self.token.lbp:
+            t = self.token
+            self.token = self.iter.next()
+            left = t.led(self, left)
+        return left
+
+    def parse(self):
+        """
+        Parse and return the value of the expression in the text
+        passed to the constructor. Raises a ParseError if the expression
+        could not be parsed.
+        """
+        try:
+            self.iter = self._tokenize()
+            self.token = self.iter.next()
+            return self.expression()
+        except:
+            raise ParseError("could not parse: %s; variables: %s" % (self.text, self.valuemapping))
+
+    __call__ = parse
+
+def parse(text, **values):
+    """
+    Parse and evaluate a boolean expression in |text|. Use |values| to look
+    up the value of identifiers referenced in the expression. Returns the final
+    value of the expression. A ParseError will be raised if parsing fails.
+    """
+    return ExpressionParser(text, values).parse()
 
 def normalize_path(path):
     """normalize a relative path"""
@@ -471,7 +691,7 @@ class TestManifest(ManifestParser):
     specific harnesses may subclass from this if they need more logic
     """
 
-    def filter(self, tag, value, tests):
+    def filter(self, values, tests):
         """
         filter on a specific list tag, e.g.:
         run-if.os = win linux
@@ -479,9 +699,9 @@ class TestManifest(ManifestParser):
         """
 
         # tags:
-        run_tag = 'run-if.' + tag
-        skip_tag = 'skip-if.' + tag
-        fail_tag = 'fail-if.' + tag
+        run_tag = 'run-if'
+        skip_tag = 'skip-if'
+        fail_tag = 'fail-if'
 
         # loop over test
         for test in tests:
@@ -489,15 +709,15 @@ class TestManifest(ManifestParser):
             
             # tagged-values to run
             if run_tag in test:
-                values = test[run_tag].split()
-                if value not in values:
-                    reason = '%s %s not in run values %s' % (tag, value, values)
+                condition = test[run_tag]
+                if not parse(condition, **values):
+                    reason = '%s: %s' % (run_tag, condition)
 
             # tagged-values to skip
             if skip_tag in test:
-                values = test[skip_tag].split()
-                if value in values:
-                    reason = '%s %s in skipped values %s' % (tag, value, values)
+                condition = test[skip_tag]
+                if parse(condition, **values):
+                    reason = '%s: %s' % (skip_tag, condition)
 
             # mark test as disabled if there's a reason
             if reason:
@@ -505,11 +725,11 @@ class TestManifest(ManifestParser):
 
             # mark test as a fail if so indicated
             if fail_tag in test:
-                values = test[fail_tag].split()
-                if value in values:
+                condition = test[fail_tag]
+                if parse(condition, **values):
                     test['expected'] = 'fail'
 
-    def active_tests(self, exists=True, disabled=True, **tags):
+    def active_tests(self, exists=True, disabled=True, **values):
         """
         - exists : return only existing tests
         - disabled : whether to return disabled tests
@@ -527,8 +747,7 @@ class TestManifest(ManifestParser):
             tests = [test for test in tests if os.path.exists(test['path'])]
 
         # filter by tags
-        for tag, value in tags.items():
-            self.filter(tag, value, tests)
+        self.filter(values, tests)
 
         # ignore disabled tests if specified
         if not disabled:
