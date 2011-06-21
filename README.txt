@@ -22,7 +22,7 @@ What ManifestDestiny gives you::
     'manifest': '/home/jhammel/mozmill/src/ManifestDestiny/manifestdestiny/tests',}]
 
 The keys displayed here (path, name, here, and manifest) are reserved
-words for ManifestDestiny and any consuming APIs.  You can add
+keys for ManifestDestiny and any consuming APIs.  You can add
 additional key, value metadata to each test.
 
 
@@ -40,7 +40,11 @@ advantages::
   investigated in real time (is it a failure? is the test bad? is no
   one around that knows the test?), then backing out a test is at best
   problematic.  With a manifest, a test may be disabled without
-  removing it from the tree
+  removing it from the tree and a bug filed with the appropriate
+  reason::
+
+   [test_broken.js]
+   disabled = https://bugzilla.mozilla.org/show_bug.cgi?id=123456
 
 * ability to run different (subsets of) tests on different
   platforms. Traditionally, we've done a bit of magic or had the test
@@ -48,13 +52,18 @@ advantages::
   can mark what platforms a test will or will not run on and change
   these without changing the test.
 
+   [test_works_on_windows_only.js]
+   run-if = os == 'win'
+
 * ability to markup tests with metadata. We have a large, complicated,
   and always changing infrastructure.  key, value metadata may be used
   as an annotation to a test and appropriately curated and mined.  For
   instance, we could mark certain tests as randomorange with a bug
   number, if it were desirable.
 
-* ability to have sane and well-defined test-runs
+* ability to have sane and well-defined test-runs. You can keep
+  different manifests for different test runs and ``[include:]``
+  (sub)manifests as appropriate to your needs.
 
 
 Manifest Format
@@ -68,7 +77,7 @@ relative to the manifest::
  [fleem.js]
 
 The sections are read in order. In addition, tests may include
-arbitrary key, value metadata to be used by the harness.  You can also
+arbitrary key, value metadata to be used by the harness.  You may also
 have a ``[DEFAULT]`` section that will give key, value pairs that will
 be inherited by each test unless overridden::
 
@@ -115,15 +124,16 @@ as well.
 
 Outside of the reserved keys, the remaining key, values
 are up to convention to use.  There is a (currently very minimal)
-generic integration layer in ManifestDestiny for use of all tests.
+generic integration layer in ManifestDestiny for use of all harnesses,
+``manifestparser.TestManifest``.
 For instance, if the 'disabled' key is present, you can get the set of
 tests without disabled (various other queries are doable as well).
 
 Since the system is convention-based, the harnesses may do whatever
 they want with the data.  They may ignore it completely, they may use
 the provided integration layer, or they may provide their own
-integration layer.  This should allow whatever sort of logic they
-want.  For instance, if in yourtestharness you wanted to run only on
+integration layer.  This should allow whatever sort of logic is
+desired.  For instance, if in yourtestharness you wanted to run only on
 mondays for a certain class of tests::
 
  tests = []
@@ -142,7 +152,7 @@ To recap:
 Tests are denoted by sections in an .ini file (see
 http://hg.mozilla.org/automation/ManifestDestiny/file/tip/manifestdestiny/tests/mozmill-example.ini). 
 
-Additional manifest files may be included with a [include:] directive::
+Additional manifest files may be included with an ``[include:]`` directive::
 
  [include:path-to-additional-file.manifest]
 
@@ -200,15 +210,12 @@ tests you want::
 - tags : keys and values to filter on (e.g. ``os='linux'``)
 
 ``active_tests`` looks for tests with ``skip-if.${TAG}`` or
-``run-if.${TAG}``.  If the condition is or is not fulfilled,
+``run-if``.  If the condition is or is not fulfilled,
 respectively, the test is marked as disabled.  For instance, if you
 pass ``**dict(os='linux')`` as ``**tags``, if a test contains a line
-``skip-if.os = linux`` this test will be disabled, or 
-``run-if.os = win`` in which case the test will also be disabled.  It
+``skip-if = os == 'linux'`` this test will be disabled, or 
+``run-if = os = 'win'`` in which case the test will also be disabled.  It
 is up to the harness to pass in tags appropriate to its usage.  
-
-Multiple values in in the manifest line should be whitespace-separated
-(e.g. ``os = linux mac``).
 
 
 Creating Manifests
@@ -325,7 +332,7 @@ through several design considerations.
 Historical Reference
 --------------------
 
-Ordered list of links about how manifests came to be where they are today::
+Date-ordered list of links about how manifests came to be where they are today::
 
 * https://wiki.mozilla.org/Auto-tools/Projects/UniversalManifest
 * http://alice.nodelman.net/blog/post/2010/05/
