@@ -91,7 +91,13 @@ def main(args=sys.argv[1:]):
     # run the tests
     results = run_tests(**options.__dict__)
 
-    if sum([i.failed for i in results.values()]):
+    # check for failure
+    failed = False
+    for result in results.values():
+        if result[0]: # failure count; http://docs.python.org/library/doctest.html#basic-api
+            failed = True
+            break
+    if failed:
         sys.exit(1) # error
                
 if __name__ == '__main__':
