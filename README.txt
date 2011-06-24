@@ -164,7 +164,6 @@ Included files will inherit the top-level variables but may override
 in their own ``[DEFAULT]`` section.
 
 
-
 ManifestDestiny Architecture
 ----------------------------
 
