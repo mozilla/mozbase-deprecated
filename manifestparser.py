@@ -61,6 +61,13 @@ try:
 except ImportError:
     setup = None
 
+# we need relpath, but it is introduced in python 2.6
+# http://docs.python.org/library/os.path.html
+try:
+    relpath = os.path.relpath
+except AttributeError:
+    raise
+
 # expr.py
 # from:
 # http://k0s.org/mozilla/hg/expressionparser
@@ -589,7 +596,7 @@ class ManifestParser(object):
 
             path = test['name']
             if not os.path.isabs(path):
-                path = os.path.relpath(test['path'], self.rootdir)
+                path = relpath(test['path'], self.rootdir)
             print >> fp, '[%s]' % path
           
             # reserved keywords:
@@ -634,7 +641,7 @@ class ManifestParser(object):
             rootdir = self.rootdir
 
         # copy the manifests + tests
-        manifests = [os.path.relpath(manifest, rootdir) for manifest in self.manifests()]
+        manifests = [relpath(manifest, rootdir) for manifest in self.manifests()]
         for manifest in manifests:
             destination = os.path.join(directory, manifest)
             dirname = os.path.dirname(destination)
@@ -652,7 +659,7 @@ class ManifestParser(object):
                 print >> sys.stderr, "Missing test: '%s' does not exist!" % source
                 continue
                 # TODO: should err on strict
-            destination = os.path.join(directory, os.path.relpath(test['path'], rootdir))
+            destination = os.path.join(directory, relpath(test['path'], rootdir))
             shutil.copy(source, destination)
             # TODO: ensure that all of the tests are below the from_dir
 
@@ -675,13 +682,13 @@ class ManifestParser(object):
         # copy them!
         for test in tests:
             if not os.path.isabs(test['name']):
-                relpath = os.path.relpath(test['path'], rootdir)
-                source = os.path.join(from_dir, relpath)
+                _relpath = relpath(test['path'], rootdir)
+                source = os.path.join(from_dir, _relpath)
                 if not os.path.exists(source):
                     # TODO err on strict
                     print >> sys.stderr, "Missing test: '%s'; skipping" % test['name']
                     continue
-                destination = os.path.join(rootdir, relpath)
+                destination = os.path.join(rootdir, _relpath)
                 shutil.copy(source, destination)
 
 
