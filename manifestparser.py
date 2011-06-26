@@ -55,7 +55,7 @@ import sys
 from fnmatch import fnmatch
 from optparse import OptionParser
 
-version = '0.5' # package version
+version = '0.5.1' # package version
 try:
     from setuptools import setup
 except ImportError:
@@ -81,10 +81,10 @@ except AttributeError:
         # Work out how much of the filepath is shared by start and path.
         i = len(os.path.commonprefix([start_list, path_list]))
 
-        rel_list = [pardir] * (len(start_list)-i) + path_list[i:]
+        rel_list = [os.path.pardir] * (len(start_list)-i) + path_list[i:]
         if not rel_list:
             return start
-        return join(*rel_list)
+        return os.path.join(*rel_list)
 
 # expr.py
 # from:
@@ -520,7 +520,7 @@ class ManifestParser(object):
 
         # make some check functions
         if inverse:
-            has_tags = lambda test: tags.isdisjoint(test.keys())
+            has_tags = lambda test: not tags.intersection(test.keys())
             def dict_query(test):
                 for key, value in kwargs.items():
                     if test.get(key) == value:
