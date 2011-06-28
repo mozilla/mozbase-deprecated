@@ -55,7 +55,7 @@ import sys
 from fnmatch import fnmatch
 from optparse import OptionParser
 
-version = '0.5.2' # package version
+version = '0.5.3' # package version
 try:
     from setuptools import setup
 except ImportError:
