@@ -833,7 +833,7 @@ def convert(directories, pattern=None, ignore=(), write=None):
                 manifest.close()
 
             # add to the list
-            retval.extend([os.path.join(dirpath, filename)
+            retval.extend([denormalize_path(os.path.join(dirpath, filename))
                            for filename in filenames])
 
     if write:
