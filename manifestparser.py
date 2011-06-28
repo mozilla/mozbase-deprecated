@@ -811,7 +811,7 @@ def convert(directories, pattern=None, ignore=(), write=None):
 
             # reference only the subdirectory
             _dirpath = dirpath
-            dirpath = dirpath.split(directory, 1)[-1].strip('/')
+            dirpath = dirpath.split(directory, 1)[-1].strip(os.path.sep)
 
             if dirpath.split(os.path.sep)[0] in ignore:
                 continue
