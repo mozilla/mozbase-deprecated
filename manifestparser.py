@@ -614,7 +614,7 @@ class ManifestParser(object):
 
             path = test['name']
             if not os.path.isabs(path):
-                path = relpath(test['path'], self.rootdir)
+                path = normalize_path(relpath(test['path'], self.rootdir))
             print >> fp, '[%s]' % path
           
             # reserved keywords:
