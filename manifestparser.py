@@ -309,6 +309,13 @@ def normalize_path(path):
         return path.replace('/', os.path.sep)
     return path
 
+def denormalize_path(path):
+    """denormalize a relative path"""
+    if sys.platform.startswith('win'):
+        return path.replace(os.path.sep, '/')
+    return path
+    
+
 def read_ini(fp, variables=None, default='DEFAULT',
              comments=';#', separators=('=', ':'),
              strict=True):
@@ -614,7 +621,7 @@ class ManifestParser(object):
 
             path = test['name']
             if not os.path.isabs(path):
-                path = normalize_path(relpath(test['path'], self.rootdir))
+                path = denormalize_path(relpath(test['path'], self.rootdir))
             print >> fp, '[%s]' % path
           
             # reserved keywords:
