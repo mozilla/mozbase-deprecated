@@ -58,7 +58,7 @@ from optparse import OptionParser
 version = '0.5.3' # package version
 try:
     from setuptools import setup
-except ImportError:
+except:
     setup = None
 
 # we need relpath, but it is introduced in python 2.6
