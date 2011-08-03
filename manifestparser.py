@@ -55,7 +55,7 @@ import sys
 from fnmatch import fnmatch
 from optparse import OptionParser
 
-version = '0.5.3' # package version
+version = '0.5.4' # package version
 try:
     from setuptools import setup
 except:
@@ -621,7 +621,10 @@ class ManifestParser(object):
 
             path = test['name']
             if not os.path.isabs(path):
-                path = denormalize_path(relpath(test['path'], self.rootdir))
+                path = test['path']
+                if self.rootdir:
+                    path = relpath(test['path'], self.rootdir)
+                path = denormalize_path(path)
             print >> fp, '[%s]' % path
           
             # reserved keywords:
