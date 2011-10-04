@@ -11,4 +11,4 @@ dist
 *.o
 *.a
 *.so.0
-proclaunch
+
