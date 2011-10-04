@@ -46,11 +46,8 @@ desc = """Robust log handling specialized for logging in the Mozilla universe"""
 here = os.path.dirname(os.path.abspath(__file__))
 try:
     description = file(os.path.join(here, 'README.md')).read()
-except OSError:
+except IOError, OSError:
     description = ''
-
-# we only support python 2 right now
-assert sys.version_info[0] == 2
 
 setup(name=PACKAGE_NAME,
       version=PACKAGE_VERSION,
