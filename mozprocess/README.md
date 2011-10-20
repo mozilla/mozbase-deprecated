@@ -1,8 +1,7 @@
-[mozprocess](https://github.com/mozautomation/mozmill/tree/master/mozprocess)
+[mozprocess](https://github.com/mozilla/mozbase/tree/master/mozprocess)
 provides python process management via an operating system 
 and platform transparent interface to Mozilla platforms of interest.
-Mozprocess aims to ensure the ability to robustly terminate a process
-on Windows, OS X, and Linux.  Mozprocess aims to provide the ability
+Mozprocess aims to provide the ability
 to robustly terminate a process (by timeout or otherwise), along with
 any child processes, on Windows, OS X, and Linux. Mozprocess utilizes
 and extends `subprocess.Popen` to these ends.
@@ -10,7 +9,7 @@ and extends `subprocess.Popen` to these ends.
 
 # API
 
-[mozprocess.processhandler:ProcessHandler](https://github.com/mozautomation/mozmill/blob/master/mozprocess/mozprocess/processhandler.py)
+[mozprocess.processhandler:ProcessHandler](https://github.com/mozilla/mozbase/blob/master/mozprocess/mozprocess/processhandler.py)
 is the central exposed API for mozprocess.  `ProcessHandler` utilizes
 a contained subclass of [subprocess.Popen](http://docs.python.org/library/subprocess.html),
 `Process`, which does the brunt of the process management.
@@ -23,7 +22,7 @@ Basic usage:
                              )         
     exit_code = process.waitForFinish(timeout=60) # seconds
 
-See an example in https://github.com/mozautomation/mozmill/blob/master/mutt/mutt/tests/python/testprofilepath.py
+See an example in https://github.com/mozilla/mozbase/blob/master/mutt/mutt/tests/python/testprofilepath.py
 
 `ProcessHandler` may be subclassed to handle process timeouts (by overriding
 the `onTimeout()` method), process completion (by overriding 

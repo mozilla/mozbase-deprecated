@@ -1,4 +1,4 @@
-[mozrunner](https://github.com/mozautomation/mozmill/tree/master/mozrunner)
+[mozrunner](https://github.com/mozilla/mozbase/tree/master/mozrunner)
 is a [python package](http://pypi.python.org/pypi/mozrunner)
 which handles running of Mozilla applications.
 mozrunner utilizes [mozprofile](/en/Mozprofile)
@@ -24,7 +24,7 @@ program.
 # API Usage
 
 mozrunner features a base class, 
-[mozrunner.runner.Runner](https://github.com/mozautomation/mozmill/blob/master/mozrunner/mozrunner/runner.py) 
+[mozrunner.runner.Runner](https://github.com/mozilla/mozbase/blob/master/mozrunner/mozrunner/runner.py) 
 which is an integration layer API for interfacing with Mozilla applications.
 
 mozrunner also exposes two application specific classes,
