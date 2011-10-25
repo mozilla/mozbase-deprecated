@@ -3,7 +3,7 @@ from setuptools import setup
 
 try:
     here = os.path.dirname(os.path.abspath(__file__))
-    description = file(os.path.join(here, 'README.txt')).read()
+    description = file(os.path.join(here, 'README.md')).read()
 except IOError:
     description = None
 
