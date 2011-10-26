@@ -147,10 +147,12 @@ def main(args=sys.argv[1:]):
 
     # gather dependencies
     deps = {}
+    mapping = {} # mapping from subdir name to package name
     # core dependencies
     for package in packages:
         key, value = dependencies(os.path.join(here, package))
         deps[key] = [sanitize_dependency(dep) for dep in value]
+        mapping[package] = key
     # indirect dependencies
     flag = True
     while flag:
@@ -160,18 +162,28 @@ def main(args=sys.argv[1:]):
                 if dep in all_packages and dep not in deps:
                     key, value = dependencies(os.path.join(here, dep))
                     deps[key] = [sanitize_dependency(dep) for dep in value]
+                    mapping[package] = key
                     flag = True
                     break
             if flag:
                 break
 
+    # get the remaining names for the mapping
+    for package in all_packages:
+        if package in mapping:
+            continue
+        key, value = dependencies(os.path.join(here, package))
+        mapping[package] = key
+
     # unroll dependencies
     unrolled = unroll_dependencies(deps)
 
-    # we only care about dependencies in mozbase
-    unrolled = [package for package in unrolled
-                if package in all_packages]
+    # make a reverse mapping: package name -> subdirectory
+    reverse_mapping = dict([(j,i) for i, j in mapping.items()])
 
+    # we only care about dependencies in mozbase
+    unrolled = [package for package in unrolled if package in reverse_mapping]
+    
     if options.list:
         # list what will be installed
         for package in unrolled:
@@ -180,7 +192,8 @@ def main(args=sys.argv[1:]):
 
     # set up the packages for development
     for package in unrolled:
-        call([sys.executable, 'setup.py', 'develop'], cwd=os.path.join(here, package))
+        call([sys.executable, 'setup.py', 'develop'], 
+             cwd=os.path.join(here, reverse_mapping[package]))
 
 if __name__ == '__main__':
     main()
