@@ -7,7 +7,7 @@ try:
 except IOError:
     description = None
 
-version = '0.0'
+version = '0.1'
 
 deps = []
 
@@ -18,7 +18,7 @@ setup(name='mozhttpd',
       classifiers=[], # Get strings from http://pypi.python.org/pypi?%3Aaction=list_classifiers
       keywords='mozilla',
       author='Joel Maher',
-      author_email='auto-tools@mozilla.com',
+      author_email='tools@lists.mozilla.org',
       url='https://github.com/mozilla/mozbase/tree/master/mozhttpd',
       license='MPL',
       py_modules=['mozhttpd'],
