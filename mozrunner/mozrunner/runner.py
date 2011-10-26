@@ -52,8 +52,18 @@ from mozprocess.processhandler import ProcessHandler
 
 package_metadata = get_metadata_from_egg('mozrunner')
 
+class BinaryLocationException(Exception):
+    """exception for failure to find the binary"""
+    
+
 class Runner(object):
     """Handles all running operations. Finds bins, runs and kills the process."""
+
+    ### data to be filled in by subclasses
+    profile = Profile # profile class to use by default
+    names = [] # names of application to look for on PATH
+    app_name = '' # name of application in windows registry
+    program_names = [] # names of application in windows program files
 
     @classmethod
     def create(cls, binary=None, cmdargs=None, env=None, kp_kwargs=None, profile_args=None, 
@@ -111,7 +121,10 @@ class Runner(object):
     def get_binary(cls, binary=None):
         """determine the binary"""
         if binary is None:
-            return cls.find_binary()
+            binary = cls.find_binary()
+            if binary is None:
+                raise BinaryLocationException("Your binary could not be located; you will need to set it")
+            return binary
         elif mozinfo.isMac and binary.find('Contents/MacOS/') == -1:
             return os.path.join(binary, 'Contents/MacOS/%s-bin' % cls.names[0])
         else:
@@ -123,8 +136,10 @@ class Runner(object):
 
         binary = None
         if mozinfo.isUnix:
-            for name in reversed(cls.names):
+            for name in cls.names:
                 binary = findInPath(name)
+                if binary:
+                    return binary
         elif mozinfo.isWin:
 
             # find the default executable from the windows registry
@@ -140,25 +155,28 @@ class Runner(object):
                 pass
 
             # search for the binary in the path
-            for name in reversed(cls.names):
+            for name in cls.names:
                 binary = findInPath(name)
-                if sys.platform == 'cygwin':
-                    program_files = os.environ['PROGRAMFILES']
-                else:
-                    program_files = os.environ['ProgramFiles']
+                if binary:
+                    return binary
 
-                if binary is None:
-                    for bin in [(program_files, 'Mozilla Firefox', 'firefox.exe'),
-                                (os.environ.get("ProgramFiles(x86)"),'Mozilla Firefox', 'firefox.exe'),
-                                (program_files,'Minefield', 'firefox.exe'),
-                                (os.environ.get("ProgramFiles(x86)"),'Minefield', 'firefox.exe')
-                                ]:
-                        path = os.path.join(*bin)
-                        if os.path.isfile(path):
-                            binary = path
-                            break
+            # search for the binary in program files
+            if sys.platform == 'cygwin':
+                program_files = os.environ['PROGRAMFILES']
+            else:
+                program_files = os.environ['ProgramFiles']
+
+            program_files = [program_files]
+            if  "ProgramFiles(x86)" in os.environ:
+                program_files.append(os.environ["ProgramFiles(x86)"])
+            for program_file in program_files:
+                for program_name in cls.program_names:
+                    path = os.path.join(program_name, program_file, 'firefox.exe')
+                    if os.path.isfile(path):
+                        return path
+
         elif mozinfo.isMac:
-            for name in reversed(cls.names):
+            for name in cls.names:
                 appdir = os.path.join('Applications', name.capitalize()+'.app')
                 if os.path.isdir(os.path.join(os.path.expanduser('~/'), appdir)):
                     binary = os.path.join(os.path.expanduser('~/'), appdir,
@@ -171,8 +189,8 @@ class Runner(object):
                         binary = binary.replace(name+'-bin', 'firefox-bin')
                     if not os.path.isfile(binary):
                         binary = None
-        if binary is None:
-            raise Exception('Mozrunner could not locate your binary, you will need to set it.')
+                if binary:
+                    return binary
         return binary
 
     @property
@@ -262,6 +280,7 @@ class FirefoxRunner(Runner):
 
     app_name = 'Firefox'
     profile_class = FirefoxProfile
+    program_names = ['Mozilla Firefox']
 
     # (platform-dependent) names of binary
     if mozinfo.isMac:
@@ -289,13 +308,12 @@ class FirefoxRunner(Runner):
         preference = {'extensions.checkCompatibility.' + version: False,
                       'extensions.checkCompatibility.nightly': False}
         self.profile.set_preferences(preference)
-        
+            
 
 class ThunderbirdRunner(Runner):
     """Specialized Runner subclass for running Thunderbird"""
     app_name = 'Thunderbird'
     profile_class = ThunderbirdProfile
-
     names = ["thunderbird", "shredder"]
 
 runners = {'firefox': FirefoxRunner,

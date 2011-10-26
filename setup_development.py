@@ -137,7 +137,7 @@ def main(args=sys.argv[1:]):
         packages = sorted(all_packages)
 
     # ensure specified packages are in the list
-    assert set(packages).issubset(all_packages), "Packages should be in %s" % all_packages
+    assert set(packages).issubset(all_packages), "Packages should be in %s (You gave: %s)" % (all_packages, packages)
 
     if options.list_dependencies:
         # list the package dependencies
