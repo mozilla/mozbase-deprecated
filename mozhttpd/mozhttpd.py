@@ -1,3 +1,5 @@
+#!/usr/bin/env python
+
 # ***** BEGIN LICENSE BLOCK *****
 # Version: MPL 1.1/GPL 2.0/LGPL 2.1
 #
@@ -45,16 +47,18 @@ import re
 from urlparse import urlparse
 from SocketServer import ThreadingMixIn
 
-DOCROOT = '.'
-
 class EasyServer(ThreadingMixIn, BaseHTTPServer.HTTPServer):
     allow_reuse_address = True
     
 class MozRequestHandler(SimpleHTTPServer.SimpleHTTPRequestHandler):
+    docroot = os.getcwd()
+
     def translate_path(self, path):
-        # It appears that the default path is '/' and os.path.join makes the '/' 
-        o = urlparse(path)
-        return "/%s" % '/'.join([i.strip('/') for i in (DOCROOT, o.path)])
+        path = path.strip('/').split()
+        if path == ['']:
+            path = []
+        path.insert(0, self.docroot)
+        return os.path.join(*path)
 
     # I found on my local network that calls to this were timing out
     # I believe all of these calls are from log_message
@@ -66,24 +70,27 @@ class MozRequestHandler(SimpleHTTPServer.SimpleHTTPRequestHandler):
         pass
 
 class MozHttpd(object):
-    def __init__(self, host="127.0.0.1", port=8888, docroot='.'):
-        global DOCROOT
+
+    def __init__(self, host="127.0.0.1", port=8888, docroot=os.getcwd()):
         self.host = host
         self.port = int(port)
-        DOCROOT = docroot
+        self.docroot = docroot
 
     def start(self):
-        self.httpd = EasyServer((self.host, self.port), MozRequestHandler)
+
+        class MozRequestHandlerInstance(MozRequestHandler):
+            docroot = self.docroot
+
+        self.httpd = EasyServer((self.host, self.port), MozRequestHandlerInstance)
         self.server = threading.Thread(target=self.httpd.serve_forever)
         self.server.setDaemon(True) # don't hang on exit
         self.server.start()
         self.testServer()
         
-    #TODO: figure this out
     def testServer(self):
-        fileList = os.listdir(DOCROOT)
+        fileList = os.listdir(self.docroot)
         filehandle = urllib.urlopen('http://%s:%s' % (self.host, self.port))
-        data = filehandle.readlines();
+        data = filehandle.readlines()
         filehandle.close()
 
         for line in data:
@@ -98,8 +105,8 @@ class MozHttpd(object):
                         if fileName == webline:
                             found = True
                 
-                if (found == False):
-                    print "NOT FOUND: " + webline.strip()                
+                if not found:
+                    print >> sys.stderr, "NOT FOUND: " + webline.strip()
 
     def stop(self):
         if self.httpd:
@@ -107,3 +114,29 @@ class MozHttpd(object):
         
     __del__ = stop
 
+
+def main(args=sys.argv[1:]):
+    
+    # parse command line options
+    from optparse import OptionParser
+    parser = OptionParser()
+    parser.add_option('-p', '--port', dest='port', 
+                      type="int", default=8888,
+                      help="port to run the server on [DEFAULT: %default]")
+    parser.add_option('-H', '--host', dest='host',
+                      default='127.0.0.1',
+                      help="host [DEFAULT: %default]")
+    parser.add_option('-d', '--docroot', dest='docroot',
+                      default=os.getcwd(),
+                      help="directory to serve files from [DEFAULT: %default]")
+    options, args = parser.parse_args(args)
+    if args:
+        parser.print_help()
+        parser.exit()
+
+    # serve
+    server = MozHttpd(**options.__dict__)
+    server.start()
+
+if __name__ == '__main__':
+    main()
