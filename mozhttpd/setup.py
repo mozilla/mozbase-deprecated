@@ -28,6 +28,8 @@ setup(name='mozhttpd',
       install_requires=deps,
       entry_points="""
       # -*- Entry points: -*-
+      [console_scripts]
+      mozhttpd = mozhttpd:main
       """,
       )
 
