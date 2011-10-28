@@ -7,13 +7,13 @@ try:
 except IOError:
     description = None
 
-version = '0.0'
+version = '0.1'
 
 deps = []
 
 setup(name='mozInstall',
       version=version,
-      description="This is a utility package for installing and uninstalling Firefox on various platforms.",
+      description="This is a utility package for installing Mozilla applications on various platforms.",
       long_description=description,
       classifiers=[], # Get strings from http://pypi.python.org/pypi?%3Aaction=list_classifiers
       keywords='mozilla',
@@ -28,5 +28,7 @@ setup(name='mozInstall',
       install_requires=deps,
       entry_points="""
       # -*- Entry points: -*-
+      [console_scripts]
+      mozinstall = mozinstall:cli
       """,
       )
