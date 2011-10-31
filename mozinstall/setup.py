@@ -9,7 +9,7 @@ except IOError:
 
 version = '0.2'
 
-deps = []
+deps = ['mozinfo']
 
 setup(name='mozInstall',
       version=version,
