@@ -62,12 +62,28 @@ def install(src, dest=None, apps=_default_apps):
     if not dest:
         dest = os.path.dirname(src)
 
-    if zipfile.is_zipfile(src) or tarfile.is_tarfile(src):
-        install_dir = _extract(src, dest)[0]
-    elif mozinfo.isMac and src.lower().endswith(".dmg"):
-        install_dir = _install_dmg(src, dest)
-    elif mozinfo.isWin and os.access(src, os.X_OK):
-        install_dir = _install_exe(src, dest)
+    trbk = None
+    try:
+        install_dir = None
+        if zipfile.is_zipfile(src) or tarfile.is_tarfile(src):
+            install_dir = _extract(src, dest)[0]
+        elif mozinfo.isMac and src.lower().endswith(".dmg"):
+            install_dir = _install_dmg(src, dest)
+        elif mozinfo.isWin and os.access(src, os.X_OK):
+            install_dir = _install_exe(src, dest)
+        else:
+            raise InvalidSource(src + " is not a recognized file type " +
+                                      "(zip, exe, tar.gz, tar.bz2 or dmg)")
+    except InvalidSource, e:
+        raise
+    except Exception, e:
+        cls, exc, trbk = sys.exc_info()
+        install_error = InstallError("Failed to install %s" % src)
+        raise install_error.__class__, install_error, trbk
+    finally:
+        # trbk won't get GC'ed due to circular reference
+        # http://docs.python.org/library/sys.html#sys.exc_info
+        del trbk
 
     if install_dir:
         return get_binary(install_dir, apps=apps)
@@ -83,9 +99,8 @@ def get_binary(path, apps=_default_apps):
         apps = [app + ".exe" for app in apps]
     for root, dirs, files in os.walk(path):
         for filename in files:
-            # os.access evaluates to False in osx and windows for some reason
-            if filename in apps and (not mozinfo.isUnix
-                                     or os.access(filename, os.X_OK)):
+            # os.access evaluates to False for some reason, so not using it
+            if filename in apps:
                 return os.path.realpath(os.path.join(root, filename))
 
 def _extract(path, extdir=None, delete=False):
@@ -142,7 +157,6 @@ def _install_dmg(src, dest):
                         shell=True)
     return os.path.join(dest, appName)
 
-
 def _install_exe(src, dest):
     # possibly gets around UAC in vista (still need to run as administrator)
     os.environ['__compat_layer'] = "RunAsInvoker"
@@ -178,6 +192,18 @@ def cli(argv=sys.argv[1:]):
     else:
         binary = install(options.src, dest=options.dest, apps=options.app)
     print binary
+
+class InvalidSource(Exception):
+    """
+    Thrown when the specified source is not a recognized
+    file type (zip, exe, tar.gz, tar.bz2 or dmg)
+    """
+
+class InstallError(Exception):
+    """
+    Thrown when the installation fails. Includes traceback
+    if available.
+    """
 
 if __name__ == "__main__":
     sys.exit(cli())

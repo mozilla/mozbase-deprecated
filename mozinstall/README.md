@@ -22,6 +22,13 @@ The install method accepts a third parameter called apps which tells mozinstall 
 binary to search for. By default it will search for 'firefox', 'thunderbird' and 'fennec'
 so unless you are installing a different application, this parameter is unnecessary.
 
+# Error Handling
+
+Mozinstall throws two different types of exceptions:
+
+- mozinstall.InvalidSource is thrown when the source is not a recognized file type (zip, exe, tar.bz2, tar.gz, dmg)
+- mozinstall.InstallError is thrown when the installation fails for any reason. A traceback is provided.
+
 # Dependencies
 
 Mozinstall depends on the [mozinfo](https://github.com/mozilla/mozbase/tree/master/mozinfo) 
