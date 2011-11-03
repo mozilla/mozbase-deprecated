@@ -308,7 +308,12 @@ class FirefoxRunner(Runner):
         preference = {'extensions.checkCompatibility.' + version: False,
                       'extensions.checkCompatibility.nightly': False}
         self.profile.set_preferences(preference)
-            
+
+    @classmethod
+    def get_binary(cls, binary=None):
+        if (not binary) and 'BROWSER_PATH' in os.environ:
+            return os.environ['BROWSER_PATH']
+        return Runner.get_binary(binary)
 
 class ThunderbirdRunner(Runner):
     """Specialized Runner subclass for running Thunderbird"""
