@@ -35,14 +35,15 @@
 #
 # ***** END LICENSE BLOCK *****
 
-import urllib2
 import os
+import shutil
 import sys
 import tempfile
+import urllib2
 import zipfile
-from xml.dom import minidom
-from manifestparser import ManifestParser
 from distutils import dir_util
+from manifestparser import ManifestParser
+from xml.dom import minidom
 
 # Needed for the AMO's rest API - https://developer.mozilla.org/en/addons.mozilla.org_%28AMO%29_API_Developers%27_Guide/The_generic_AMO_API
 AMO_API_VERSION = "1.5"
@@ -123,17 +124,21 @@ class AddonManager(object):
                 return node.data
  
     @classmethod
-    def get_addon_id(self, addon_path):
+    def addon_details(cls, addon_path):
         """
-        return the id for a given addon, or None if not found
+        returns a dictionary of details about the addon
         - addon_path : path to the addon directory
+        Returns:
+        {'id':      u'rainbow@colors.org', # id of the addon
+         'version': u'1.4',                # version of the addon
+         'name':    u'Rainbow',            # name of the addon
+         'unpack': # whether to unpack the addon
         """
 
         # TODO: We don't use the unpack variable yet, but we should: bug 662683
-        # Code below is taken largely from hg.m.o/qa/mozmill-automation/tesrun.py:42
         details = {
             'id': None,
-            'unpack': None,
+            'unpack': False,
             'name': None,
             'version': None
         }
@@ -143,16 +148,14 @@ class AddonManager(object):
             namespace = ""
             for i in range(attributes.length):
                 if attributes.item(i).value == url:
-					if ":" in attributes.item(i).name:
-						# If the namespace is not the default one remove 'xlmns:'
-						namespace = attributes.item(i).name.split(':')[1] + ":"
-						break
-
+                    if ":" in attributes.item(i).name:
+                        # If the namespace is not the default one remove 'xlmns:'
+                        namespace = attributes.item(i).name.split(':')[1] + ":"
+                        break
             return namespace
 
         def get_text(element):
             """Retrieve the text value of a given node"""
-
             rc = []
             for node in element.childNodes:
                 if node.nodeType == node.TEXT_NODE:
@@ -172,14 +175,18 @@ class AddonManager(object):
             if entry in details.keys():
                 details.update({ entry: get_text(node) })
 
-        # We now have a bunch of stuff in details right now,
-        # we only care about the id, so...
-        return details["id"]
+        # turn unpack into a true/false value
+        if isinstance(details['unpack'], basestring):
+            details['unpack'] = details['unpack'].lower() == 'true'
+                
+        return details
 
-    def install_from_path(self, path):
+    def install_from_path(self, path, unpack=False):
         """
         Installs addon from a filepath, url 
         or directory of addons in the profile.
+        - path: url, path to .xpi, or directory of addons
+        - unpack: whether to unpack unless specified otherwise in the install.rdf
         """
         self.addons.append(path)
 
@@ -203,6 +210,7 @@ class AddonManager(object):
         # install each addon
         for addon in addons:
             tmpdir = None
+            xpifile = None
             if addon.endswith('.xpi'):
                 tmpdir = tempfile.mkdtemp(suffix = '.' + os.path.split(addon)[-1])
                 compressed_file = zipfile.ZipFile(addon, 'r')
@@ -216,16 +224,24 @@ class AddonManager(object):
                         f = open(os.path.join(tmpdir, name), 'wb')
                         f.write(data)
                         f.close()
+                xpifile = addon
                 addon = tmpdir
 
             # determine the addon id
-            addon_id = AddonManager.get_addon_id(addon)
-            assert addon_id is not None, 'The addon id could not be found: %s' % addon
+            addon_details = AddonManager.addon_details(addon)
+            addon_id = addon_details.get('id')
+            assert addon_id, 'The addon id could not be found: %s' % addon
  
             # copy the addon to the profile
-            addon_path = os.path.join(self.profile, 'extensions', addon_id)
-            dir_util.copy_tree(addon, addon_path, preserve_symlinks=1)
-            self.installed_addons.append(addon_path)
+            extensions_path = os.path.join(self.profile, 'extensions')
+            addon_path = os.path.join(extensions_path, addon_id)
+            if not unpack and not addon_details['unpack'] and xpifile:
+                if not os.path.exists(extensions_path):
+                    os.makedirs(extensions_path)
+                shutil.copy(xpifile, addon_path + '.xpi')
+            else:
+                dir_util.copy_tree(addon, addon_path, preserve_symlinks=1)
+                self.installed_addons.append(addon_path)
 
             # remove the temporary directory, if any
             if tmpdir:
