@@ -53,6 +53,14 @@ class EasyServer(ThreadingMixIn, BaseHTTPServer.HTTPServer):
 class MozRequestHandler(SimpleHTTPServer.SimpleHTTPRequestHandler):
     docroot = os.getcwd()
 
+    def parse_request(self):
+        retval = SimpleHTTPServer.SimpleHTTPRequestHandler.parse_request(self)
+        if '?' in self.path:
+            # ignore query string, otherwise
+            # SimpleHTTPRequestHandler will treat it as PATH_INFO
+            self.path = self.path.split('?', 1)[0]
+        return retval
+
     def translate_path(self, path):
         path = path.strip('/').split()
         if path == ['']:
@@ -97,7 +105,7 @@ class MozHttpd(object):
         
     def testServer(self):
         fileList = os.listdir(self.docroot)
-        filehandle = urllib.urlopen('http://%s:%s' % (self.host, self.port))
+        filehandle = urllib.urlopen('http://%s:%s/?foo=bar&fleem=&foo=fleem' % (self.host, self.port))
         data = filehandle.readlines()
         filehandle.close()
 
