@@ -75,6 +75,7 @@ class MozHttpd(object):
         self.host = host
         self.port = int(port)
         self.docroot = docroot
+        self.httpd = None
 
     def start(self, block=False):
         """
@@ -122,7 +123,8 @@ class MozHttpd(object):
     def stop(self):
         if self.httpd:
             self.httpd.shutdown()
-        
+        self.httpd = None
+
     __del__ = stop
 
 
