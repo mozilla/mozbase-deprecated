@@ -44,7 +44,6 @@ import sys
 import os
 import urllib
 import re
-from urlparse import urlparse
 from SocketServer import ThreadingMixIn
 
 class EasyServer(ThreadingMixIn, BaseHTTPServer.HTTPServer):
@@ -56,8 +55,8 @@ class MozRequestHandler(SimpleHTTPServer.SimpleHTTPRequestHandler):
     def parse_request(self):
         retval = SimpleHTTPServer.SimpleHTTPRequestHandler.parse_request(self)
         if '?' in self.path:
-            # ignore query string, otherwise
-            # SimpleHTTPRequestHandler will treat it as PATH_INFO
+            # ignore query string, otherwise SimpleHTTPRequestHandler 
+            # will treat it as PATH_INFO for `translate_path`
             self.path = self.path.split('?', 1)[0]
         return retval
 
