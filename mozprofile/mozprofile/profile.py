@@ -55,7 +55,7 @@ class Profile(object):
     sets preferences and handles cleanup."""
 
     def __init__(self, profile=None, addons=None, addon_manifests=None, preferences=None, locations=None, proxy=False, restore=True):
-        
+
         # if true, remove installed addons/prefs afterwards
         self.restore = restore
 
@@ -93,7 +93,7 @@ class Profile(object):
         prefs_js, user_js = self.permission_manager.getNetworkPreferences(proxy)
         self.set_preferences(prefs_js, 'prefs.js')
         self.set_preferences(user_js)
- 
+
         # handle addon installation
         self.addon_manager = AddonManager(self.profile)
         self.addon_manager.install_addons(addons, addon_manifests)
@@ -128,7 +128,7 @@ class Profile(object):
 
     def set_preferences(self, preferences, filename='user.js'):
         """Adds preferences dict to profile preferences"""
-        
+
         # append to the file
         prefs_file = os.path.join(self.profile, filename)
         f = open(prefs_file, 'a')
@@ -152,10 +152,10 @@ class Profile(object):
         pop the last set of preferences added
         returns True if popped
         """
-        
+
         # our magic markers
         delimeters = ('#MozRunner Prefs Start', '#MozRunner Prefs End')
-        
+
         lines = file(os.path.join(self.profile, 'user.js')).read().splitlines()
         def last_index(_list, value):
             """
@@ -190,7 +190,7 @@ class Profile(object):
                 break
 
     ### cleanup
- 
+
     def _cleanup_error(self, function, path, excinfo):
         """ Specifically for windows we need to handle the case where the windows
             process has not yet relinquished handles on files, so we do a wait/try
@@ -201,7 +201,7 @@ class Profile(object):
             from time import sleep
             def is_file_locked():
                 return excinfo[0] is WindowsError and excinfo[1].winerror == 32
-            
+
             if excinfo[0] is WindowsError and excinfo[1].winerror == 32:
                 # Then we're on windows, wait to see if the file gets unlocked
                 # we wait 10s
@@ -216,7 +216,7 @@ class Profile(object):
         except ImportError:
             # We can't re-raise an error, so we'll hope the stuff above us will throw
             pass
-                
+
 
     def cleanup(self):
         """Cleanup operations on the profile."""
@@ -265,4 +265,6 @@ class ThunderbirdProfile(Profile):
                    'browser.tabs.warnOnClose' : False,
                    'browser.warnOnQuit': False,
                    'browser.sessionstore.resume_from_crash': False,
+                   # prevents the 'new e-mail address' wizard on new profile
+                   'mail.provider.enabled': False,
                    }
