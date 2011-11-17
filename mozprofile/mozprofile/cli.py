@@ -14,12 +14,15 @@
 # The Original Code is mozprofile command line interface.
 #
 # The Initial Developer of the Original Code is
-# Mozilla Corporation.
+#   The Mozilla Foundation.
 # Portions created by the Initial Developer are Copyright (C) 2011
 # the Initial Developer. All Rights Reserved.
 #
 # Contributor(s):
-#  Andrew Halberstadt <halbersa@gmail.com>
+#   Mikeal Rogers <mikeal.rogers@gmail.com>
+#   Clint Talbert <ctalbert@mozilla.com>
+#   Jeff Hammel <jhammel@mozilla.com>
+#   Andrew Halberstadt <halbersa@gmail.com>
 #
 # Alternatively, the contents of this file may be used under the terms of
 # either the GNU General Public License Version 2 or later (the "GPL"), or
@@ -56,10 +59,10 @@ class MozProfileCLI(object):
     def __init__(self, args=sys.argv[1:]):
         self.parser = OptionParser(description=__doc__)
         self.add_options(self.parser)
-        (self.options, self.args) = self.parser.parse_args(args)            
+        (self.options, self.args) = self.parser.parse_args(args)
 
     def add_options(self, parser):
-        
+
         parser.add_option("-p", "--profile", dest="profile",
                           help="The path to the profile to operate on. If none, creates a new profile in temp directory")
         parser.add_option("-a", "--addon", dest="addons",
@@ -116,10 +119,10 @@ def cli(args=sys.argv[1:]):
     kwargs = cli.profile_args()
     kwargs['restore'] = False
     profile = Profile(**kwargs)
-    
+
     # if no profile was passed in print the newly created profile
     if not cli.options.profile:
-        print profile.profile 
+        print profile.profile
 
 if __name__ == '__main__':
     cli()

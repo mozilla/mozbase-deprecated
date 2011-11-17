@@ -11,10 +11,10 @@
 # for the specific language governing rights and limitations under the
 # License.
 #
-# The Original Code is Mozilla Corporation Code.
+# The Original Code is mozrunner.
 #
 # The Initial Developer of the Original Code is
-# Mikeal Rogers.
+#   The Mozilla Foundation.
 # Portions created by the Initial Developer are Copyright (C) 2008-2009
 # the Initial Developer. All Rights Reserved.
 #

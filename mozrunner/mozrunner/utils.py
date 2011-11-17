@@ -1,5 +1,4 @@
 #!/usr/bin/env python
-
 # ***** BEGIN LICENSE BLOCK *****
 # Version: MPL 1.1/GPL 2.0/LGPL 2.1
 #
@@ -13,17 +12,19 @@
 # for the specific language governing rights and limitations under the
 # License.
 #
-# The Original Code is Mozilla Corporation Code.
+# The Original Code is mozrunner.
 #
 # The Initial Developer of the Original Code is
-# Mikeal Rogers.
+#   The Mozilla Foundation.
 # Portions created by the Initial Developer are Copyright (C) 2008-2009
 # the Initial Developer. All Rights Reserved.
 #
 # Contributor(s):
-#  Mikeal Rogers <mikeal.rogers@gmail.com>
-#  Clint Talbert <ctalbert@mozilla.com>
-#  Henrik Skupin <hskupin@mozilla.com>
+#   Mikeal Rogers <mikeal.rogers@gmail.com>
+#   Clint Talbert <ctalbert@mozilla.com>
+#   Henrik Skupin <hskupin@mozilla.com>
+#   Jeff Hammel <jhammel@mozilla.com>
+#   Andrew Halberstadt <halbersa@gmail.com>
 #
 # Alternatively, the contents of this file may be used under the terms of
 # either the GNU General Public License Version 2 or later (the "GPL"), or
@@ -75,7 +76,7 @@ try:
                 value = value.strip()
                 ret[key] = value
         if dist.has_metadata("requires.txt"):
-            ret["Dependencies"] = "\n" + dist.get_metadata("requires.txt")    
+            ret["Dependencies"] = "\n" + dist.get_metadata("requires.txt")
         return ret
 except ImportError:
     # package resources not avaialable

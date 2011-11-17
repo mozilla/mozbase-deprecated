@@ -9,12 +9,12 @@
 # Software distributed under the License is distributed on an "AS IS" basis,
 # WITHOUT WARRANTY OF ANY KIND, either express or implied. See the License
 # for the specific language governing rights and limitations under the
-# License.   
+# License.
 #
 # The Original Code is Test Automation Framework.
 #
-# The Initial Developer of the Original Code is Joel Maher.
-#
+# The Initial Developer of the Original Code is
+#  The Mozilla Foundation.
 # Portions created by the Initial Developer are Copyright (C) 2009
 # the Initial Developer. All Rights Reserved.
 #
@@ -22,6 +22,7 @@
 #   Joel Maher <joel.maher@gmail.com> (Original Developer)
 #   Clint Talbert <cmtalbert@gmail.com>
 #   Mark Cote <mcote@mozilla.com>
+#   Will Lachance <wlachance@mozilla.com>
 #
 # Alternatively, the contents of this file may be used under the terms of
 # either the GNU General Public License Version 2 or later (the "GPL"), or
@@ -52,7 +53,7 @@ from devicemanager import DeviceManager, DMError, FileError, NetworkTools
 class DeviceManagerSUT(DeviceManager):
   host = ''
   port = 0
-  debug = 2 
+  debug = 2
   retries = 0
   tempRoot = os.getcwd()
   base_prompt = '$>'
@@ -93,7 +94,7 @@ class DeviceManagerSUT(DeviceManager):
     for c in noResponseCmds:
       if (c.match(cmd)):
         return False
-    
+
     # If the command is not in our list, then it gets a response
     return True
 
@@ -104,7 +105,7 @@ class DeviceManagerSUT(DeviceManager):
     * uninst
     * quit
     """
-    
+
     socketClosingCmds = [re.compile('^push .*$'),
                          re.compile('^quit.*'),
                          re.compile('^rebt.*'),
@@ -123,7 +124,7 @@ class DeviceManagerSUT(DeviceManager):
 
   #
   # create a wrapper for sendCMD that loops up to self.retrylimit iterations.
-  # this allows us to move the retry logic outside of the _doCMD() to make it 
+  # this allows us to move the retry logic outside of the _doCMD() to make it
   # easier for debugging in the future.
   # note that since cmdline is a list of commands, they will all be retried if
   # one fails.  this is necessary in particular for pushFile(), where we don't want
@@ -145,7 +146,7 @@ class DeviceManagerSUT(DeviceManager):
       if (self.retries >= self.retrylimit):
         done = True
 
-    raise DMError("unable to connect to %s after %s attempts" % (self.host, self.retrylimit))        
+    raise DMError("unable to connect to %s after %s attempts" % (self.host, self.retrylimit))
 
   def _doCMD(self, cmdline, newline = True):
     promptre = re.compile(self.prompt_regex + '$')
@@ -163,7 +164,7 @@ class DeviceManagerSUT(DeviceManager):
         if (self.debug >= 2):
           print "unable to create socket"
         return None
-      
+
       try:
         self._sock.connect((self.host, int(self.port)))
         self._sock.recv(1024)
@@ -173,10 +174,10 @@ class DeviceManagerSUT(DeviceManager):
         if (self.debug >= 2):
           print "unable to connect socket"
         return None
-    
+
     for cmd in cmdline:
       if newline: cmd += '\r\n'
-      
+
       try:
         numbytes = self._sock.send(cmd)
         if (numbytes != len(cmd)):
@@ -187,7 +188,7 @@ class DeviceManagerSUT(DeviceManager):
         self._sock.close()
         self._sock = None
         return None
-      
+
       # Check if the command should close the socket
       shouldCloseSocket = self.shouldCmdCloseSocket(cmd)
 
@@ -236,7 +237,7 @@ class DeviceManagerSUT(DeviceManager):
         return None
 
     return data
-  
+
   # internal function
   # take a data blob and strip instances of the prompt '$>\x00'
   def stripPrompt(self, data):
@@ -255,7 +256,7 @@ class DeviceManagerSUT(DeviceManager):
       retVal.append(line)
 
     return '\n'.join(retVal)
-  
+
 
   # external function
   # returns:
@@ -275,7 +276,7 @@ class DeviceManagerSUT(DeviceManager):
       return False
 
     if (self.debug >= 3): print "sending: push " + destname
-    
+
     filesize = os.path.getsize(localname)
     f = open(localname, 'rb')
     data = f.read()
@@ -285,12 +286,12 @@ class DeviceManagerSUT(DeviceManager):
       retVal = self.verifySendCMD(['push ' + destname + ' ' + str(filesize) + '\r\n', data], newline = False)
     except(DMError):
       retVal = False
-  
+
     if (self.debug >= 3): print "push returned: " + str(retVal)
 
     validated = False
     if (retVal):
-      retline = self.stripPrompt(retVal).strip() 
+      retline = self.stripPrompt(retVal).strip()
       if (retline == None):
         # Then we failed to get back a hash from agent, try manual validation
         validated = self.validateFile(destname, localname)
@@ -309,7 +310,7 @@ class DeviceManagerSUT(DeviceManager):
     else:
       if (self.debug >= 2): print "Push File Failed to Validate!"
       return False
-  
+
   # external function
   # returns:
   #  success: directory name
@@ -377,7 +378,7 @@ class DeviceManagerSUT(DeviceManager):
     data = retVal.split('\n')
     found = False
     for d in data:
-      if (dirre.match(d)): 
+      if (dirre.match(d)):
         found = True
 
     return found
@@ -430,7 +431,7 @@ class DeviceManagerSUT(DeviceManager):
       return None
 
     return retVal
-  
+
   # does a recursive delete of directory on the device: rm -Rf remoteDir
   # external function
   # returns:
@@ -464,7 +465,7 @@ class DeviceManagerSUT(DeviceManager):
           files += [[pidproc[0], pidproc[1]]]
         elif (len(pidproc) == 3):
           #android returns <userID> <procID> <procName>
-          files += [[pidproc[1], pidproc[2], pidproc[0]]]     
+          files += [[pidproc[1], pidproc[2], pidproc[0]]]
     return files
 
   # external function
@@ -482,7 +483,7 @@ class DeviceManagerSUT(DeviceManager):
       print "WARNING: process %s appears to be running already\n" % appname
       if (failIfRunning):
         return None
-    
+
     try:
       data = self.verifySendCMD(['exec ' + appname])
     except(DMError):
@@ -516,14 +517,14 @@ class DeviceManagerSUT(DeviceManager):
         return None
       outputFile += "/process.txt"
       cmdline += " > " + outputFile
-    
-    # Prepend our env to the command 
+
+    # Prepend our env to the command
     cmdline = '%s %s' % (self.formatEnvString(env), cmdline)
 
     if self.fireProcess(cmdline, failIfRunning) is None:
       return None
     return outputFile
-  
+
   # iterates process list and returns pid if exists, otherwise None
   # external function
   # returns:
@@ -541,7 +542,7 @@ class DeviceManagerSUT(DeviceManager):
     parts = appname.split('"')
     if (len(parts) > 2):
       appname = ' '.join(parts[2:]).strip()
-  
+
     pieces = appname.split(' ')
     parts = pieces[0].split('/')
     app = parts[-1]
@@ -550,7 +551,7 @@ class DeviceManagerSUT(DeviceManager):
     procList = self.getProcessList()
     if (procList == []):
       return None
-      
+
     for proc in procList:
       if (procre.match(proc[1])):
         pid = proc[0]
@@ -592,7 +593,7 @@ class DeviceManagerSUT(DeviceManager):
       return None
 
     return self.stripPrompt(data)
-  
+
   # external function
   # returns:
   #  success: output of pullfile, string
@@ -605,17 +606,17 @@ class DeviceManagerSUT(DeviceManager):
     confused if the prompt string exists within the file being catted.
     However it means we can't use the response-handling logic in sendCMD().
     """
-    
+
     def err(error_msg):
         err_str = 'error returned from pull: %s' % error_msg
         print err_str
         self._sock = None
-        raise FileError(err_str) 
+        raise FileError(err_str)
 
     # FIXME: We could possibly move these socket-reading functions up to
     # the class level if we wanted to refactor sendCMD().  For now they are
     # only used to pull files.
-    
+
     def uread(to_recv, error_msg):
       """ unbuffered read """
       try:
@@ -650,7 +651,7 @@ class DeviceManagerSUT(DeviceManager):
 
     prompt = self.base_prompt + self.prompt_sep
     buffer = ''
-    
+
     # expected return value:
     # <filename>,<filesize>\n<filedata>
     # or, if error,
@@ -705,12 +706,12 @@ class DeviceManagerSUT(DeviceManager):
   def getFile(self, remoteFile, localFile = ''):
     if localFile == '':
       localFile = os.path.join(self.tempRoot, "temp.txt")
-  
+
     try:
       retVal = self.pullFile(remoteFile)
     except:
       return None
-      
+
     if (retVal is None):
       return None
 
@@ -739,7 +740,7 @@ class DeviceManagerSUT(DeviceManager):
         return None
       if not is_dir:
         return None
-        
+
     filelist = self.listFiles(remoteDir)
     if (self.debug >= 3): print filelist
     if not os.path.exists(localDir):
@@ -765,7 +766,7 @@ class DeviceManagerSUT(DeviceManager):
         # FIXME: This should be improved so we know when a file transfer really
         # failed.
         if self.getFile(remotePath, localPath) == None:
-          print 'failed to get file "%s"; continuing anyway...' % remotePath 
+          print 'failed to get file "%s"; continuing anyway...' % remotePath
     return filelist
 
   # external function
@@ -779,7 +780,7 @@ class DeviceManagerSUT(DeviceManager):
     except(DMError):
       # normally there should be no error here; a nonexistent file/directory will
       # return the string "<filename>: No such file or directory".
-      # However, I've seen AGENT-WARNING returned before. 
+      # However, I've seen AGENT-WARNING returned before.
       return False
     retVal = self.stripPrompt(data).strip()
     if not retVal:
@@ -802,7 +803,7 @@ class DeviceManagerSUT(DeviceManager):
       return True
 
     return False
-  
+
   # return the md5 sum of a remote file
   # internal function
   # returns:
@@ -819,7 +820,7 @@ class DeviceManagerSUT(DeviceManager):
       retVal = retVal.strip('\n')
     if (self.debug >= 3): print "remote hash returned: '" + retVal + "'"
     return retVal
-    
+
   # Gets the device root for the testing area on the device
   # For all devices we will use / type slashes and depend on the device-agent
   # to sort those out.  The agent will return us the device location where we
@@ -842,7 +843,7 @@ class DeviceManagerSUT(DeviceManager):
       data = self.verifySendCMD(['testroot'])
     except:
       return None
-  
+
     deviceRoot = self.stripPrompt(data).strip('\n') + '/tests'
 
     if (not self.dirExists(deviceRoot)):
@@ -884,10 +885,10 @@ class DeviceManagerSUT(DeviceManager):
   #  success: status from test agent
   #  failure: None
   def reboot(self, ipAddr=None, port=30000):
-    cmd = 'rebt'   
+    cmd = 'rebt'
 
     if (self.debug > 3): print "INFO: sending rebt command"
-    callbacksvrstatus = None    
+    callbacksvrstatus = None
 
     if (ipAddr is not None):
     #create update.info file:
@@ -950,7 +951,7 @@ class DeviceManagerSUT(DeviceManager):
     # Get rid of any 0 length members of the arrays
     for k, v in result.iteritems():
       result[k] = filter(lambda x: x != '', result[k])
-    
+
     # Format the process output
     if 'process' in result:
       proclist = []
@@ -1196,7 +1197,7 @@ class callbackServer():
     self.debug = debuglevel
     if (self.debug >= 3): print "Creating server with " + str(ip) + ":" + str(port)
     self.server = myServer((ip, port), self.myhandler)
-    self.server_thread = Thread(target=self.server.serve_forever) 
+    self.server_thread = Thread(target=self.server.serve_forever)
     self.server_thread.setDaemon(True)
     self.server_thread.start()
 
@@ -1229,4 +1230,4 @@ class callbackServer():
       gCallbackData = self.request.recv(1024)
       #print "Callback Handler got data: " + str(gCallbackData)
       self.request.send("OK")
-  
+

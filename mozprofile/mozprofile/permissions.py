@@ -14,12 +14,12 @@
 # The Original Code is Mozprofile.
 #
 # The Initial Developer of the Original Code is
-# Mozilla Corporation.
+#   The Mozilla Foundation.
 # Portions created by the Initial Developer are Copyright (C) 2011
 # the Initial Developer. All Rights Reserved.
 #
 # Contributor(s):
-#  Joel Maher <joel.maher@gmail.com>
+#   Joel Maher <joel.maher@gmail.com>
 #
 # Alternatively, the contents of this file may be used under the terms of
 # either the GNU General Public License Version 2 or later (the "GPL"), or
@@ -81,7 +81,7 @@ class Location(object):
     __eq__ = isEqual
 
     def url(self):
-        return '%s://%s:%s' % (self.scheme, self.host, self.port) 
+        return '%s://%s:%s' % (self.scheme, self.host, self.port)
 
     def __str__(self):
         return  '%s  %s' % (self.url(), ','.join(self.options))
@@ -104,7 +104,7 @@ class PermissionsManager(object):
 
     def write_permission(self, location):
         """write permissions to the sqlite database"""
-        
+
         # Open database and create table
         permDB = sqlite3.connect(os.path.join(self._profileDir, "permissions.sqlite"))
         cursor = permDB.cursor();
@@ -153,9 +153,9 @@ class PermissionsManager(object):
 
     def read_locations(self, filename):
         """
-        Reads the file (in the format of server-locations.txt) and add all 
+        Reads the file (in the format of server-locations.txt) and add all
         valid locations to the self.locations array.
-        
+
         This format:
         http://mxr.mozilla.org/mozilla-central/source/build/pgo/server-locations.txt
         """

@@ -1,28 +1,27 @@
 #!/usr/bin/env python
-
 # ***** BEGIN LICENSE BLOCK *****
 # Version: MPL 1.1/GPL 2.0/LGPL 2.1
-# 
+#
 # The contents of this file are subject to the Mozilla Public License Version
 # 1.1 (the "License"); you may not use this file except in compliance with
 # the License. You may obtain a copy of the License at
 # http://www.mozilla.org/MPL/
-# 
+#
 # Software distributed under the License is distributed on an "AS IS" basis,
 # WITHOUT WARRANTY OF ANY KIND, either express or implied. See the License
 # for the specific language governing rights and limitations under the
 # License.
-# 
-# The Original Code is mozilla.org code.
-# 
+#
+# The Original Code is manifestdestiny.
+#
 # The Initial Developer of the Original Code is
-# Mozilla.org.
+#  The Mozilla Foundation.
 # Portions created by the Initial Developer are Copyright (C) 2010
 # the Initial Developer. All Rights Reserved.
-# 
+#
 # Contributor(s):
 #     Jeff Hammel <jhammel@mozilla.com>     (Original author)
-# 
+#
 # Alternatively, the contents of this file may be used under the terms of
 # either of the GNU General Public License Version 2 or later (the "GPL"),
 # or the GNU Lesser General Public License Version 2.1 or later (the "LGPL"),
@@ -34,7 +33,7 @@
 # and other provisions required by the GPL or the LGPL. If you do not delete
 # the provisions above, a recipient may use your version of this file under
 # the terms of any one of the MPL, the GPL or the LGPL.
-# 
+#
 # ***** END LICENSE BLOCK *****
 
 """
@@ -137,7 +136,7 @@ class eq_op_token(object):
     "=="
     def led(self, parser, left):
         return left == parser.expression(self.lbp)
-    
+
 class neq_op_token(object):
     "!="
     def led(self, parser, left):
@@ -153,7 +152,7 @@ class and_op_token(object):
     def led(self, parser, left):
         right = parser.expression(self.lbp)
         return left and right
-    
+
 class or_op_token(object):
     "||"
     def led(self, parser, left):
@@ -265,7 +264,7 @@ class ExpressionParser(object):
         if not isinstance(self.token, expected):
             raise Exception, "Unexpected token!"
         self.token = self.iter.next()
-        
+
     def expression(self, rbp=0):
         """
         Parse and return the value of an expression until a token with
@@ -314,7 +313,7 @@ def denormalize_path(path):
     if sys.platform.startswith('win'):
         return path.replace(os.path.sep, '/')
     return path
-    
+
 
 def read_ini(fp, variables=None, default='DEFAULT',
              comments=';#', separators=('=', ':'),
@@ -595,7 +594,7 @@ class ManifestParser(object):
         local_tags = local_tags or set()
         global_kwargs = global_kwargs or {}
         local_kwargs = local_kwargs or {}
-        
+
         # create the query
         tags = set([])
         tags.update(global_tags)
@@ -626,7 +625,7 @@ class ManifestParser(object):
                     path = relpath(test['path'], self.rootdir)
                 path = denormalize_path(path)
             print >> fp, '[%s]' % path
-          
+
             # reserved keywords:
             reserved = ['path', 'name', 'here', 'manifest']
             for key in sorted(test.keys()):
@@ -651,7 +650,7 @@ class ManifestParser(object):
         # resulting manifest; it just stupidly copies them over.
         # ideally, it would reread the manifests and filter out the
         # tests that don't match *tags and **kwargs
-        
+
         # destination
         if not os.path.exists(directory):
             os.path.makedirs(directory)
@@ -699,7 +698,7 @@ class ManifestParser(object):
         - tags : keys the tests must have
         - kwargs : key, values the tests must match
         """
-    
+
         # get the tests
         tests = self.get(tags=tags, **kwargs)
 
@@ -741,7 +740,7 @@ class TestManifest(ManifestParser):
         # loop over test
         for test in tests:
             reason = None # reason to disable
-            
+
             # tagged-values to run
             if run_tag in test:
                 condition = test[run_tag]
@@ -756,7 +755,7 @@ class TestManifest(ManifestParser):
 
             # mark test as disabled if there's a reason
             if reason:
-                test.setdefault('disabled', reason)        
+                test.setdefault('disabled', reason)
 
             # mark test as a fail if so indicated
             if fail_tag in test:
@@ -776,7 +775,7 @@ class TestManifest(ManifestParser):
         # mark all tests as passing unless indicated otherwise
         for test in tests:
             test['expected'] = test.get('expected', 'pass')
-        
+
         # ignore tests that do not exist
         if exists:
             tests = [test for test in tests if os.path.exists(test['path'])]
@@ -841,7 +840,7 @@ def convert(directories, pattern=None, ignore=(), write=None):
 
     if write:
         return # the manifests have already been written!
-  
+
     retval.sort()
     retval = ['[%s]' % filename for filename in retval]
     return '\n'.join(retval)
@@ -989,7 +988,7 @@ class WriteCLI(CLICommand):
 
         # print the resultant query
         manifests.write(global_tags=tags, global_kwargs=kwargs)
-      
+
 
 class HelpCLI(CLICommand):
     """
@@ -1013,9 +1012,9 @@ class SetupCLI(CLICommand):
     # use setup.py from the repo when you want to distribute to python!
     # otherwise setuptools will complain that it can't find setup.py
     # and result in a useless package
-    
+
     usage = '%prog [options] setup [setuptools options]'
-    
+
     def __call__(self, options, args):
         sys.argv = [sys.argv[0]] + args
         assert setup is not None, "You must have setuptools installed to use SetupCLI"
@@ -1023,7 +1022,7 @@ class SetupCLI(CLICommand):
         try:
             filename = os.path.join(here, 'README.txt')
             description = file(filename).read()
-        except:    
+        except:
             description = ''
         os.chdir(here)
 

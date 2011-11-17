@@ -14,12 +14,15 @@
 # The Original Code is Mozprofile.
 #
 # The Initial Developer of the Original Code is
-# Mozilla Corporation.
+#   The Mozilla Foundation.
 # Portions created by the Initial Developer are Copyright (C) 2011
 # the Initial Developer. All Rights Reserved.
 #
 # Contributor(s):
-#  Andrew Halberstadt <halbersa@gmail.com>
+#   Andrew Halberstadt <halbersa@gmail.com>
+#   Mikeal Rogers <mikeal.rogers@gmail.com>
+#   Clint Talbert <ctalbert@mozilla.com>
+#   Jeff Hammel <jhammel@mozilla.com>
 #
 # Alternatively, the contents of this file may be used under the terms of
 # either the GNU General Public License Version 2 or later (the "GPL"), or
@@ -62,7 +65,7 @@ class AddonManager(object):
         # keeps track of addons and manifests that were passed to install_addons
         self.addons = []
         self.manifests = []
-        
+
 
     def install_addons(self, addons=None, manifests=None):
         """
@@ -82,7 +85,7 @@ class AddonManager(object):
                 manifests = [manifests]
             for manifest in manifests:
                 self.install_from_manifest(manifest)
-        
+
 
     def install_from_manifest(self, filepath):
         """
@@ -101,7 +104,7 @@ class AddonManager(object):
 
             # No path specified, try to grab it off AMO
             locale = addon.get('amo_locale', 'en_US')
-    
+
             query = 'https://services.addons.mozilla.org/' + locale + '/firefox/api/' + AMO_API_VERSION + '/'
             if 'amo_id' in addon:
                 query += 'addon/' + addon['amo_id']                 # this query grabs information on the addon base on its id
@@ -113,7 +116,7 @@ class AddonManager(object):
     @classmethod
     def get_amo_install_path(self, query):
         """
-        Return the addon xpi install path for the specified AMO query. 
+        Return the addon xpi install path for the specified AMO query.
         See: https://developer.mozilla.org/en/addons.mozilla.org_%28AMO%29_API_Developers%27_Guide/The_generic_AMO_API
         for query documentation.
         """
@@ -122,7 +125,7 @@ class AddonManager(object):
         for node in dom.getElementsByTagName('install')[0].childNodes:
             if node.nodeType == node.TEXT_NODE:
                 return node.data
- 
+
     @classmethod
     def addon_details(cls, addon_path):
         """
@@ -163,7 +166,7 @@ class AddonManager(object):
             return ''.join(rc).strip()
 
         doc = minidom.parse(os.path.join(addon_path, 'install.rdf'))
-        
+
         # Get the namespaces abbreviations
         em = get_namespace_id(doc, "http://www.mozilla.org/2004/em-rdf#")
         rdf = get_namespace_id(doc, "http://www.w3.org/1999/02/22-rdf-syntax-ns#")
@@ -178,12 +181,12 @@ class AddonManager(object):
         # turn unpack into a true/false value
         if isinstance(details['unpack'], basestring):
             details['unpack'] = details['unpack'].lower() == 'true'
-                
+
         return details
 
     def install_from_path(self, path, unpack=False):
         """
-        Installs addon from a filepath, url 
+        Installs addon from a filepath, url
         or directory of addons in the profile.
         - path: url, path to .xpi, or directory of addons
         - unpack: whether to unpack unless specified otherwise in the install.rdf
@@ -231,7 +234,7 @@ class AddonManager(object):
             addon_details = AddonManager.addon_details(addon)
             addon_id = addon_details.get('id')
             assert addon_id, 'The addon id could not be found: %s' % addon
- 
+
             # copy the addon to the profile
             extensions_path = os.path.join(self.profile, 'extensions')
             addon_path = os.path.join(extensions_path, addon_id)
@@ -250,7 +253,7 @@ class AddonManager(object):
         # remove temporary file, if any
         if tmpfile:
             os.remove(tmpfile)
-    
+
     def clean_addons(self):
         """Cleans up addons in the profile."""
         for addon in self.installed_addons:

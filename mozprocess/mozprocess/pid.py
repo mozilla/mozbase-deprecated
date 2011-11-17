@@ -13,17 +13,17 @@
 # for the specific language governing rights and limitations under the
 # License.
 #
-# The Original Code is Mozilla Corporation Code.
+# The Original Code is mozprocess.
 #
 # The Initial Developer of the Original Code is
-# Mikeal Rogers.
-# Portions created by the Initial Developer are Copyright (C) 2008-2009
+#  The Mozilla Foundation.
+# Portions created by the Initial Developer are Copyright (C) 2011
 # the Initial Developer. All Rights Reserved.
 #
 # Contributor(s):
-#  Mikeal Rogers <mikeal.rogers@gmail.com>
 #  Clint Talbert <ctalbert@mozilla.com>
-#  Henrik Skupin <hskupin@mozilla.com>
+#  Jonathan Griffin <jgriffin@mozilla.com>
+#  Jeff Hammel <jhammel@mozilla.com>
 #
 # Alternatively, the contents of this file may be used under the terms of
 # either the GNU General Public License Version 2 or later (the "GPL"), or
@@ -76,7 +76,7 @@ def ps(arg=psarg):
 
 def running_processes(name, psarg=psarg, defunct=True):
     """
-    returns a list of 
+    returns a list of
     {'PID': PID of process (int)
      'command': command line of process (list)}
      with the executable named `name`.
@@ -101,7 +101,7 @@ def running_processes(name, psarg=psarg, defunct=True):
 
 def get_pids(name):
     """Get all the pids matching name"""
-  
+
     if mozinfo.isWin:
         # use the windows-specific implementation
         import wpk

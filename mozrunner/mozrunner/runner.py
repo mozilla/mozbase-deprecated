@@ -11,17 +11,19 @@
 # for the specific language governing rights and limitations under the
 # License.
 #
-# The Original Code is Mozilla Corporation Code.
+# The Original Code is mozrunner.
 #
 # The Initial Developer of the Original Code is
-# Mikeal Rogers.
+#   The Mozilla Foundation.
 # Portions created by the Initial Developer are Copyright (C) 2008-2009
 # the Initial Developer. All Rights Reserved.
 #
 # Contributor(s):
-#  Mikeal Rogers <mikeal.rogers@gmail.com>
-#  Clint Talbert <ctalbert@mozilla.com>
-#  Henrik Skupin <hskupin@mozilla.com>
+#   Mikeal Rogers <mikeal.rogers@gmail.com>
+#   Clint Talbert <ctalbert@mozilla.com>
+#   Henrik Skupin <hskupin@mozilla.com>
+#   Jeff Hammel <jhammel@mozilla.com>
+#   Andrew Halberstadt <halbersa@gmail.com>
 #
 # Alternatively, the contents of this file may be used under the terms of
 # either the GNU General Public License Version 2 or later (the "GPL"), or
@@ -54,7 +56,7 @@ package_metadata = get_metadata_from_egg('mozrunner')
 
 class BinaryLocationException(Exception):
     """exception for failure to find the binary"""
-    
+
 
 class Runner(object):
     """Handles all running operations. Finds bins, runs and kills the process."""
@@ -66,10 +68,10 @@ class Runner(object):
     program_names = [] # names of application in windows program files
 
     @classmethod
-    def create(cls, binary=None, cmdargs=None, env=None, kp_kwargs=None, profile_args=None, 
+    def create(cls, binary=None, cmdargs=None, env=None, kp_kwargs=None, profile_args=None,
                                                clean_profile=True, process_class=ProcessHandler):
         profile = cls.profile_class(**(profile_args or {}))
-        return cls(profile, binary=binary, cmdargs=cmdargs, env=env, kp_kwargs=kp_kwargs, 
+        return cls(profile, binary=binary, cmdargs=cmdargs, env=env, kp_kwargs=kp_kwargs,
                                            clean_profile=clean_profile, process_class=process_class)
 
     def __init__(self, profile, binary=None, cmdargs=None, env=None,
@@ -129,7 +131,7 @@ class Runner(object):
             return os.path.join(binary, 'Contents/MacOS/%s-bin' % cls.names[0])
         else:
             return binary
-        
+
     @classmethod
     def find_binary(cls):
         """Finds the binary for class names if one was not provided."""
@@ -235,7 +237,7 @@ class Runner(object):
         # see:
         # - http://hg.mozilla.org/releases/mozilla-1.9.2/file/915a35e15cde/build/automation.py.in#l702
         # - http://mozilla-xp.com/mozilla.dev.apps.firefox/Rules-for-when-firefox-bin-restarts-it-s-process
-        # This run just calls through processhandler to popen directly as we 
+        # This run just calls through processhandler to popen directly as we
         # are not particuarly cared in tracking this process
         if not self.firstrun:
             firstrun = ProcessHandler.Process(self.command+['-silent', '-foreground'], env=self.env, **self.kp_kwargs)
@@ -245,7 +247,7 @@ class Runner(object):
         # now run for real, this run uses the managed processhandler
         self.process_handler = self.process_class(self.command+self.cmdargs, env=self.env, **self.kp_kwargs)
         self.process_handler.run()
- 
+
     def wait(self, timeout=None, outputTimeout=None):
         """Wait for the app to exit."""
         if self.process_handler is None:
@@ -291,7 +293,7 @@ class FirefoxRunner(Runner):
         names =['firefox']
     else:
         raise AssertionError("I don't know what platform you're on")
-    
+
     def __init__(self, profile, **kwargs):
         Runner.__init__(self, profile, **kwargs)
 
@@ -301,7 +303,7 @@ class FirefoxRunner(Runner):
         appini.read(os.path.join(appdir, 'application.ini'))
         # Version needs to be of the form 3.6 or 4.0b and not the whole string
         version = appini.get('App', 'Version').rstrip('0123456789pre').rstrip('.')
-        
+
         # Disable compatibility check. See:
         # - http://kb.mozillazine.org/Extensions.checkCompatibility
         # - https://bugzilla.mozilla.org/show_bug.cgi?id=659048
@@ -361,7 +363,7 @@ class CLI(MozProfileCLI):
 
         # add profile options
         MozProfileCLI.add_options(self, parser)
-        
+
         # add runner options
         parser.add_option('-b', "--binary",
                           dest="binary", help="Binary path.",
@@ -387,17 +389,17 @@ class CLI(MozProfileCLI):
                 key, value = line.split(':', 1)
                 ret[key] = value
         if dist.has_metadata("requires.txt"):
-            ret["Dependencies"] = "\n" + dist.get_metadata("requires.txt")    
+            ret["Dependencies"] = "\n" + dist.get_metadata("requires.txt")
         return ret
-        
-    def print_metadata(self, data=("Name", "Version", "Summary", "Home-page", 
+
+    def print_metadata(self, data=("Name", "Version", "Summary", "Home-page",
                                    "Author", "Author-email", "License", "Platform", "Dependencies")):
         for key in data:
             if key in self.metadata:
                 print key + ": " + self.metadata[key]
 
     ### methods for running
-                
+
     def command_args(self):
         """additional arguments for the mozilla application"""
         return self.options.appArgs
@@ -407,7 +409,7 @@ class CLI(MozProfileCLI):
         return dict(cmdargs=self.command_args(),
                     binary=self.options.binary,
                     profile_args=self.profile_args())
-     
+
     def create_runner(self):
         return self.runner_class.create(**self.runner_args())
 

@@ -13,16 +13,15 @@
 # for the specific language governing rights and limitations under the
 # License.
 #
-# The Original Code is Mozilla Corporation Code.
+# The Original Code is mozinfo.
 #
 # The Initial Developer of the Original Code is
-# Mikeal Rogers.
-# Portions created by the Initial Developer are Copyright (C) 2008
+#  The Mozilla Foundation.
+# Portions created by the Initial Developer are Copyright (C) 2010
 # the Initial Developer. All Rights Reserved.
 #
 # Contributor(s):
-#  Mikeal Rogers <mikeal.rogers@gmail.com>
-#  Henrik Skupin <hskupin@mozilla.com>
+#  Jeff Hammel <jhammel@mozilla.com>
 #  Clint Talbert <ctalbert@mozilla.com>
 #
 # Alternatively, the contents of this file may be used under the terms of
@@ -82,7 +81,7 @@ info = {'os': unknown,
 
 # get os information and related data
 if system in ["Microsoft", "Windows"]:
-    info['os'] = 'win'    
+    info['os'] = 'win'
     # There is a Python bug on Windows to determine platform values
     # http://bugs.python.org/issue7860
     if "PROCESSOR_ARCHITEW6432" in os.environ:

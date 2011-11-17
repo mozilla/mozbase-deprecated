@@ -1,3 +1,42 @@
+# ***** BEGIN LICENSE BLOCK *****
+# Version: MPL 1.1/GPL 2.0/LGPL 2.1
+#
+# The contents of this file are subject to the Mozilla Public License Version
+# 1.1 (the "License"); you may not use this file except in compliance with
+# the License. You may obtain a copy of the License at
+# http://www.mozilla.org/MPL/
+#
+# Software distributed under the License is distributed on an "AS IS" basis,
+# WITHOUT WARRANTY OF ANY KIND, either express or implied. See the License
+# for the specific language governing rights and limitations under the
+# License.
+#
+# The Original Code is mozprocess.
+#
+# The Initial Developer of the Original Code is
+#  The Mozilla Foundation.
+# Portions created by the Initial Developer are Copyright (C) 2011
+# the Initial Developer. All Rights Reserved.
+#
+# Contributor(s):
+#  Clint Talbert <ctalbert@mozilla.com>
+#  Jonathan Griffin <jgriffin@mozilla.com>
+#  Jeff Hammel <jhammel@mozilla.com>
+#
+# Alternatively, the contents of this file may be used under the terms of
+# either the GNU General Public License Version 2 or later (the "GPL"), or
+# the GNU Lesser General Public License Version 2.1 or later (the "LGPL"),
+# in which case the provisions of the GPL or the LGPL are applicable instead
+# of those above. If you wish to allow use of your version of this file only
+# under the terms of either the GPL or the LGPL, and not to allow others to
+# use your version of this file under the terms of the MPL, indicate your
+# decision by deleting the provisions above and replace them with the notice
+# and other provisions required by the GPL or the LGPL. If you do not delete
+# the provisions above, a recipient may use your version of this file under
+# the terms of any one of the MPL, the GPL or the LGPL.
+#
+# ***** END LICENSE BLOCK *****
+
 import logging
 import mozinfo
 import os
@@ -17,7 +56,7 @@ if mozinfo.isWin:
     from ctypes import sizeof, addressof, c_ulong, byref, POINTER, WinError
     import winprocess
     from qijo import JobObjectAssociateCompletionPortInformation, JOBOBJECT_ASSOCIATE_COMPLETION_PORT
- 
+
 class ProcessHandlerMixin(object):
     """Class which represents a process to be executed."""
 
@@ -53,7 +92,7 @@ class ProcessHandlerMixin(object):
             if not self._ignore_children and not mozinfo.isWin:
                 # Set the process group id for linux systems
                 # Sets process group id to the pid of the parent process
-                # NOTE: This prevents you from using preexec_fn and managing 
+                # NOTE: This prevents you from using preexec_fn and managing
                 #       child processes, TODO: Ideally, find a way around this
                 def setpgidfn():
                     os.setpgid(0, 0)
@@ -111,7 +150,7 @@ class ProcessHandlerMixin(object):
                     os.kill(self.pid, signal.SIGKILL)
                     if self.returncode is None:
                         self.returncode = subprocess.Popen._internal_poll(self)
-            
+
             self._cleanup()
             return self.returncode
 
@@ -192,7 +231,7 @@ class ProcessHandlerMixin(object):
                 if canCreateJob:
                     try:
                         # We create a new job for this process, so that we can kill
-                        # the process and any sub-processes                    
+                        # the process and any sub-processes
                         # Create the IO Completion Port
                         self._io_port = winprocess.CreateIoCompletionPort()
                         self._job = winprocess.CreateJobObject()
@@ -222,7 +261,7 @@ falling back to not using job objects for managing child processes"""
                         self._cleanup_job_io_port()
                 else:
                     self._job = None
-                        
+
                 winprocess.ResumeThread(int(ht))
                 if self._procmgrthread:
                     self._procmgrthread.start()
@@ -257,13 +296,13 @@ falling back to not using job objects for managing child processes"""
                                                                       byref(compkey),
                                                                       byref(pid),
                                                                       5000)
-  
+
                     # If the countdowntokill has been activated, we need to check
                     # if we should start killing the children or not.
                     if countdowntokill != 0:
                         diff = datetime.now() - countdowntokill
                         # Arbitrarily wait 3 minutes for windows to get its act together
-                        # Windows sometimes takes a small nap between notifying the 
+                        # Windows sometimes takes a small nap between notifying the
                         # IO Completion port and actually killing the children, and we
                         # don't want to mistake that situation for the situation of an unexpected
                         # parent abort (which is what we're looking for here).
@@ -316,7 +355,7 @@ falling back to not using job objects for managing child processes"""
                         elif msgid.value == winprocess.JOB_OBJECT_MSG_ABNORMAL_EXIT_PROCESS:
                             # One process existed abnormally
                             if pid.value == self.pid and len(self._spawned_procs) > 0:
-                                # Parent process dying, start countdown timer                            
+                                # Parent process dying, start countdown timer
                                 countdowntokill = datetime.now()
                             elif pid.value in self._spawned_procs:
                                 # Child Process died remove from list
@@ -326,7 +365,7 @@ falling back to not using job objects for managing child processes"""
                             pass
 
             def _wait(self):
-                
+
                 # First, check to see if the process is still running
                 if self._handle:
                     self.returncode = winprocess.GetExitCodeProcess(self._handle)
@@ -338,7 +377,7 @@ falling back to not using job objects for managing child processes"""
                     # Then we are managing with IO Completion Ports
                     # wait on a signal so we know when we have seen the last
                     # process come through.
-                    # We use queues to synchronize between the thread and this 
+                    # We use queues to synchronize between the thread and this
                     # function because events just didn't have robust enough error
                     # handling on pre-2.7 versions
                     try:
@@ -436,17 +475,17 @@ falling back to not using job objects for managing child processes"""
                         return os.waitpid(self.pid, 0)[1]
                     except OSError, e:
                         if getattr(e, "errno", None) != 10:
-                            # Error 10 is "no child process", which could indicate normal 
+                            # Error 10 is "no child process", which could indicate normal
                             # close
                             print >> sys.stderr, "Encountered error waiting for pid to close: %s" % e
                             raise
                         return 0
-                        
+
                 else:
                     # For non-group wait, call base class
                     subprocess.Popen.wait(self)
                     return self.returncode
-            
+
             def _cleanup(self):
                 pass
 
@@ -460,7 +499,7 @@ falling back to not using job objects for managing child processes"""
 
             def _cleanup(self):
                 pass
-                
+
     def __init__(self,
                  cmd,
                  args=None,
@@ -481,7 +520,7 @@ falling back to not using job objects for managing child processes"""
         processOutputLine = handlers to process the output line
         onTimeout = handlers for timeout event
         kwargs = keyword args to pass directly into Popen
-        
+
         NOTE: Child processes will be tracked by default.  If for any reason
         we are unable to track child processes and ignore_children is set to False,
         then we will fall back to only tracking the root process.  The fallback
@@ -517,7 +556,7 @@ falling back to not using job objects for managing child processes"""
     def commandline(self):
         """the string value of the command line"""
         return subprocess.list2cmdline([self.cmd] + self.args)
-                           
+
     def run(self):
         """Starts the process.  waitForFinish must be called to allow the
            process to complete.
@@ -553,7 +592,7 @@ falling back to not using job objects for managing child processes"""
           is received within |timeout| seconds, return a blank line.
           Returns a tuple (line, did_timeout), where |did_timeout| is True
           if the read timed out, and False otherwise.
-          
+
           Calls a private member because this is a different function based on
           the OS
         """
@@ -578,10 +617,10 @@ falling back to not using job objects for managing child processes"""
     def waitForFinish(self, timeout=None, outputTimeout=None):
         """
         Handle process output until the process terminates or times out.
-        
+
         If timeout is not None, the process will be allowed to continue for
         that number of seconds before being killed.
-       
+
         If outputTimeout is not None, the process will be allowed to continue
         for that number of seconds without producing any output before
         being killed.
@@ -589,7 +628,7 @@ falling back to not using job objects for managing child processes"""
 
         if not hasattr(self, 'proc'):
             self.run()
-        
+
         self.didTimeout = False
         logsource = self.proc.stdout
 
@@ -646,7 +685,7 @@ falling back to not using job objects for managing child processes"""
             return ('', True)
 
     else:
-        # Generic 
+        # Generic
         def _readWithTimeout(self, f, timeout):
             try:
                 (r, w, e) = select.select([f], [], [], timeout)
@@ -699,8 +738,8 @@ class ProcessHandler(ProcessHandlerMixin):
         """
         If storeOutput=True, the output produced by the process will be saved
         as self.output.
-       
-        If logfile is not None, the output produced by the process will be 
+
+        If logfile is not None, the output produced by the process will be
         appended to the given file.
         """
 
