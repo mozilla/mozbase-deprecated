@@ -38,6 +38,20 @@ from logging import *
 
 _default_level = INFO
 _LoggerClass = getLoggerClass()
+
+# Define mozlog specific log levels
+START      = _default_level + 1
+END        = _default_level + 2
+PASS       = _default_level + 3
+KNOWN_FAIL = _default_level + 4
+FAIL       = _default_level + 5
+# Define associated text of log levels
+addLevelName(START, 'TEST-START')
+addLevelName(END, 'TEST-END')
+addLevelName(PASS, 'TEST-PASS')
+addLevelName(KNOWN_FAIL, 'TEST-KNOWN-FAIL')
+addLevelName(FAIL, 'TEST-UNEXPECTED-FAIL')
+
 class _MozLogger(_LoggerClass):
     """
     MozLogger class which adds three convenience log levels
@@ -58,18 +72,30 @@ class _MozLogger(_LoggerClass):
     def testKnownFail(self, message, *args, **kwargs):
         self.log(KNOWN_FAIL, message, *args, **kwargs)
 
-# Define mozlog specific log levels
-START      = _default_level + 1
-END        = _default_level + 2
-PASS       = _default_level + 3
-KNOWN_FAIL = _default_level + 4
-FAIL       = _default_level + 5
-# Define associated text of log levels
-addLevelName(START, 'TEST-START')
-addLevelName(END, 'TEST-END')
-addLevelName(PASS, 'TEST-PASS')
-addLevelName(KNOWN_FAIL, 'TEST-KNOWN-FAIL')
-addLevelName(FAIL, 'TEST-UNEXPECTED-FAIL')
+class _MozFormatter(Formatter):
+    """
+    MozFormatter class used for default formatting
+    This can easily be overriden with the log handler's setFormatter()
+    """
+    level_length = 0
+    max_level_length = len('TEST-START')
+
+    def __init__(self):
+        pass
+
+    def format(self, record):
+        record.message = record.getMessage()
+
+        # Handles padding so record levels align nicely
+        if len(record.levelname) > self.level_length:
+            pad = 0
+            if len(record.levelname) <= self.max_level_length:
+                self.level_length = len(record.levelname)
+        else:
+            pad = self.level_length - len(record.levelname) + 1
+        sep = '|'.rjust(pad)
+        fmt = '%(name)s %(levelname)s ' + sep + ' %(message)s'
+        return fmt % record.__dict__
 
 def getLogger(name, logfile=None):
     """
@@ -93,8 +119,7 @@ def getLogger(name, logfile=None):
         handler = FileHandler(logfile)
     else:
         handler = StreamHandler()
-    formatStr = '%(name)s %(levelname)s | %(message)s'
-    handler.setFormatter(Formatter(formatStr))
+    handler.setFormatter(_MozFormatter())
     logger.addHandler(handler)
     return logger
 
