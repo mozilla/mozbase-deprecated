@@ -3,7 +3,7 @@ is a [python package](http://pypi.python.org/pypi/mozrunner)
 which handles running of Mozilla applications.
 mozrunner utilizes [mozprofile](/en/Mozprofile)
 for managing application profiles
-and [mozprocess](/en/Mozprocess) for robust process control. 
+and [mozprocess](/en/Mozprocess) for robust process control.
 
 mozrunner may be used from the command line or programmatically as an API.
 
@@ -38,3 +38,6 @@ Example API usage:
     # start Firefox on a new profile
     runner = FirefoxRunner()
     runner.start()
+
+See also a comparable implementation for [selenium](http://seleniumhq.org/): 
+http://code.google.com/p/selenium/source/browse/trunk/py/selenium/webdriver/firefox/firefox_binary.py
