@@ -368,7 +368,7 @@ def read_ini(fp, variables=None, default='DEFAULT',
 
             if strict:
                 # make sure this section doesn't already exist
-                assert section not in section_names
+                assert section not in section_names, "Section '%s' already found in '%s'" % (section, section_names)
 
             section_names.add(section)
             current_section = {}

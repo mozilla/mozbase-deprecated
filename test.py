@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 
 """
-run mozprofile tests
+run mozbase tests
 """
 
 import imp
@@ -15,10 +15,14 @@ here = os.path.dirname(os.path.abspath(__file__))
 def unittests(path):
     """return the unittests in a .py file"""
 
+    path = os.path.abspath(path)
     unittests = []
     assert os.path.exists(path)
+    directory = os.path.dirname(path)
+    sys.path.insert(0, directory) # insert directory into path for top-level imports
     modname = os.path.splitext(os.path.basename(path))[0]
     module = imp.load_source(modname, path)
+    sys.path.pop(0) # remove directory from global path
     loader = unittest.TestLoader()
     suite = loader.loadTestsFromModule(module)
     for test in suite:
@@ -28,12 +32,20 @@ def unittests(path):
 def main(args=sys.argv[1:]):
 
     # read the manifest
-    manifest = os.path.join(here, 'manifest.ini')
-    assert os.path.exists(manifest), '%s not found' % manifest
-    manifest = manifestparser.TestManifest(manifests=(manifest,))
-    tests = manifest.active_tests()
+    if args:
+        manifests = args
+    else:
+        manifests = [os.path.join(here, 'test-manifest.ini')]
+    missing = []
+    for manifest in manifests:
+        # ensure manifests exist
+        if not os.path.exists(manifest):
+            missing.append(manifest)
+    assert not missing, 'manifest%s not found: %s' % ((len(manifests) == 1 and '' or 's'), ', '.join(missing))
+    manifest = manifestparser.TestManifest(manifests=manifests)
 
     # gather the tests
+    tests = manifest.active_tests()
     unittestlist = []
     for test in tests:
         unittestlist.extend(unittests(test['path']))
