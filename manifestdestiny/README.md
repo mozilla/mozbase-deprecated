@@ -182,105 +182,96 @@ https://github.com/mozilla/mozbase/blob/master/manifestdestiny/manifestparser.py
 in particular.
 
 
-Using Manifests
----------------
+== Using Manifests ==
 
-A test harness will normally call ``TestManifest.active_tests`` (
-http://hg.mozilla.org/automation/ManifestDestiny/file/c0399fbfa830/manifestparser.py#l506 )::
+A test harness will normally call `TestManifest.active_tests`:
 
-   506     def active_tests(self, exists=True, disabled=True, **tags):
+   def active_tests(self, exists=True, disabled=True, **tags):
 
-The manifests are passed to the ``__init__`` or ``read`` methods with
-appropriate arguments.  ``active_tests`` then allows you to select the
-tests you want::
+The manifests are passed to the `__init__` or `read` methods with
+appropriate arguments.  `active_tests` then allows you to select the
+tests you want:
 
 - exists : return only existing tests
 - disabled : whether to return disabled tests; if not these will be
-  filtered out; if True (the default), the ``disabled`` key of a
+  filtered out; if True (the default), the `disabled` key of a
   test's metadata will be present and will be set to the reason that a
   test is disabled
-- tags : keys and values to filter on (e.g. ``os='linux'``)
+- tags : keys and values to filter on (e.g. `os='linux'`)
 
-``active_tests`` looks for tests with ``skip-if.${TAG}`` or
-``run-if``.  If the condition is or is not fulfilled,
+`active_tests` looks for tests with `skip-if`
+`run-if`.  If the condition is or is not fulfilled,
 respectively, the test is marked as disabled.  For instance, if you
-pass ``**dict(os='linux')`` as ``**tags``, if a test contains a line
-``skip-if = os == 'linux'`` this test will be disabled, or 
-``run-if = os = 'win'`` in which case the test will also be disabled.  It
-is up to the harness to pass in tags appropriate to its usage.  
+pass `**dict(os='linux')` as `**tags`, if a test contains a line
+`skip-if = os == 'linux'` this test will be disabled, or
+`run-if = os = 'win'` in which case the test will also be disabled.  It
+is up to the harness to pass in tags appropriate to its usage.
 
 
-Creating Manifests
-------------------
+== Creating Manifests ==
 
-ManifestDestiny comes with a console script, ``manifestparser create``, that
+ManifestDestiny comes with a console script, `manifestparser create`, that
 may be used to create a seed manifest structure from a directory of
-files.  Run ``manifestparser help create`` for usage information.
+files.  Run `manifestparser help create` for usage information.
 
 
-Copying Manifests
------------------
+== Copying Manifests ==
 
-To copy tests and manifests from a source::
+To copy tests and manifests from a source:
 
- manifestparser [options] copy from_manifest to_directory -tag1 -tag2 --key1=value1 key2=value2 ...
+  manifestparser [options] copy from_manifest to_directory -tag1 -tag2 --key1=value1 key2=value2 ...
 
 
-Upating Tests
--------------
+== Upating Tests ==
 
 To update the tests associated with with a manifest from a source
-directory::
+directory:
 
- manifestparser [options] update manifest from_directory -tag1 -tag2 --key1=value1 --key2=value2 ...
+  manifestparser [options] update manifest from_directory -tag1 -tag2 --key1=value1 --key2=value2 ...
 
 
-Tests
------
+== Tests ==
 
 ManifestDestiny includes a suite of tests:
 
-http://hg.mozilla.org/automation/ManifestDestiny/file/tip/manifestdestiny/tests
+https://github.com/mozilla/mozbase/tree/master/manifestdestiny/tests
 
-``test_manifest.txt`` is a doctest that may be helpful in figuring out
-how to use the API.  Tests are run via ``python test.py``.
+`test_manifest.txt` is a doctest that may be helpful in figuring out
+how to use the API.  Tests are run via `python test.py`.
 
 
-Bugs
-----
+== Bugs ==
 
-Please file any bugs or feature requests at 
+Please file any bugs or feature requests at
 
 https://bugzilla.mozilla.org/enter_bug.cgi?product=Testing&component=ManifestParser
 
 Or contact jhammel @mozilla.org or in #ateam on irc.mozilla.org
 
 
-CLI
----
+== CLI ==
 
-Run ``manifestparser help`` for usage information.
+Run `manifestparser help` for usage information.
 
-To create a manifest from a set of directories::
+To create a manifest from a set of directories:
 
- manifestparser [options] create directory <directory> <...> [create-options]
+  manifestparser [options] create directory <directory> <...> [create-options]
 
-To output a manifest of tests::
+To output a manifest of tests:
 
- manifestparser [options] write manifest <manifest> <...> -tag1 -tag2 --key1=value1 --key2=value2 ...
+  manifestparser [options] write manifest <manifest> <...> -tag1 -tag2 --key1=value1 --key2=value2 ...
 
-To copy tests and manifests from a source::
+To copy tests and manifests from a source:
 
- manifestparser [options] copy from_manifest to_manifest -tag1 -tag2 --key1=value1 key2=value2 ...
+  manifestparser [options] copy from_manifest to_manifest -tag1 -tag2 --key1=value1 key2=value2 ...
 
 To update the tests associated with with a manifest from a source
-directory::
+directory:
 
- manifestparser [options] update manifest from_directory -tag1 -tag2 --key1=value1 --key2=value2 ...
+  manifestparser [options] update manifest from_directory -tag1 -tag2 --key1=value1 --key2=value2 ...
 
 
-Design Considerations
----------------------
+== Design Considerations ==
 
 Contrary to some opinion, manifestparser.py and the associated .ini
 format were not magically plucked from the sky but were descended upon
@@ -289,7 +280,7 @@ through several design considerations.
 * test manifests should be ordered.  While python 2.6 and greater has
   a ConfigParser that can use an ordered dictionary, it is a
   requirement that we support python 2.4 for the build + testing
-  environment.  To that end, a ``read_ini`` function was implemented
+  environment.  To that end, a `read_ini` function was implemented
   in manifestparser.py that should be the equivalent of the .ini
   dialect used by ConfigParser.
 
@@ -297,7 +288,7 @@ through several design considerations.
   there was initially some thought of using JSON, there was pushback
   that JSON was not easily editable.  An ideal manifest format would
   degenerate to a line-separated list of files.  While .ini format
-  requires an additional ``[]`` per line, and while there have been
+  requires an additional `[]` per line, and while there have been
   complaints about this, hopefully this is good enough.
 
 * python does not have an in-built YAML parser.  Since it was
@@ -315,14 +306,13 @@ through several design considerations.
   transported. Traditionally, test harnesses have lived in
   mozilla-central. This is less true these days and it is increasingly
   likely that more tests will not live in mozilla-central going
-  forward.  So ``manifestparser.py`` should be highly consumable. To
+  forward.  So `manifestparser.py` should be highly consumable. To
   this end, it is a single file, as appropriate to mozilla-central,
   which is also a working python package deployed to PyPI for easy
-  installation. 
+  installation.
 
 
-Historical Reference
---------------------
+== Historical Reference ==
 
 Date-ordered list of links about how manifests came to be where they are today::
 
