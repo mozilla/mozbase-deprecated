@@ -35,4 +35,4 @@
 #
 # ***** END LICENSE BLOCK *****
 
-from mozhttpd import MozHttpd
+from mozhttpd import MozHttpd, MozRequestHandler
