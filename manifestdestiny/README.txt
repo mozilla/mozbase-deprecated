@@ -1,33 +1,30 @@
-ManifestDestiny
-===============
+= ManifestDestiny =
 
 Universal manifests for Mozilla test harnesses
 
 
-What is ManifestDestiny?
-------------------------
+== What is ManifestDestiny? ==
 
-What ManifestDestiny gives you::
+What ManifestDestiny gives you:
 
 * manifests are (ordered) lists of tests
 * tests may have an arbitrary number of key, value pairs
 * the parser returns an ordered list of test data structures, which
   are just dicts with some keys.  For example, a test with no
-  user-specified metadata looks like this::
+  user-specified metadata looks like this:
 
-  [{'path':
-    '/home/jhammel/mozmill/src/ManifestDestiny/manifestdestiny/tests/testToolbar/testBackForwardButtons.js',
-    'name': 'testToolbar/testBackForwardButtons.js', 'here':
-    '/home/jhammel/mozmill/src/ManifestDestiny/manifestdestiny/tests',
-    'manifest': '/home/jhammel/mozmill/src/ManifestDestiny/manifestdestiny/tests',}]
+   [{'path':
+     '/home/jhammel/mozmill/src/ManifestDestiny/manifestdestiny/tests/testToolbar/testBackForwardButtons.js',
+     'name': 'testToolbar/testBackForwardButtons.js', 'here':
+     '/home/jhammel/mozmill/src/ManifestDestiny/manifestdestiny/tests',
+     'manifest': '/home/jhammel/mozmill/src/ManifestDestiny/manifestdestiny/tests',}]
 
 The keys displayed here (path, name, here, and manifest) are reserved
 keys for ManifestDestiny and any consuming APIs.  You can add
 additional key, value metadata to each test.
 
 
-Why have test manifests?
-------------------------
+== Why have test manifests? ==
 
 Most Mozilla test harnesses work by crawling a directory structure.
 While this is straight-forward, manifests offer several practical
@@ -41,7 +38,7 @@ advantages::
   one around that knows the test?), then backing out a test is at best
   problematic.  With a manifest, a test may be disabled without
   removing it from the tree and a bug filed with the appropriate
-  reason::
+  reason:
 
    [test_broken.js]
    disabled = https://bugzilla.mozilla.org/show_bug.cgi?id=123456
@@ -66,11 +63,10 @@ advantages::
   (sub)manifests as appropriate to your needs.
 
 
-Manifest Format
----------------
+== Manifest Format ==
 
 Manifests are .ini file with the section names denoting the path
-relative to the manifest::
+relative to the manifest:
 
  [foo.js]
  [bar.js]
@@ -78,8 +74,8 @@ relative to the manifest::
 
 The sections are read in order. In addition, tests may include
 arbitrary key, value metadata to be used by the harness.  You may also
-have a ``[DEFAULT]`` section that will give key, value pairs that will
-be inherited by each test unless overridden::
+have a `[DEFAULT]` section that will give key, value pairs that will
+be inherited by each test unless overridden:
 
  [DEFAULT]
  type = restart
@@ -95,19 +91,18 @@ be inherited by each test unless overridden::
  [roses.js]
  color = red
 
-You can also include other manifests::
+You can also include other manifests:
 
  [include:subdir/anothermanifest.ini]
 
 Manifests are included relative to the directory of the manifest with
-the ``[include:]`` directive unless they are absolute paths.
+the `[include:]` directive unless they are absolute paths.
 
 
-Data
-----
+== Data ==
 
 Manifest Destiny gives tests as a list of dictionaries (in python
-terms). 
+terms).
 
 * path: full path to the test
 * name: short name of the test; this is the (usually) relative path
@@ -115,7 +110,7 @@ terms).
 * here: the parent directory of the manifest
 * manifest: the path to the manifest containing the test
 
-This data corresponds to a one-line manifest::
+This data corresponds to a one-line manifest:
 
  [testToolbar/testBackForwardButtons.js]
 
@@ -125,7 +120,7 @@ as well.
 Outside of the reserved keys, the remaining key, values
 are up to convention to use.  There is a (currently very minimal)
 generic integration layer in ManifestDestiny for use of all harnesses,
-``manifestparser.TestManifest``.
+`manifestparser.TestManifest`.
 For instance, if the 'disabled' key is present, you can get the set of
 tests without disabled (various other queries are doable as well).
 
@@ -134,7 +129,7 @@ they want with the data.  They may ignore it completely, they may use
 the provided integration layer, or they may provide their own
 integration layer.  This should allow whatever sort of logic is
 desired.  For instance, if in yourtestharness you wanted to run only on
-mondays for a certain class of tests::
+mondays for a certain class of tests:
 
  tests = []
  for test in manifests.tests:
@@ -150,42 +145,40 @@ To recap:
 * you can use it however you want or process it further as you need
 
 Tests are denoted by sections in an .ini file (see
-http://hg.mozilla.org/automation/ManifestDestiny/file/tip/manifestdestiny/tests/mozmill-example.ini). 
+http://hg.mozilla.org/automation/ManifestDestiny/file/tip/manifestdestiny/tests/mozmill-example.ini).
 
-Additional manifest files may be included with an ``[include:]`` directive::
+Additional manifest files may be included with an `[include:]` directive:
 
  [include:path-to-additional-file.manifest]
 
 The path to included files is relative to the current manifest.
 
-The ``[DEFAULT]`` section contains variables that all tests inherit from.
+The `[DEFAULT]` section contains variables that all tests inherit from.
 
 Included files will inherit the top-level variables but may override
-in their own ``[DEFAULT]`` section.
+in their own `[DEFAULT]` section.
 
 
-ManifestDestiny Architecture
-----------------------------
+== ManifestDestiny Architecture ==
 
 There is a two- or three-layered approach to the ManifestDestiny
-architecture, depending on your needs::
+architecture, depending on your needs:
 
 1. ManifestParser: this is a generic parser for .ini manifests that
 facilitates the `[include:]` logic and the inheritence of
-metadata. Despite the internal variable being called ``self.tests``
+metadata. Despite the internal variable being called `self.tests`
 (an oversight), this layer has nothing in particular to do with tests.
 
 2. TestManifest: this is a harness-agnostic integration layer that is
-test-specific. TestManifest faciliates ``skip-if`` and ``run-if``
-logic.
+test-specific. TestManifest faciliates `skip-if` and `run-if` logic.
 
 3. Optionally, a harness will have an integration layer than inherits
 from TestManifest if more harness-specific customization is desired at
 the manifest level.
 
-See the source code at http://hg.mozilla.org/automation/ManifestDestiny
+See the source code at https://github.com/mozilla/mozbase/tree/master/manifestdestiny
 and
-http://hg.mozilla.org/automation/ManifestDestiny/file/tip/manifestparser.py
+https://github.com/mozilla/mozbase/blob/master/manifestdestiny/manifestparser.py
 in particular.
 
 
