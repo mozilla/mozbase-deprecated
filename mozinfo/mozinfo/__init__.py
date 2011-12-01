@@ -11,15 +11,16 @@
 # for the specific language governing rights and limitations under the
 # License.
 #
-# The Original Code is mozhttpd.
+# The Original Code is mozinfo.
 #
 # The Initial Developer of the Original Code is
 #  The Mozilla Foundation.
-# Portions created by the Initial Developer are Copyright (C) 2011
+# Portions created by the Initial Developer are Copyright (C) 2010
 # the Initial Developer. All Rights Reserved.
 #
 # Contributor(s):
-#   Joel Maher <jmaher@mozilla.com>
+#  Jeff Hammel <jhammel@mozilla.com>
+#  Clint Talbert <ctalbert@mozilla.com>
 #
 # Alternatively, the contents of this file may be used under the terms of
 # either the GNU General Public License Version 2 or later (the "GPL"), or
@@ -35,38 +36,4 @@
 #
 # ***** END LICENSE BLOCK *****
 
-import os
-from setuptools import setup, find_packages
-
-try:
-    here = os.path.dirname(os.path.abspath(__file__))
-    description = file(os.path.join(here, 'README.md')).read()
-except IOError:
-    description = None
-
-version = '0.1'
-
-deps = []
-
-setup(name='mozhttpd',
-      version=version,
-      description="basic python webserver, tested with talos",
-      long_description=description,
-      classifiers=[], # Get strings from http://pypi.python.org/pypi?%3Aaction=list_classifiers
-      keywords='mozilla',
-      author='Joel Maher',
-      author_email='tools@lists.mozilla.org',
-      url='https://github.com/mozilla/mozbase/tree/master/mozhttpd',
-      license='MPL',
-      py_modules=['mozhttpd'],
-      packages=find_packages(exclude=['ez_setup', 'examples', 'tests']),
-      include_package_data=True,
-      zip_safe=False,
-      install_requires=deps,
-      entry_points="""
-      # -*- Entry points: -*-
-      [console_scripts]
-      mozhttpd = mozhttpd:main
-      """,
-      )
-
+from mozinfo import *
