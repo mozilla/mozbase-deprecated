@@ -45,8 +45,8 @@ advantages::
   removing it from the tree and a bug filed with the appropriate
   reason:
 
-   [test_broken.js]
-   disabled = https://bugzilla.mozilla.org/show_bug.cgi?id=123456
+     [test_broken.js]
+     disabled = https://bugzilla.mozilla.org/show_bug.cgi?id=123456
 
 * ability to run different (subsets of) tests on different
   platforms. Traditionally, we've done a bit of magic or had the test
@@ -54,8 +54,8 @@ advantages::
   can mark what platforms a test will or will not run on and change
   these without changing the test.
 
-   [test_works_on_windows_only.js]
-   run-if = os == 'win'
+     [test_works_on_windows_only.js]
+     run-if = os == 'win'
 
 * ability to markup tests with metadata. We have a large, complicated,
   and always changing infrastructure.  key, value metadata may be used
@@ -73,32 +73,32 @@ advantages::
 Manifests are .ini file with the section names denoting the path
 relative to the manifest:
 
-   [foo.js]
-   [bar.js]
-   [fleem.js]
+    [foo.js]
+    [bar.js]
+    [fleem.js]
 
 The sections are read in order. In addition, tests may include
 arbitrary key, value metadata to be used by the harness.  You may also
 have a `[DEFAULT]` section that will give key, value pairs that will
 be inherited by each test unless overridden:
 
-   [DEFAULT]
-   type = restart
+    [DEFAULT]
+    type = restart
 
-   [lilies.js]
-   color = white
+    [lilies.js]
+    color = white
 
-   [daffodils.js]
-   color = yellow
-   type = other
-   # override type from DEFAULT
+    [daffodils.js]
+    color = yellow
+    type = other
+    # override type from DEFAULT
 
-   [roses.js]
-   color = red
+    [roses.js]
+    color = red
 
 You can also include other manifests:
 
-   [include:subdir/anothermanifest.ini]
+    [include:subdir/anothermanifest.ini]
 
 Manifests are included relative to the directory of the manifest with
 the `[include:]` directive unless they are absolute paths.
@@ -117,7 +117,7 @@ terms).
 
 This data corresponds to a one-line manifest:
 
- [testToolbar/testBackForwardButtons.js]
+    [testToolbar/testBackForwardButtons.js]
 
 If additional key, values were specified, they would be in this dict
 as well.
@@ -154,7 +154,7 @@ http://hg.mozilla.org/automation/ManifestDestiny/file/tip/manifestdestiny/tests/
 
 Additional manifest files may be included with an `[include:]` directive:
 
-   [include:path-to-additional-file.manifest]
+    [include:path-to-additional-file.manifest]
 
 The path to included files is relative to the current manifest.
 
@@ -191,7 +191,7 @@ in particular.
 
 A test harness will normally call `TestManifest.active_tests`:
 
-   def active_tests(self, exists=True, disabled=True, **tags):
+    def active_tests(self, exists=True, disabled=True, **tags):
 
 The manifests are passed to the `__init__` or `read` methods with
 appropriate arguments.  `active_tests` then allows you to select the
