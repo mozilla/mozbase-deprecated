@@ -136,13 +136,13 @@ integration layer.  This should allow whatever sort of logic is
 desired.  For instance, if in yourtestharness you wanted to run only on
 mondays for a certain class of tests:
 
-   tests = []
-   for test in manifests.tests:
-       if 'runOnDay' in test:
-          if calendar.day_name[calendar.weekday(*datetime.datetime.now().timetuple()[:3])].lower() == test['runOnDay'].lower():
-              tests.append(test)
-       else:
-          tests.append(test)
+    tests = []
+    for test in manifests.tests:
+        if 'runOnDay' in test:
+           if calendar.day_name[calendar.weekday(*datetime.datetime.now().timetuple()[:3])].lower() == test['runOnDay'].lower():
+               tests.append(test)
+        else:
+           tests.append(test)
 
 To recap:
 * the manifests allow you to specify test data
