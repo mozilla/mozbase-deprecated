@@ -1,5 +1,5 @@
 [mozprocess](https://github.com/mozilla/mozbase/tree/master/mozprocess)
-provides python process management via an operating system 
+provides python process management via an operating system
 and platform transparent interface to Mozilla platforms of interest.
 Mozprocess aims to provide the ability
 to robustly terminate a process (by timeout or otherwise), along with
@@ -19,14 +19,13 @@ Basic usage:
     process = ProcessHandler(['command', '-line', 'arguments'],
                              cwd=None, # working directory for cmd; defaults to None
                              env={},   # environment to use for the process; defaults to os.environ
-                             )         
+                             )
     exit_code = process.waitForFinish(timeout=60) # seconds
 
-See an example in https://github.com/mozilla/mozbase/blob/master/mutt/mutt/tests/python/testprofilepath.py
 
 `ProcessHandler` may be subclassed to handle process timeouts (by overriding
-the `onTimeout()` method), process completion (by overriding 
-`onFinish()`), and to process the command output (by overriding 
+the `onTimeout()` method), process completion (by overriding
+`onFinish()`), and to process the command output (by overriding
 `processOutputLine()`).
 
 # TODO
