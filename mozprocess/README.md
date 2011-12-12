@@ -60,8 +60,7 @@ Basic usage:
         """
 
     def processOutputLine(self, line):
-        """Called for each line of output that a process sends to stdout/stderr.
-"""
+        """Called for each line of output that a process sends to stdout/stderr."""
         for handler in self.processOutputLineHandlers:
             handler(line)
 
