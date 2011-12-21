@@ -44,6 +44,7 @@ __all__ = ['Runner', 'ThunderbirdRunner', 'FirefoxRunner', 'runners', 'CLI', 'cl
 import mozinfo
 import optparse
 import os
+import platform
 import sys
 import ConfigParser
 
@@ -149,9 +150,10 @@ class Runner(object):
         # ensure the profile exists
         if not self.profile.exists():
             self.profile.reset()
-
-        # now run for real, this run uses the managed processhandler
-        self.process_handler = self.process_class(self.command+self.cmdargs, env=self.env, **self.kp_kwargs)
+        
+        cmd = self._wrap_command(self.command+self.cmdargs)
+        # this run uses the managed processhandler
+        self.process_handler = self.process_class(cmd, env=self.env, **self.kp_kwargs)
         self.process_handler.run()
 
     def wait(self, timeout=None, outputTimeout=None):
@@ -179,6 +181,17 @@ class Runner(object):
         self.stop()
         if self.clean_profile:
             self.profile.cleanup()
+
+    def _wrap_command(self, cmd):
+        """
+        If running on OS X 10.5 or older, wrap |cmd| so that it will
+        be executed as an i386 binary, in case it's a 32-bit/64-bit universal
+        binary.
+        """
+        if mozinfo.isMac and hasattr(platform, 'mac_ver') and \
+                               platform.mac_ver()[0][:4] < '10.6':
+            return ["arch", "-arch", "i386"] + cmd
+        return cmd 
 
     __del__ = cleanup
 
