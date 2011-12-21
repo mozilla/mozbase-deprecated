@@ -11,15 +11,16 @@
 # for the specific language governing rights and limitations under the
 # License.
 #
-# The Original Code is mozilla.org code.
+# The Original Code is mozinstall.
 #
 # The Initial Developer of the Original Code is
-# the Mozilla Foundation.
+#  The Mozilla Foundation.
 # Portions created by the Initial Developer are Copyright (C) 2011
 # the Initial Developer. All Rights Reserved.
 #
 # Contributor(s):
-#   William Lachance <wlachance@mozilla.com>
+#  Clint Talbert <ctalbert@mozilla.com>
+#  Andrew Halberstadt <halbersa@gmail.com>
 #
 # Alternatively, the contents of this file may be used under the terms of
 # either the GNU General Public License Version 2 or later (the "GPL"), or
@@ -34,5 +35,4 @@
 # the terms of any one of the MPL, the GPL or the LGPL.
 #
 # ***** END LICENSE BLOCK *****
-
-from mozhttpd import MozHttpd
+from mozinstall import *

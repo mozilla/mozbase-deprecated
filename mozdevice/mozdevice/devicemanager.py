@@ -9,12 +9,11 @@
 # Software distributed under the License is distributed on an "AS IS" basis,
 # WITHOUT WARRANTY OF ANY KIND, either express or implied. See the License
 # for the specific language governing rights and limitations under the
-# License.
+# License.   
 #
 # The Original Code is Test Automation Framework.
 #
-# The Initial Developer of the Original Code is
-#  The Mozilla Foundation.
+# The Initial Developer of the Original Code is Joel Maher.
 #
 # Portions created by the Initial Developer are Copyright (C) 2009
 # the Initial Developer. All Rights Reserved.
@@ -23,7 +22,6 @@
 #   Joel Maher <joel.maher@gmail.com> (Original Developer)
 #   Clint Talbert <cmtalbert@gmail.com>
 #   Mark Cote <mcote@mozilla.com>
-#   Will Lachance <wlachance@mozilla.com>
 #
 # Alternatively, the contents of this file may be used under the terms of
 # either the GNU General Public License Version 2 or later (the "GPL"), or
@@ -206,7 +204,7 @@ class DeviceManager:
     parts = appname.split('"')
     if (len(parts) > 2):
       appname = ' '.join(parts[2:]).strip()
-
+  
     pieces = appname.split(' ')
     parts = pieces[0].split('/')
     app = parts[-1]
@@ -215,7 +213,7 @@ class DeviceManager:
     procList = self.getProcessList()
     if (procList == []):
       return None
-
+      
     for proc in procList:
       if (procre.match(proc[1])):
         pid = proc[0]
@@ -528,13 +526,13 @@ class NetworkTools:
           connected = True
           s.close()
           break
-        except:
+        except:          
           if seed > maxportnum:
             print "Could not find open port after checking 5000 ports"
           raise
         seed += 1
     except:
       print "Socket error trying to find open port"
-
+        
     return seed
 
