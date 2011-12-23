@@ -55,10 +55,6 @@ from mozprocess.processhandler import ProcessHandler
 
 package_metadata = get_metadata_from_egg('mozrunner')
 
-class BinaryLocationException(Exception):
-    """exception for failure to find the binary"""
-
-
 class Runner(object):
     """Handles all running operations. Finds bins, runs and kills the process."""
 
@@ -80,6 +76,8 @@ class Runner(object):
 
         # find the binary
         self.binary = binary
+        if not self.binary:
+            raise Exception("Binary not specified")
         if not os.path.exists(self.binary):
             raise OSError("Binary path does not exist: %s" % self.binary)
 
@@ -201,8 +199,13 @@ class FirefoxRunner(Runner):
 
     profile_class = FirefoxProfile
 
-    def __init__(self, profile, **kwargs):
-        Runner.__init__(self, profile, **kwargs)
+    def __init__(self, profile, binary=None, **kwargs):
+
+        # take the binary from BROWSER_PATH environment variable
+        if (not binary) and 'BROWSER_PATH' in os.environ:
+            binary = os.environ['BROWSER_PATH']
+
+        Runner.__init__(self, profile, binary, **kwargs)
 
         # Find application version number
         appdir = os.path.dirname(os.path.realpath(self.binary))
