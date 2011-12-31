@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 
 """
-run mozbase tests
+run mozbase tests from a manifest
 """
 
 import imp
