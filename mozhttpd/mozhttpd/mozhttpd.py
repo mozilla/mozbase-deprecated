@@ -103,31 +103,6 @@ class MozHttpd(object):
             self.server.setDaemon(True) # don't hang on exit
             self.server.start()
         
-    def testServer(self):
-        fileList = os.listdir(self.docroot)
-        filehandle = urllib.urlopen('http://%s:%s/?foo=bar&fleem=&foo=fleem' % (self.host, self.port))
-        data = filehandle.readlines()
-        filehandle.close()
-
-        retval = True
-
-        for line in data:
-            found = False
-            # '@' denotes a symlink and we need to ignore it.
-            webline = re.sub('\<[a-zA-Z0-9\-\_\.\=\"\'\/\\\%\!\@\#\$\^\&\*\(\) ]*\>', '', line.strip('\n')).strip('/').strip().strip('@')
-            if webline != "":
-                if webline == "Directory listing for":
-                    found = True
-                else:
-                    for fileName in fileList:
-                        if fileName == webline:
-                            found = True
-                
-                if not found:
-                    retval = False
-                    print >> sys.stderr, "NOT FOUND: " + webline.strip()
-        return retval
-
     def stop(self):
         if self.httpd:
             self.httpd.shutdown()
@@ -150,9 +125,6 @@ def main(args=sys.argv[1:]):
     parser.add_option('-d', '--docroot', dest='docroot',
                       default=os.getcwd(),
                       help="directory to serve files from [DEFAULT: %default]")
-    parser.add_option('--test', dest='test',
-                      action='store_true', default=False,
-                      help='run the tests and exit')
     options, args = parser.parse_args(args)
     if args:
         parser.print_help()
