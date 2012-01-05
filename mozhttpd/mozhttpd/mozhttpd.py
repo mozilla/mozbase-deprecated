@@ -52,12 +52,71 @@ class EasyServer(ThreadingMixIn, BaseHTTPServer.HTTPServer):
 class MozRequestHandler(SimpleHTTPServer.SimpleHTTPRequestHandler):
     docroot = os.getcwd() # current working directory at time of import
 
+    def _get_handler(self, method):
+
+        return None
+
+    def _try_handler(self, method, postfile=None):
+        handlers = [handler for handler in self.urlhandlers if handler['method'] == method]
+        for handler in handlers:
+            m = re.match(handler['path'], self.path)
+            if m:
+                if postfile:
+                    postdata = postfile.read(int(self.headers.get('Content-length')))
+                    (response_code, headerdict, data) = handler['function'](*m.groups(),
+                                                                             query=self.query,
+                                                                             postdata=postdata)
+                else:
+                    (response_code, headerdict, data) = handler['function'](*m.groups(),
+                                                                             query=self.query)
+
+                self.send_response(response_code)
+                for (keyword, value) in headerdict.iteritems():
+                    self.send_header(keyword, value)
+                self.end_headers()
+                self.wfile.write(data)
+
+                return True
+
+        return False
+
+
+    def do_GET(self):
+        if not self._try_handler('GET'):
+            if self.docroot:
+                SimpleHTTPServer.SimpleHTTPRequestHandler.do_GET(self)
+            else:
+                self.send_response(404)
+                self.end_headers()
+                self.wfile.write('')
+
+    def do_POST(self):
+        if not self._try_handler('POST', postfile=self.rfile):
+            if self.docroot:
+                SimpleHTTPServer.SimpleHTTPRequestHandler.do_POST(self)
+            else:
+                self.send_response(404)
+                self.end_headers()
+                self.wfile.write('')
+
+    def do_DEL(self):
+        if not self._try_handler('DEL'):
+            if self.docroot:
+                SimpleHTTPServer.SimpleHTTPRequestHandler.do_DEL(self)
+            else:
+                self.send_response(404)
+                self.end_headers()
+                self.wfile.write('')
+
     def parse_request(self):
         retval = SimpleHTTPServer.SimpleHTTPRequestHandler.parse_request(self)
         if '?' in self.path:
-            # ignore query string, otherwise SimpleHTTPRequestHandler 
+            # we split off the query string, otherwise SimpleHTTPRequestHandler
             # will treat it as PATH_INFO for `translate_path`
-            self.path = self.path.split('?', 1)[0]
+            (self.path, self.query) = self.path.split('?', 1)
+        else:
+            self.query = None
+
         return retval
 
     def translate_path(self, path):
@@ -77,21 +136,46 @@ class MozRequestHandler(SimpleHTTPServer.SimpleHTTPRequestHandler):
         pass
 
 class MozHttpd(object):
+    """
+    Very basic HTTP server class. Takes a docroot (path on the filesystem)
+    and a set of urlhandler dictionaries of the form:
 
-    def __init__(self, host="127.0.0.1", port=8888, docroot=os.getcwd(), handler_class=MozRequestHandler):
+    {
+      'method': HTTP method (string): GET, POST, or DEL,
+      'path': PATH_INFO (string),
+      'function': function of form fn(arg1, arg2, arg3, ..., querystr) OR
+      `           fn(arg1, arg2, arg3, ..., querystr, postdata) if method is
+                  'POST'
+    }
+
+    and serves HTTP. For each request, MozHttpd will either return a file
+    off the docroot, or dispatch to a handler function (if both path and
+    method match).
+
+    Note that one of docroot or urlhandlers may be None (in which case no
+    local files or handlers, respectively, will be used). If both docroot or
+    urlhandlers are None then MozHttpd will default to serving just the local
+    directory.
+    """
+
+    def __init__(self, host="127.0.0.1", port=8888, docroot=None, urlhandlers=None):
         self.host = host
         self.port = int(port)
         self.docroot = docroot
+        if not urlhandlers and not docroot:
+            self.docroot = os.getcwd()
         self.httpd = None
+        self.urlhandlers = urlhandlers or []
 
-        class MozRequestHandlerInstance(handler_class):
+        class MozRequestHandlerInstance(MozRequestHandler):
             docroot = self.docroot
+            urlhandlers = self.urlhandlers
 
         self.handler_class = MozRequestHandlerInstance
 
     def start(self, block=False):
         """
-        start the server.  If block is True, the call will not return.
+        Start the server.  If block is True, the call will not return.
         If block is False, the server will be started on a separate thread that
         can be terminated by a call to .stop()
         """
@@ -102,7 +186,7 @@ class MozHttpd(object):
             self.server = threading.Thread(target=self.httpd.serve_forever)
             self.server.setDaemon(True) # don't hang on exit
             self.server.start()
-        
+
     def stop(self):
         if self.httpd:
             self.httpd.shutdown()
@@ -135,11 +219,7 @@ def main(args=sys.argv[1:]):
     test = kwargs.pop('test')
     server = MozHttpd(**kwargs)
 
-    if test:
-        server.start()
-        server.testServer()
-    else:
-        server.start(block=True)
+    server.start(block=True)
 
 if __name__ == '__main__':
     main()
