@@ -35,6 +35,6 @@
 #
 # ***** END LICENSE BLOCK *****
 
-from mozhttpd import MozHttpd, MozRequestHandler
+from mozhttpd import MozHttpd, MozRequestHandler, main
 from handlers import json_response
 import iface

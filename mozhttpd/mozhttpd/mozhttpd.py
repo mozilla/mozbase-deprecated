@@ -216,9 +216,9 @@ def main(args=sys.argv[1:]):
 
     # create the server
     kwargs = options.__dict__.copy()
-    test = kwargs.pop('test')
     server = MozHttpd(**kwargs)
 
+    print "Serving '%s' at %s:%s" % (server.docroot, server.host, server.port)
     server.start(block=True)
 
 if __name__ == '__main__':
