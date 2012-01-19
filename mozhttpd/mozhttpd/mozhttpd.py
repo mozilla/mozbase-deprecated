@@ -109,22 +109,22 @@ class MozRequestHandler(SimpleHTTPServer.SimpleHTTPRequestHandler):
                 self.wfile.write('')
 
     def do_POST(self):
+        # if we don't have a match, we always fall through to 404 (this may
+        # not be "technically" correct if we have a local file at the same
+        # path as the resource but... meh)
         if not self._try_handler('POST', postfile=self.rfile):
-            if self.docroot:
-                SimpleHTTPServer.SimpleHTTPRequestHandler.do_POST(self)
-            else:
-                self.send_response(404)
-                self.end_headers()
-                self.wfile.write('')
+            self.send_response(404)
+            self.end_headers()
+            self.wfile.write('')
 
     def do_DEL(self):
+        # if we don't have a match, we always fall through to 404 (this may
+        # not be "technically" correct if we have a local file at the same
+        # path as the resource but... meh)
         if not self._try_handler('DEL'):
-            if self.docroot:
-                SimpleHTTPServer.SimpleHTTPRequestHandler.do_DEL(self)
-            else:
-                self.send_response(404)
-                self.end_headers()
-                self.wfile.write('')
+            self.send_response(404)
+            self.end_headers()
+            self.wfile.write('')
 
     def parse_request(self):
         retval = SimpleHTTPServer.SimpleHTTPRequestHandler.parse_request(self)

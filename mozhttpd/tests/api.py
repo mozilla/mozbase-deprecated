@@ -138,12 +138,57 @@ class ApiTest(unittest.TestCase):
         self.try_del(server_port, None)
         self.try_del(server_port, '?foo=bar')
 
-        # By default we don't serve any files if we just define an API
+        # GET: By default we don't serve any files if we just define an API
         f = None
+        exception_thrown = False
         try:
             f = urllib2.urlopen(self.get_url('/', server_port, None))
         except urllib2.HTTPError, e:
             self.assertEqual(e.code, 404)
+            exception_thrown = True
+        self.assertTrue(exception_thrown)
+
+    def test_nonexistent_resources(self):
+        # Create a server with a placeholder handler so we don't fall back
+        # to serving local files
+        httpd = mozhttpd.MozHttpd(port=0)
+        httpd.start(block=False)
+        server_port = httpd.httpd.server_port
+
+        # GET: Return 404 for non-existent endpoint
+        f = None
+        exception_thrown = False
+        try:
+            f = urllib2.urlopen(self.get_url('/api/resource/', server_port, None))
+        except urllib2.HTTPError, e:
+            self.assertEqual(e.code, 404)
+            exception_thrown = True
+        self.assertTrue(exception_thrown)
+
+        # POST: POST should also return 404
+        f = None
+        exception_thrown = False
+        try:
+            f = urllib2.urlopen(self.get_url('/api/resource/', server_port, None),
+                            data=json.dumps({}))
+        except urllib2.HTTPError, e:
+            self.assertEqual(e.code, 404)
+            exception_thrown = True
+        self.assertTrue(exception_thrown)
+
+        # DEL: DEL should also return 404
+        f = None
+        exception_thrown = False
+        try:
+            opener = urllib2.build_opener(urllib2.HTTPHandler)
+            request = urllib2.Request(self.get_url('/api/resource/', server_port,
+                                                   None))
+            request.get_method = lambda: 'DEL'
+            f = opener.open(request)
+        except urllib2.HTTPError, e:
+            self.assertEqual(e.code, 404)
+            exception_thrown = True
+        self.assertTrue(exception_thrown)
 
     def test_api_with_docroot(self):
         httpd = mozhttpd.MozHttpd(port=0, docroot=here,
