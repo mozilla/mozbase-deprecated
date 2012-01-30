@@ -43,6 +43,7 @@ import os
 import unittest
 import re
 import json
+import tempfile
 
 here = os.path.dirname(os.path.abspath(__file__))
 
@@ -52,25 +53,25 @@ class ApiTest(unittest.TestCase):
     resource_del_called = 0
 
     @mozhttpd.handlers.json_response
-    def resource_get(self, objid, query):
+    def resource_get(self, objid, request):
         self.resource_get_called += 1
         return (200, { 'called': self.resource_get_called,
                        'id': objid,
-                       'query': query })
+                       'query': request.query })
 
     @mozhttpd.handlers.json_response
-    def resource_post(self, query, postdata=None):
+    def resource_post(self, request):
         self.resource_post_called += 1
         return (201, { 'called': self.resource_post_called,
-                       'data': json.loads(postdata),
-                       'query': query })
+                       'data': json.loads(request.body),
+                       'query': request.query })
 
     @mozhttpd.handlers.json_response
-    def resource_del(self, objid, query):
+    def resource_del(self, objid, request):
         self.resource_del_called += 1
         return (200, { 'called': self.resource_del_called,
                        'id': objid,
-                       'query': query })
+                       'query': request.query })
 
     def get_url(self, path, server_port, querystr):
         url = "http://127.0.0.1:%s%s" % (server_port, path)
@@ -127,15 +128,15 @@ class ApiTest(unittest.TestCase):
         server_port = httpd.httpd.server_port
 
         # GET
-        self.try_get(server_port, None)
+        self.try_get(server_port, '')
         self.try_get(server_port, '?foo=bar')
 
         # POST
-        self.try_post(server_port, None)
+        self.try_post(server_port, '')
         self.try_post(server_port, '?foo=bar')
 
         # DEL
-        self.try_del(server_port, None)
+        self.try_del(server_port, '')
         self.try_del(server_port, '?foo=bar')
 
         # GET: By default we don't serve any files if we just define an API
@@ -204,8 +205,61 @@ class ApiTest(unittest.TestCase):
         self.assertTrue('Directory listing for' in f.read())
 
         # Make sure API methods still work
-        self.try_get(server_port, None)
+        self.try_get(server_port, '')
         self.try_get(server_port, '?foo=bar')
+
+    def test_proxy(self):
+        docroot = tempfile.mkdtemp()
+        hosts = ('mozilla.com', 'mozilla.org')
+        unproxied_host = 'notmozilla.org'
+        def url(host): return 'http://%s/' % host
+
+        index_filename = 'index.html'
+        def index_contents(host): return '%s index' % host
+
+        index = file(os.path.join(docroot, index_filename), 'w')
+        index.write(index_contents('*'))
+        index.close()
+
+        httpd = mozhttpd.MozHttpd(port=0, docroot=docroot)
+        httpd.start(block=False)
+        server_port = httpd.httpd.server_port
+
+        proxy_support = urllib2.ProxyHandler({'http': 'http://127.0.0.1:%d' %
+                                              server_port})
+        urllib2.install_opener(urllib2.build_opener(proxy_support))
+
+        for host in hosts:
+            f = urllib2.urlopen(url(host))
+            self.assertEqual(f.getcode(), 200)
+            self.assertEqual(f.read(), index_contents('*'))
+
+        httpd.stop()
+
+        # test separate directories per host
+
+        httpd = mozhttpd.MozHttpd(port=0, docroot=docroot, proxy_host_dirs=True)
+        httpd.start(block=False)
+        server_port = httpd.httpd.server_port
+
+        proxy_support = urllib2.ProxyHandler({'http': 'http://127.0.0.1:%d' %
+                                              server_port})
+        urllib2.install_opener(urllib2.build_opener(proxy_support))
+
+        # set up dirs
+        for host in hosts:
+            os.mkdir(os.path.join(docroot, host))
+            file(os.path.join(docroot, host, index_filename), 'w') \
+                .write(index_contents(host))
+
+        for host in hosts:
+            f = urllib2.urlopen(url(host))
+            self.assertEqual(f.getcode(), 200)
+            self.assertEqual(f.read(), index_contents(host))
+
+        with self.assertRaises(urllib2.HTTPError) as cm:
+            urllib2.urlopen(url(unproxied_host))
+        self.assertEqual(cm.exception.code, 404)
 
 
 if __name__ == '__main__':

@@ -42,10 +42,12 @@ import SimpleHTTPServer
 import errno
 import logging
 import threading
+import posixpath
 import socket
 import sys
 import os
 import urllib
+import urlparse
 import re
 from SocketServer import ThreadingMixIn
 
@@ -67,27 +69,42 @@ class EasyServer(ThreadingMixIn, BaseHTTPServer.HTTPServer):
             logging.error(error)
 
 
-class MozRequestHandler(SimpleHTTPServer.SimpleHTTPRequestHandler):
+class Request(object):
+    """Details of a request."""
+
+    # attributes from urlparse that this class also sets
+    uri_attrs = ('scheme', 'netloc', 'path', 'query', 'fragment')
+
+    def __init__(self, uri, headers, rfile=None):
+        self.uri = uri
+        self.headers = headers
+        parsed = urlparse.urlparse(uri)
+        for attr in self.uri_attrs:
+            setattr(self, attr, getattr(parsed, attr))
+        try:
+            body_len = int(self.headers.get('Content-length', 0))
+        except ValueError:
+            body_len = 0
+        if body_len and rfile:
+            self.body = rfile.read(body_len)
+        else:
+            self.body = None
+
+
+class RequestHandler(SimpleHTTPServer.SimpleHTTPRequestHandler):
+
     docroot = os.getcwd() # current working directory at time of import
+    proxy_host_dirs = False
+    request = None
 
-    def _get_handler(self, method):
-
-        return None
-
-    def _try_handler(self, method, postfile=None):
-        handlers = [handler for handler in self.urlhandlers if handler['method'] == method]
+    def _try_handler(self, method):
+        handlers = [handler for handler in self.urlhandlers
+                    if handler['method'] == method]
         for handler in handlers:
-            m = re.match(handler['path'], self.path)
+            m = re.match(handler['path'], self.request.path)
             if m:
-                if postfile:
-                    postdata = postfile.read(int(self.headers.get('Content-length')))
-                    (response_code, headerdict, data) = handler['function'](*m.groups(),
-                                                                             query=self.query,
-                                                                             postdata=postdata)
-                else:
-                    (response_code, headerdict, data) = handler['function'](*m.groups(),
-                                                                             query=self.query)
-
+                (response_code, headerdict, data) = \
+                    handler['function'](*m.groups(), request=self.request)
                 self.send_response(response_code)
                 for (keyword, value) in headerdict.iteritems():
                     self.send_header(keyword, value)
@@ -98,10 +115,21 @@ class MozRequestHandler(SimpleHTTPServer.SimpleHTTPRequestHandler):
 
         return False
 
+    def parse_request(self):
+        retval = SimpleHTTPServer.SimpleHTTPRequestHandler.parse_request(self)
+        self.request = Request(self.path, self.headers, self.rfile)
+        return retval
 
     def do_GET(self):
         if not self._try_handler('GET'):
             if self.docroot:
+                # don't include query string and fragment, and prepend
+                # host directory if required.
+                if self.request.netloc and self.proxy_host_dirs:
+                    self.path = '/' + self.request.netloc + \
+                        self.request.path
+                else:
+                    self.path = self.request.path
                 SimpleHTTPServer.SimpleHTTPRequestHandler.do_GET(self)
             else:
                 self.send_response(404)
@@ -112,7 +140,7 @@ class MozRequestHandler(SimpleHTTPServer.SimpleHTTPRequestHandler):
         # if we don't have a match, we always fall through to 404 (this may
         # not be "technically" correct if we have a local file at the same
         # path as the resource but... meh)
-        if not self._try_handler('POST', postfile=self.rfile):
+        if not self._try_handler('POST'):
             self.send_response(404)
             self.end_headers()
             self.wfile.write('')
@@ -126,23 +154,22 @@ class MozRequestHandler(SimpleHTTPServer.SimpleHTTPRequestHandler):
             self.end_headers()
             self.wfile.write('')
 
-    def parse_request(self):
-        retval = SimpleHTTPServer.SimpleHTTPRequestHandler.parse_request(self)
-        if '?' in self.path:
-            # we split off the query string, otherwise SimpleHTTPRequestHandler
-            # will treat it as PATH_INFO for `translate_path`
-            (self.path, self.query) = self.path.split('?', 1)
-        else:
-            self.query = None
-
-        return retval
-
     def translate_path(self, path):
-        path = path.strip('/').split()
-        if path == ['']:
-            path = []
-        path.insert(0, self.docroot)
-        return os.path.join(*path)
+        # this is taken from SimpleHTTPRequestHandler.translate_path(),
+        # except we serve from self.docroot instead of os.getcwd(), and
+        # parse_request()/do_GET() have already stripped the query string and
+        # fragment and mangled the path for proxying, if required.
+        path = posixpath.normpath(urllib.unquote(self.path))
+        words = path.split('/')
+        words = filter(None, words)
+        path = self.docroot
+        for word in words:
+            drive, word = os.path.splitdrive(word)
+            head, word = os.path.split(word)
+            if word in (os.curdir, os.pardir): continue
+            path = os.path.join(path, word)
+        return path
+
 
     # I found on my local network that calls to this were timing out
     # I believe all of these calls are from log_message
@@ -153,6 +180,7 @@ class MozRequestHandler(SimpleHTTPServer.SimpleHTTPRequestHandler):
     def log_message(self, format, *args):
         pass
 
+
 class MozHttpd(object):
     """
     Very basic HTTP server class. Takes a docroot (path on the filesystem)
@@ -160,10 +188,8 @@ class MozHttpd(object):
 
     {
       'method': HTTP method (string): GET, POST, or DEL,
-      'path': PATH_INFO (string),
-      'function': function of form fn(arg1, arg2, arg3, ..., querystr) OR
-      `           fn(arg1, arg2, arg3, ..., querystr, postdata) if method is
-                  'POST'
+      'path': PATH_INFO (regular expression string),
+      'function': function of form fn(arg1, arg2, arg3, ..., request)
     }
 
     and serves HTTP. For each request, MozHttpd will either return a file
@@ -174,22 +200,35 @@ class MozHttpd(object):
     local files or handlers, respectively, will be used). If both docroot or
     urlhandlers are None then MozHttpd will default to serving just the local
     directory.
+
+    MozHttpd also handles proxy requests (i.e. with a full URI on the request
+    line).  By default files are served from docroot according to the request
+    URI's path component, but if proxy_host_dirs is True, files are served
+    from <self.docroot>/<host>/.
+
+    For example, the request "GET http://foo.bar/dir/file.html" would
+    (assuming no handlers match) serve <docroot>/dir/file.html if
+    proxy_host_dirs is False, or <docroot>/foo.bar/dir/file.html if it is
+    True.
     """
 
-    def __init__(self, host="127.0.0.1", port=8888, docroot=None, urlhandlers=None):
+    def __init__(self, host="127.0.0.1", port=8888, docroot=None,
+                 urlhandlers=None, proxy_host_dirs=False):
         self.host = host
         self.port = int(port)
         self.docroot = docroot
         if not urlhandlers and not docroot:
             self.docroot = os.getcwd()
+        self.proxy_host_dirs = proxy_host_dirs
         self.httpd = None
         self.urlhandlers = urlhandlers or []
 
-        class MozRequestHandlerInstance(MozRequestHandler):
+        class RequestHandlerInstance(RequestHandler):
             docroot = self.docroot
             urlhandlers = self.urlhandlers
+            proxy_host_dirs = self.proxy_host_dirs
 
-        self.handler_class = MozRequestHandlerInstance
+        self.handler_class = RequestHandlerInstance
 
     def start(self, block=False):
         """

@@ -44,7 +44,7 @@ __all__ = ['Profile', 'FirefoxProfile', 'ThunderbirdProfile']
 import os
 import tempfile
 from addons import AddonManager
-from permissions import PermissionsManager
+from permissions import Permissions
 from shutil import rmtree
 
 try:
@@ -99,8 +99,8 @@ class Profile(object):
         # set permissions
         self._locations = locations # store this for reconstruction
         self._proxy = proxy
-        self.permission_manager = PermissionsManager(self.profile, locations)
-        prefs_js, user_js = self.permission_manager.getNetworkPreferences(proxy)
+        self.permissions = Permissions(self.profile, locations)
+        prefs_js, user_js = self.permissions.network_prefs(proxy)
         self.set_preferences(prefs_js, 'prefs.js')
         self.set_preferences(user_js)
 
@@ -237,7 +237,7 @@ class Profile(object):
             else:
                 self.clean_preferences()
                 self.addon_manager.clean_addons()
-                self.permission_manager.clean_permissions()
+                self.permissions.clean_db()
 
     __del__ = cleanup
 
