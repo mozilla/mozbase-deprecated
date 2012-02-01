@@ -18,7 +18,7 @@ class ServerLocationsTest(unittest.TestCase):
     locations = """# This is the primary location from which tests run.
 #
 http://mochi.test:8888          primary,privileged
-    
+
 # a few test locations
 http://127.0.0.1:80             privileged
 http://127.0.0.1:8888           privileged
