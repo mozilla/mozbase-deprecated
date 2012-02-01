@@ -79,33 +79,39 @@ http://example.org:80           privileged
                               ['privileged'])
 
         # test some errors
-        with self.assertRaises(MultiplePrimaryLocationsError):
-            locations.add_host('primary.test', options='primary')
+        self.assertRaises(MultiplePrimaryLocationsError, locations.add_host,
+                          'primary.test', options='primary')
 
-        with self.assertRaises(DuplicateLocationError):
-            locations.add_host('127.0.0.1')
+        self.assertRaises(DuplicateLocationError, locations.add_host,
+                          '127.0.0.1')
 
-        with self.assertRaises(BadPortLocationError):
-            locations.add_host('127.0.0.1', port='abc')
+        self.assertRaises(BadPortLocationError, locations.add_host, '127.0.0.1',
+                          port='abc')
 
         # test some errors in locations file
         f = self.create_temp_file(self.locations_no_primary)
 
-        with self.assertRaises(LocationsSyntaxError) as cm:
-            locations = ServerLocations(f.name)
-
-        self.assertIsInstance(cm.exception.err, MissingPrimaryLocationError)
-        self.assertEqual(cm.exception.lineno, 3)
+        exc = None
+        try:
+            ServerLocations(f.name)
+        except LocationsSyntaxError, e:
+            exc = e
+        self.assertNotEqual(exc, None)
+        self.assertEqual(exc.err.__class__, MissingPrimaryLocationError)
+        self.assertEqual(exc.lineno, 3)
 
         # test bad port in a locations file to ensure lineno calculated
         # properly.
         f = self.create_temp_file(self.locations_bad_port)
 
-        with self.assertRaises(LocationsSyntaxError) as cm:
-            locations = ServerLocations(f.name)
-        
-        self.assertIsInstance(cm.exception.err, BadPortLocationError)
-        self.assertEqual(cm.exception.lineno, 4)
+        exc = None
+        try:
+            ServerLocations(f.name)
+        except LocationsSyntaxError, e:
+            exc = e
+        self.assertNotEqual(exc, None)
+        self.assertEqual(exc.err.__class__, BadPortLocationError)
+        self.assertEqual(exc.lineno, 4)
 
     def test_server_locations_callback(self):
         class CallbackTest(object):

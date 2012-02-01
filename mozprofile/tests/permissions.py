@@ -6,7 +6,10 @@
 
 import os
 import shutil
-import sqlite3
+try:
+    import sqlite3
+except ImportError:
+    from pysqlite2 import dbapi2 as sqlite3
 import tempfile
 import unittest
 from mozprofile.permissions import Permissions

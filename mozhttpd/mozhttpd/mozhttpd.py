@@ -72,15 +72,15 @@ class EasyServer(ThreadingMixIn, BaseHTTPServer.HTTPServer):
 class Request(object):
     """Details of a request."""
 
-    # attributes from urlparse that this class also sets
+    # attributes from urlsplit that this class also sets
     uri_attrs = ('scheme', 'netloc', 'path', 'query', 'fragment')
 
     def __init__(self, uri, headers, rfile=None):
         self.uri = uri
         self.headers = headers
-        parsed = urlparse.urlparse(uri)
-        for attr in self.uri_attrs:
-            setattr(self, attr, getattr(parsed, attr))
+        parsed = urlparse.urlsplit(uri)
+        for i, attr in enumerate(self.uri_attrs):
+            setattr(self, attr, parsed[i])
         try:
             body_len = int(self.headers.get('Content-length', 0))
         except ValueError:
@@ -104,7 +104,7 @@ class RequestHandler(SimpleHTTPServer.SimpleHTTPRequestHandler):
             m = re.match(handler['path'], self.request.path)
             if m:
                 (response_code, headerdict, data) = \
-                    handler['function'](*m.groups(), request=self.request)
+                    handler['function'](self.request, *m.groups())
                 self.send_response(response_code)
                 for (keyword, value) in headerdict.iteritems():
                     self.send_header(keyword, value)
@@ -246,7 +246,11 @@ class MozHttpd(object):
 
     def stop(self):
         if self.httpd:
-            self.httpd.shutdown()
+            ### FIXME: There is no shutdown() method in Python 2.4...
+            try:
+                self.httpd.shutdown()
+            except AttributeError:
+                pass
         self.httpd = None
 
     __del__ = stop

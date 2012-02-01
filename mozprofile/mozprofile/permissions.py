@@ -48,7 +48,10 @@ __all__ = ['MissingPrimaryLocationError', 'MultiplePrimaryLocationsError',
 import codecs
 import itertools
 import os
-import sqlite3
+try:
+    import sqlite3
+except ImportError:
+    from pysqlite2 import dbapi2 as sqlite3
 import urlparse
 
 
@@ -274,9 +277,13 @@ class Permissions(object):
             permissions = { 'allowXULXBL': 'noxul' not in location.options }
             for perm, allow in permissions.iteritems():
                 self._num_permissions += 1
+                if allow:
+                    permission_type = 1
+                else:
+                    permission_type = 2
                 cursor.execute("INSERT INTO moz_hosts values(?, ?, ?, ?, 0, 0)",
                                (self._num_permissions, location.host, perm,
-                                1 if allow else 2))
+                                permission_type))
 
         # Commit and close
         permDB.commit()

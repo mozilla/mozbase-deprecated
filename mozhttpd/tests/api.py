@@ -42,7 +42,10 @@ import urllib2
 import os
 import unittest
 import re
-import json
+try:
+    import json
+except ImportError:
+    import simplejson as json
 import tempfile
 
 here = os.path.dirname(os.path.abspath(__file__))
@@ -53,7 +56,7 @@ class ApiTest(unittest.TestCase):
     resource_del_called = 0
 
     @mozhttpd.handlers.json_response
-    def resource_get(self, objid, request):
+    def resource_get(self, request, objid):
         self.resource_get_called += 1
         return (200, { 'called': self.resource_get_called,
                        'id': objid,
@@ -67,7 +70,7 @@ class ApiTest(unittest.TestCase):
                        'query': request.query })
 
     @mozhttpd.handlers.json_response
-    def resource_del(self, objid, request):
+    def resource_del(self, request, objid):
         self.resource_del_called += 1
         return (200, { 'called': self.resource_del_called,
                        'id': objid,
@@ -83,7 +86,10 @@ class ApiTest(unittest.TestCase):
         self.resource_get_called = 0
 
         f = urllib2.urlopen(self.get_url('/api/resource/1', server_port, querystr))
-        self.assertEqual(f.getcode(), 200)
+        try:
+            self.assertEqual(f.getcode(), 200)
+        except AttributeError:
+            pass  # python 2.4
         self.assertEqual(json.loads(f.read()), { 'called': 1, 'id': str(1), 'query': querystr })
         self.assertEqual(self.resource_get_called, 1)
 
@@ -91,12 +97,19 @@ class ApiTest(unittest.TestCase):
         self.resource_post_called = 0
 
         postdata = { 'hamburgers': '1234' }
-        f = urllib2.urlopen(self.get_url('/api/resource/', server_port, querystr),
-                            data=json.dumps(postdata))
-        self.assertEqual(f.getcode(), 201)
-        self.assertEqual(json.loads(f.read()), { 'called': 1,
-                                                 'data': postdata,
-                                                 'query': querystr })
+        try:
+            f = urllib2.urlopen(self.get_url('/api/resource/', server_port, querystr),
+                                data=json.dumps(postdata))
+        except urllib2.HTTPError, e:
+            # python 2.4
+            self.assertEqual(e.code, 201)
+            body = e.fp.read()
+        else:
+            self.assertEqual(f.getcode(), 201)
+            body = f.read()
+        self.assertEqual(json.loads(body), { 'called': 1,
+                                             'data': postdata,
+                                             'query': querystr })
         self.assertEqual(self.resource_post_called, 1)
 
     def try_del(self, server_port, querystr):
@@ -107,7 +120,10 @@ class ApiTest(unittest.TestCase):
         request.get_method = lambda: 'DEL'
         f = opener.open(request)
 
-        self.assertEqual(f.getcode(), 200)
+        try:
+            self.assertEqual(f.getcode(), 200)
+        except AttributeError:
+            pass  # python 2.4
         self.assertEqual(json.loads(f.read()), { 'called': 1, 'id': str(1), 'query': querystr })
         self.assertEqual(self.resource_del_called, 1)
 
@@ -201,7 +217,10 @@ class ApiTest(unittest.TestCase):
 
         # We defined a docroot, so we expect a directory listing
         f = urllib2.urlopen(self.get_url('/', server_port, None))
-        self.assertEqual(f.getcode(), 200)
+        try:
+            self.assertEqual(f.getcode(), 200)
+        except AttributeError:
+            pass  # python 2.4
         self.assertTrue('Directory listing for' in f.read())
 
         # Make sure API methods still work
@@ -231,7 +250,10 @@ class ApiTest(unittest.TestCase):
 
         for host in hosts:
             f = urllib2.urlopen(url(host))
-            self.assertEqual(f.getcode(), 200)
+            try:
+                self.assertEqual(f.getcode(), 200)
+            except AttributeError:
+                pass  # python 2.4
             self.assertEqual(f.read(), index_contents('*'))
 
         httpd.stop()
@@ -254,12 +276,19 @@ class ApiTest(unittest.TestCase):
 
         for host in hosts:
             f = urllib2.urlopen(url(host))
-            self.assertEqual(f.getcode(), 200)
+            try:
+                self.assertEqual(f.getcode(), 200)
+            except AttributeError:
+                pass  # python 2.4
             self.assertEqual(f.read(), index_contents(host))
 
-        with self.assertRaises(urllib2.HTTPError) as cm:
+        exc = None
+        try:
             urllib2.urlopen(url(unproxied_host))
-        self.assertEqual(cm.exception.code, 404)
+        except urllib2.HTTPError, e:
+            exc = e
+        self.assertNotEqual(exc, None)
+        self.assertEqual(exc.code, 404)
 
 
 if __name__ == '__main__':
