@@ -312,12 +312,25 @@ class DeviceManagerADB(DeviceManager):
   # returns:
   #  success: output from testagent
   #  failure: None
-  def killProcess(self, appname):
+  def killProcess(self, appname, forceKill = False):
     procs = self.getProcessList()
+    ret = []
     for (pid, name, user) in procs:
+      # The previous implementation assumed that we can only have
+      # a single match here (i.e. one process running for that
+      # application), but in fact, multiple processes may exist,
+      # so we loop until the end of the process list.
       if name == appname:
-        p = self.runCmdAs(["shell", "kill", pid])
-        return p.stdout.read()
+        args = ["shell", "kill"]
+        if forceKill:
+          args.append("-9")
+        args.append(pid)
+        p = self.runCmdAs(args)
+        ret.append(p.stdout.read())
+
+    if (len(ret) > 0):
+      return "".join(ret)
+
     return None
 
   # external function
