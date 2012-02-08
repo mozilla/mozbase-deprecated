@@ -85,13 +85,13 @@ http://127.0.0.1:8888           privileged
         self.assertEqual(len(prefs), 6)
 
         self.assertEqual(prefs[0], ('capability.principal.codebase.p1.granted',
-                                    'UniversalPreferencesWrite UniversalXPConnect UniversalPreferencesRead'))
+                                    'UniversalXPConnect'))
         self.assertEqual(prefs[1], ('capability.principal.codebase.p1.id',
                                     'http://mochi.test'))
         self.assertEqual(prefs[2], ('capability.principal.codebase.p1.subjectName', ''))
 
         self.assertEqual(prefs[3], ('capability.principal.codebase.p2.granted',
-                                    'UniversalPreferencesWrite UniversalXPConnect UniversalPreferencesRead'))
+                                    'UniversalXPConnect'))
         self.assertEqual(prefs[4], ('capability.principal.codebase.p2.id',
                                     'http://127.0.0.1'))
         self.assertEqual(prefs[5], ('capability.principal.codebase.p2.subjectName', ''))

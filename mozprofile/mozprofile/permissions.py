@@ -299,7 +299,7 @@ class Permissions(object):
         prefs = []
         privileged = [i for i in self._locations if "privileged" in i.options]
         for (i, l) in itertools.izip(itertools.count(1), privileged):
-            prefs.append(("capability.principal.codebase.p%s.granted" % i, "UniversalPreferencesWrite UniversalXPConnect UniversalPreferencesRead"))
+            prefs.append(("capability.principal.codebase.p%s.granted" % i, "UniversalXPConnect"))
 
             # TODO: do we need the port?
             prefs.append(("capability.principal.codebase.p%s.id" % i, l.scheme + "://" + l.host))
