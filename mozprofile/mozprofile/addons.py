@@ -87,7 +87,6 @@ class AddonManager(object):
         Installs addons from a manifest
         filepath - path to the manifest of addons to install
         """
-        self.manifests.append(filepath)
         manifest = ManifestParser()
         manifest.read(filepath)
         addons = manifest.get()
