@@ -40,7 +40,6 @@
 
 import os
 import shutil
-import sys
 import tempfile
 import urllib2
 import zipfile
@@ -62,10 +61,6 @@ class AddonManager(object):
         """
         self.profile = profile
         self.installed_addons = []
-        # keeps track of addons and manifests that were passed to install_addons
-        self.addons = []
-        self.manifests = []
-
 
     def install_addons(self, addons=None, manifests=None):
         """
@@ -191,7 +186,6 @@ class AddonManager(object):
         - path: url, path to .xpi, or directory of addons
         - unpack: whether to unpack unless specified otherwise in the install.rdf
         """
-        self.addons.append(path)
 
         # if the addon is a url, download it
         # note that this won't work with protocols urllib2 doesn't support
