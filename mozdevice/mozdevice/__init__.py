@@ -35,6 +35,7 @@
 #
 # ***** END LICENSE BLOCK *****
 
+from devicemanager import DMError
 from devicemanagerADB import DeviceManagerADB
 from devicemanagerSUT import DeviceManagerSUT
 from droid import DroidADB, DroidSUT
