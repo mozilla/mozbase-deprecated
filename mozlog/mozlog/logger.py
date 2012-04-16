@@ -38,7 +38,7 @@ from logging import *
 # Some of the build slave environments don't see the following when doing
 # 'from logging import *'
 # see https://bugzilla.mozilla.org/show_bug.cgi?id=700415#c35
-from logging import getLoggerClass, addLevelName, setLoggerClass
+from logging import getLoggerClass, addLevelName, setLoggerClass, shutdown
 
 _default_level = INFO
 _LoggerClass = getLoggerClass()
