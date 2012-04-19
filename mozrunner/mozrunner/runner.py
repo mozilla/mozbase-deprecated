@@ -84,9 +84,10 @@ class Runner(object):
             raise OSError("Binary path does not exist: %s" % self.binary)
 
         # allow Mac binaries to be specified as an app bundle
-        if mozinfo.isMac and os.path.splitext(self.binary)[1] == '.app':
-            info = readPlist("%s/Contents/Info.plist" % self.binary)
-            self.binary = os.path.join(self.binary, "Contents/MacOS/%s" %
+        plist = '%s/Contents/Info.plist' % self.binary
+        if mozinfo.isMac and os.path.exists(plist):
+            info = readPlist(plist)
+            self.binary = os.path.join(self.binary, "Contents/MacOS/",
                                        info['CFBundleExecutable'])
 
         self.cmdargs = cmdargs or []
