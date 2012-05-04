@@ -25,7 +25,7 @@ class AddonManager(object):
         """
         self.profile = profile
         self.installed_addons = []
-        self.installed_manifest = []
+        self.installed_manifests = []
 
     @property
     def addons(self):
