@@ -33,7 +33,7 @@ class AddonManager(object):
 
     @property
     def manifests(self):
-        return self.installed_manifest
+        return self.installed_manifests
 
     def install_addons(self, addons=None, manifests=None):
         """
