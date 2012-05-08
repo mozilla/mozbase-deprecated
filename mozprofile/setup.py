@@ -6,7 +6,7 @@ import os
 import sys
 from setuptools import setup, find_packages
 
-version = '0.3'
+version = '0.3.1'
 
 # we only support python 2 right now
 assert sys.version_info[0] == 2
