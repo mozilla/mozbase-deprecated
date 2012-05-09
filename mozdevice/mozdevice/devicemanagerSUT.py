@@ -50,7 +50,8 @@ class DeviceManagerSUT(DeviceManager):
     self.retrylimit = retrylimit
     self.retries = 0
     self._sock = None
-    self.getDeviceRoot()
+    if self.getDeviceRoot() == None:
+        raise BaseException("Failed to connect to SUT Agent and retrieve the device root.")
 
   def _cmdNeedsResponse(self, cmd):
     """ Not all commands need a response from the agent:
@@ -164,17 +165,17 @@ class DeviceManagerSUT(DeviceManager):
         if self.debug >= 1:
           print "reconnecting socket"
         self._sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-      except:
+      except socket.error, msg:
         self._sock = None
-        raise AgentError("unable to create socket")
+        raise AgentError("unable to create socket: "+str(msg))
 
       try:
         self._sock.connect((self.host, int(self.port)))
         self._sock.recv(1024)
-      except:
+      except socket.error, msg:
         self._sock.close()
         self._sock = None
-        raise AgentError("unable to connect socket")
+        raise AgentError("unable to connect socket: "+str(msg))
 
     for cmd in cmdlist:
       if newline: cmd += '\r\n'
@@ -185,9 +186,11 @@ class DeviceManagerSUT(DeviceManager):
           raise AgentError("ERROR: our cmd was %s bytes and we only sent %s" % (len(cmd),
                                                                                 numbytes))
         if (self.debug >= 4): print "send cmd: " + str(cmd)
-      except:
+      except socket.error, msg:
         self._sock.close()
         self._sock = None
+        if self.debug >= 1:
+          print "Error sending data to socket. cmd="+str(cmd)+"; err="+str(msg)
         return False
 
       # Check if the command should close the socket
@@ -207,10 +210,10 @@ class DeviceManagerSUT(DeviceManager):
           try:
             temp = self._sock.recv(1024)
             if (self.debug >= 4): print "response: " + str(temp)
-          except:
+          except socket.error, msg:
             self._sock.close()
             self._sock = None
-            raise AgentError("Error receiving data from socket")
+            raise AgentError("Error receiving data from socket. cmd="+str(cmd)+"; err="+str(msg))
 
           data += temp
 
@@ -369,7 +372,7 @@ class DeviceManagerSUT(DeviceManager):
   #  failure: None
   def pushDir(self, localDir, remoteDir):
     if (self.debug >= 2): print "pushing directory: %s to %s" % (localDir, remoteDir)
-    for root, dirs, files in os.walk(localDir):
+    for root, dirs, files in os.walk(localDir, followlinks=True):
       parts = root.split(localDir)
       for file in files:
         remoteRoot = remoteDir + '/' + parts[1]
@@ -390,7 +393,7 @@ class DeviceManagerSUT(DeviceManager):
   #  success: True
   #  failure: False
   def dirExists(self, dirname):
-    match = ".*" + dirname + "$"
+    match = ".*" + dirname.replace('^', '\^') + "$"
     dirre = re.compile(match)
     try:
       data = self.runCmds(['cd ' + dirname, 'cwd'])
@@ -547,15 +550,17 @@ class DeviceManagerSUT(DeviceManager):
 
   # external function
   # returns:
-  #  success: output from testagent
-  #  failure: None
-  def killProcess(self, appname):
+  #  success: True
+  #  failure: False
+  def killProcess(self, appname, forceKill=False):
+    if forceKill:
+      print "WARNING: killProcess(): forceKill parameter unsupported on SUT"
     try:
       data = self.runCmds(['kill ' + appname])
     except AgentError:
-      return None
+      return False
 
-    return data
+    return True
 
   # external function
   # returns:
