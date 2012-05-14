@@ -721,7 +721,11 @@ class ProcessHandler(ProcessHandlerMixin):
         appended to the given file.
         """
 
-        kwargs.setdefault('processOutputLine', []).append(print_output)
+        kwargs.setdefault('processOutputLine', [])
+
+        # Print to standard output only if no outputline provided
+        if not kwargs['processOutputLine']:
+            kwargs['processOutputLine'].append(print_output)
 
         if logfile:
             logoutput = LogOutput(logfile)
