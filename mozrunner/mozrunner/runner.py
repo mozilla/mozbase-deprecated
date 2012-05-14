@@ -27,7 +27,7 @@ class Runner(object):
     profile_class = Profile # profile class to use by default
 
     @classmethod
-    def create(cls, binary, cmdargs=None, env=None, kp_kwargs=None, profile_args=None,
+    def create(cls, binary=None, cmdargs=None, env=None, kp_kwargs=None, profile_args=None,
                                                clean_profile=True, process_class=ProcessHandler):
         profile = cls.profile_class(**(profile_args or {}))
         return cls(profile, binary=binary, cmdargs=cmdargs, env=env, kp_kwargs=kp_kwargs,
@@ -50,7 +50,7 @@ class Runner(object):
         # allow Mac binaries to be specified as an app bundle
         if mozinfo.isMac and os.path.splitext(self.binary)[1] == '.app':
             info = readPlist("%s/Contents/Info.plist" % self.binary)
-            self.binary = os.path.join(self.binary, "Contents/MacOS/%s" % 
+            self.binary = os.path.join(self.binary, "Contents/MacOS/%s" %
                                        info['CFBundleExecutable'])
 
         self.cmdargs = cmdargs or []
