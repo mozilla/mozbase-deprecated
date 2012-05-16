@@ -623,7 +623,6 @@ falling back to not using job objects for managing child processes"""
                 lineReadTimeout = timeout - (datetime.now() - self.startTime).seconds
             (line, self.didTimeout) = self.readWithTimeout(logsource, lineReadTimeout)
 
-
         if self.didTimeout:
             self.proc.kill()
             self.onTimeout()
@@ -668,7 +667,7 @@ falling back to not using job objects for managing child processes"""
             try:
                 (r, w, e) = select.select([f], [], [], timeout)
             except:
-                # TODO: return a blank line?
+                # return a blank line
                 return ('', True)
 
             if len(r) == 0:
@@ -707,6 +706,7 @@ class LogOutput(object):
     def __del__(self):
         if self.file is not None:
             self.file.close()
+
 
 ### front end class with the default handlers
 

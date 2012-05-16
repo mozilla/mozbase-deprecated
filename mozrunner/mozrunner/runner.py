@@ -8,6 +8,7 @@ import mozinfo
 import optparse
 import os
 import platform
+import subprocess
 import sys
 import ConfigParser
 
@@ -21,6 +22,41 @@ if mozinfo.isMac:
 
 package_metadata = get_metadata_from_egg('mozrunner')
 
+# Map of debugging programs to information about them
+# from http://mxr.mozilla.org/mozilla-central/source/build/automationutils.py#59
+debuggers = {'gdb': {'interactive': True,
+                     'args': ['-q', '--args'],},
+             'valgrind': {'interactive': False,
+                          'args': ['--leak-check=full']}
+             }
+
+def debugger_arguments(debugger, arguments=None, interactive=None):
+    """
+    finds debugger arguments from debugger given and defaults
+    * debugger : debugger name or path to debugger
+    * arguments : arguments to the debugger, or None to use defaults
+    * interactive : whether the debugger should be run in interactive mode, or None to use default
+    """
+
+    # find debugger executable if not a file
+    executable = debugger
+    if not os.path.exists(executable):
+        executable = findInPath(debugger)
+    if executable is None:
+        raise Exception("Path to '%s' not found" % debugger)
+
+    # if debugger not in dictionary of knowns return defaults
+    dirname, debugger = os.path.split(debugger)
+    if debugger not in debuggers:
+        return ([executable] + (arguments or []), bool(interactive))
+
+    # otherwise use the dictionary values for arguments unless specified
+    if arguments is None:
+        arguments = debuggers[debugger].get('args', [])
+    if interactive is None:
+        interactive = debuggers[debugger].get('interactive', False)
+    return ([executable] + arguments, interactive)
+
 class Runner(object):
     """Handles all running operations. Finds bins, runs and kills the process."""
 
@@ -28,7 +64,7 @@ class Runner(object):
 
     @classmethod
     def create(cls, binary=None, cmdargs=None, env=None, kp_kwargs=None, profile_args=None,
-                                               clean_profile=True, process_class=ProcessHandler):
+               clean_profile=True, process_class=ProcessHandler):
         profile = cls.profile_class(**(profile_args or {}))
         return cls(profile, binary=binary, cmdargs=cmdargs, env=env, kp_kwargs=kp_kwargs,
                                            clean_profile=clean_profile, process_class=process_class)
@@ -111,8 +147,11 @@ class Runner(object):
     def is_running(self):
         return self.process_handler is not None
 
-    def start(self):
-        """Run self.command in the proper environment."""
+    def start(self, debug_args=None, interactive=False):
+        """
+        Run self.command in the proper environment.
+        - debug_args: arguments for the debugger
+        """
 
         # ensure you are stopped
         self.stop()
@@ -120,17 +159,30 @@ class Runner(object):
         # ensure the profile exists
         if not self.profile.exists():
             self.profile.reset()
-        
+
         cmd = self._wrap_command(self.command+self.cmdargs)
-        # this run uses the managed processhandler
-        self.process_handler = self.process_class(cmd, env=self.env, **self.kp_kwargs)
-        self.process_handler.run()
+
+        # attach a debugger, if specified
+        if debug_args:
+            cmd = list(debug_args) + cmd
+
+        #
+        if interactive:
+            self.process_handler = subprocess.Popen(cmd, env=self.env)
+            # TODO: other arguments
+        else:
+            # this run uses the managed processhandler
+            self.process_handler = self.process_class(cmd, env=self.env, **self.kp_kwargs)
+            self.process_handler.run()
 
     def wait(self, timeout=None, outputTimeout=None):
         """Wait for the app to exit."""
         if self.process_handler is None:
             return
-        self.process_handler.waitForFinish(timeout=timeout, outputTimeout=outputTimeout)
+        if isinstance(self.process_handler, subprocess.Popen):
+            self.process_handler.wait()
+        else:
+            self.process_handler.waitForFinish(timeout=timeout, outputTimeout=outputTimeout)
         self.process_handler = None
 
     def stop(self):
@@ -161,7 +213,7 @@ class Runner(object):
         if mozinfo.isMac and hasattr(platform, 'mac_ver') and \
                                platform.mac_ver()[0][:4] < '10.6':
             return ["arch", "-arch", "i386"] + cmd
-        return cmd 
+        return cmd
 
     __del__ = cleanup
 
@@ -248,6 +300,14 @@ class CLI(MozProfileCLI):
         parser.add_option('--app-arg', dest='appArgs',
                           default=[], action='append',
                           help="provides an argument to the test application")
+        parser.add_option('--debugger', dest='debugger',
+                          help="run under a debugger, e.g. gdb or valgrind")
+        parser.add_option('--debugger-args', dest='debugger_args',
+                          action='append', default=None,
+                          help="arguments to the debugger")
+        parser.add_option('--interactive', dest='interactive',
+                          action='store_true',
+                          help="run the program interactively")
         if self.metadata:
             parser.add_option("--info", dest="info", default=False,
                               action="store_true",
@@ -296,7 +356,13 @@ class CLI(MozProfileCLI):
     def start(self, runner):
         """Starts the runner and waits for Firefox to exit or Keyboard Interrupt.
         Shoule be overwritten to provide custom running of the runner instance."""
-        runner.start()
+
+        # attach a debugger if specified
+        debug_args = self.options.debugger_args
+        interactive = self.options.interactive
+        if self.options.debugger:
+            debug_args, interactive = debugger_arguments(self.options.debugger)
+        runner.start(debug_args=debug_args, interactive=interactive)
         print 'Starting:', ' '.join(runner.command)
         try:
             runner.wait()
