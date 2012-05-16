@@ -30,5 +30,7 @@ setup(name='mozdevice',
       install_requires=[],
       entry_points="""
       # -*- Entry points: -*-
+      [console_scripts]
+      sut = mozdevice.sutcli:cli
       """,
       )
