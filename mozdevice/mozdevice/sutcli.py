@@ -40,12 +40,28 @@ class SUTCli(object):
                                      'min_args': 1,
                                      'max_args': None,
                                      'help_args': '<command>',
-                                     'help': 'run shell command on device' }
+                                     'help': 'run shell command on device' },
+                          'info': { 'function': self.getinfo,
+                                    'min_args': None,
+                                    'max_args': 1,
+                                    'help_args': '[os|id|uptime|systime|screen|memory|processes]',
+                                    'help': 'get information on a specified '
+                                    'aspect of the device (if no argument '
+                                    'given, print all available information)'
+                                    },
+                          'ps': { 'function': self.processlist,
+                                    'min_args': None,
+                                    'max_args': 0,
+                                    'help_args': '',
+                                    'help': 'get information on running processes on device'
+                                }
+
                           }
 
         for (commandname, command) in self.commands.iteritems():
+            help_args = command['help_args']
             usage += "  %s - %s\n" % (" ".join([ commandname,
-                                                 command['help_args'] ]),
+                                                 help_args ]).rstrip(),
                                       command['help'])
         self.parser = OptionParser(usage)
         self.add_options(self.parser)
@@ -106,6 +122,27 @@ class SUTCli(object):
         buf = StringIO.StringIO()
         self.dm.shell(args, buf)
         print str(buf.getvalue()[0:-1]).rstrip()
+
+    def getinfo(self, *args):
+        directive=None
+        if args:
+            directive=args[0]
+        info = self.dm.getInfo(directive=directive)
+        for (infokey, infoitem) in sorted(info.iteritems()):
+            if infokey == "process":
+                pass # skip process list: get that through ps
+            elif not directive and not infoitem:
+                print "%s:" % infokey.upper()
+            elif not directive:
+                for line in infoitem:
+                    print "%s: %s" % (infokey.upper(), line)
+            else:
+                print "%s" % "\n".join(infoitem)
+
+    def processlist(self):
+        pslist = self.dm.getProcessList()
+        for ps in pslist:
+            print " ".join(ps)
 
 def cli(args=sys.argv[1:]):
     # process the command line
