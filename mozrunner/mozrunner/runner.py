@@ -14,6 +14,7 @@ import subprocess
 import sys
 import ConfigParser
 
+from threading import Thread
 from utils import get_metadata_from_egg
 from utils import findInPath
 from mozprofile import *
@@ -179,6 +180,10 @@ class Runner(object):
             self.process_handler = self.process_class(cmd, env=self.env, **self.kp_kwargs)
             self.process_handler.run()
 
+            # Spin a thread to handle reading the output
+            self.outThread = OutputThread(self.process_handler)
+            self.outThread.start()
+
     def wait(self, timeout=None, outputTimeout=None):
         """Wait for the app to exit."""
         if self.process_handler is None:
@@ -256,6 +261,13 @@ class ThunderbirdRunner(Runner):
 
 runners = {'firefox': FirefoxRunner,
            'thunderbird': ThunderbirdRunner}
+
+class OutputThread(Thread):
+    def __init__(self, prochandler):
+        Thread.__init__(self)
+        self.ph = prochandler
+    def run(self):
+        self.ph.waitForFinish()
 
 class CLI(MozProfileCLI):
     """Command line interface."""

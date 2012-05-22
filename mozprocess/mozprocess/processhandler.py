@@ -365,7 +365,8 @@ falling back to not using job objects for managing child processes"""
                     except:
                         err = "IO Completion Port failed to signal process shutdown"
                     # Either way, let's try to get this code
-                    self.returncode = winprocess.GetExitCodeProcess(self._handle)
+                    if self._handle:
+                        self.returncode = winprocess.GetExitCodeProcess(self._handle)
                     self._cleanup()
 
                     if err is not None:
