@@ -91,8 +91,8 @@ class Profile(object):
         else:
             profile = self.profile
         self.__init__(profile=profile,
-                      addons=self.addon_manager.addons,
-                      addon_manifests=self.addon_manager.manifests,
+                      addons=self.addon_manager.installed_addons,
+                      addon_manifests=self.addon_manager.installed_manifests,
                       preferences=self._preferences,
                       locations=self._locations,
                       proxy = self._proxy)

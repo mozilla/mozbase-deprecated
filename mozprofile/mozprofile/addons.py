@@ -27,14 +27,6 @@ class AddonManager(object):
         self.installed_addons = []
         self.installed_manifests = []
 
-    @property
-    def addons(self):
-        return self.installed_addons
-
-    @property
-    def manifests(self):
-        return self.installed_manifests
-
     def install_addons(self, addons=None, manifests=None):
         """
         Installs all types of addons
@@ -45,6 +37,7 @@ class AddonManager(object):
         if addons:
             if isinstance(addons, basestring):
                 addons = [addons]
+            self.installed_addons.extend(addons)
             for addon in addons:
                 self.install_from_path(addon)
         # install addon manifests
@@ -53,8 +46,7 @@ class AddonManager(object):
                 manifests = [manifests]
             for manifest in manifests:
                 self.install_from_manifest(manifest)
-            self.installed_manifest = manifests
-
+            self.installed_manifests.extended(manifests)
 
     def install_from_manifest(self, filepath):
         """
@@ -211,7 +203,6 @@ class AddonManager(object):
                 shutil.copy(xpifile, addon_path + '.xpi')
             else:
                 dir_util.copy_tree(addon, addon_path, preserve_symlinks=1)
-                self.installed_addons.append(addon_path)
 
             # remove the temporary directory, if any
             if tmpdir:

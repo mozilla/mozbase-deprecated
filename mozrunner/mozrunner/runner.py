@@ -162,6 +162,7 @@ class Runner(object):
         # ensure the profile exists
         if not self.profile.exists():
             self.profile.reset()
+            assert self.profile.exists(), "%s : failure to reset profile" % self.__class__.__name__
 
         cmd = self._wrap_command(self.command+self.cmdargs)
 
