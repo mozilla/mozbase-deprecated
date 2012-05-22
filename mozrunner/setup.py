@@ -7,7 +7,7 @@ import sys
 from setuptools import setup, find_packages
 
 PACKAGE_NAME = "mozrunner"
-PACKAGE_VERSION = "5.4"
+PACKAGE_VERSION = "5.5"
 
 desc = """Reliable start/stop/configuration of Mozilla Applications (Firefox, Thunderbird, etc.)"""
 # take description from README
@@ -19,7 +19,7 @@ except (OSError, IOError):
 
 deps = ['mozinfo',
         'mozprocess',
-        'mozprofile >= 0.1',
+        'mozprofile >= 0.3.2',
        ]
 
 # we only support python 2 right now
