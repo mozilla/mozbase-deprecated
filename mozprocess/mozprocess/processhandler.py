@@ -111,7 +111,7 @@ class ProcessHandlerMixin(object):
                     except BaseException, e:
                         if getattr(e, "errno", None) != 3:
                             # Error 3 is "no such process", which is ok
-                            print >> sys.stderr, "Could not kill process, could not find pid: %s" % self.pid
+                            print >> sys.stdout, "Could not kill process, could not find pid: %s, assuming it's already dead" % self.pid
                 else:
                     os.kill(self.pid, signal.SIGKILL)
                 if self.returncode is None:
