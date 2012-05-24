@@ -240,21 +240,6 @@ class FirefoxRunner(Runner):
 
         Runner.__init__(self, profile, binary, **kwargs)
 
-        # Find application version number
-        appdir = os.path.dirname(os.path.realpath(self.binary))
-        appini = ConfigParser.RawConfigParser()
-        appini.read(os.path.join(appdir, 'application.ini'))
-        # Version needs to be of the form 3.6 or 4.0b and not the whole string
-        version = appini.get('App', 'Version').rstrip('0123456789pre').rstrip('.')
-
-        # Disable compatibility check. See:
-        # - http://kb.mozillazine.org/Extensions.checkCompatibility
-        # - https://bugzilla.mozilla.org/show_bug.cgi?id=659048
-        preference = {'extensions.checkCompatibility.' + version: False,
-                      'extensions.checkCompatibility.nightly': False}
-        self.profile.set_preferences(preference)
-
-
 class ThunderbirdRunner(Runner):
     """Specialized Runner subclass for running Thunderbird"""
     profile_class = ThunderbirdProfile
