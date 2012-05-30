@@ -483,7 +483,7 @@ falling back to not using job objects for managing child processes"""
                  cmd,
                  args=None,
                  cwd=None,
-                 env=os.environ.copy(),
+                 env=None,
                  ignore_children = False,
                  processOutputLine=(),
                  onTimeout=(),
@@ -508,10 +508,13 @@ falling back to not using job objects for managing child processes"""
         self.cmd = cmd
         self.args = args
         self.cwd = cwd
-        self.env = env
         self.didTimeout = False
         self._ignore_children = ignore_children
         self.keywordargs = kwargs
+
+        if env is None:
+            env = os.environ.copy()
+        self.env = env
 
         # handlers
         self.processOutputLineHandlers = list(processOutputLine)
