@@ -13,8 +13,6 @@ If no arguments are given, install all packages.
 See https://wiki.mozilla.org/Auto-tools/Projects/MozBase
 """
 
-# XXX note that currently directory names must equal package names
-
 import pkg_resources
 import os
 import sys
@@ -150,13 +148,20 @@ def main(args=sys.argv[1:]):
         parser.exit()
 
     # gather dependencies
+    # TODO: version conflict checking
     deps = {}
+    alldeps = {}
     mapping = {} # mapping from subdir name to package name
     # core dependencies
     for package in packages:
         key, value = dependencies(os.path.join(here, package))
         deps[key] = [sanitize_dependency(dep) for dep in value]
         mapping[package] = key
+
+        # keep track of all dependencies for non-mozbase packages
+        for dep in value:
+            alldeps[sanitize_dependency(dep)] = ''.join(dep.split())
+
     # indirect dependencies
     flag = True
     while flag:
@@ -166,6 +171,9 @@ def main(args=sys.argv[1:]):
                 if dep in all_packages and dep not in deps:
                     key, value = dependencies(os.path.join(here, dep))
                     deps[key] = [sanitize_dependency(dep) for dep in value]
+
+                    for dep in value:
+                        alldeps[sanitize_dependency(dep)] = ''.join(dep.split())
                     mapping[package] = key
                     flag = True
                     break
@@ -194,9 +202,20 @@ def main(args=sys.argv[1:]):
             print package
         parser.exit()
 
+    # install non-mozbase dependencies
+    # (currently none on modern python)
+    # these need to be installed separately and the --no-deps flag
+    # subsequently used due to a bug in setuptools; see
+    # https://bugzilla.mozilla.org/show_bug.cgi?id=759836
+    pypi_deps = dict([(i, j) for i,j in alldeps.items()
+                      if i not in unrolled])
+    for package, version in pypi_deps.items():
+        # easy_install should be available since we rely on setuptools
+        call(['easy_install', version])
+
     # set up the packages for development
     for package in unrolled:
-        call([sys.executable, 'setup.py', 'develop'],
+        call([sys.executable, 'setup.py', 'develop', '--no-deps'],
              cwd=os.path.join(here, reverse_mapping[package]))
 
 if __name__ == '__main__':
