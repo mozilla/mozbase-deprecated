@@ -7,7 +7,7 @@ import sys
 from setuptools import setup, find_packages
 
 PACKAGE_NAME = "mozlog"
-PACKAGE_VERSION = "1.0"
+PACKAGE_VERSION = "1.1"
 
 desc = """Robust log handling specialized for logging in the Mozilla universe"""
 # take description from README
