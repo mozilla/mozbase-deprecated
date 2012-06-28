@@ -11,9 +11,9 @@ try:
 except IOError:
     description = None
 
-version = '1.0'
+version = '1.1'
 
-deps = ['mozinfo']
+deps = ['mozinfo==0.3.3']
 
 setup(name='mozInstall',
       version=version,
