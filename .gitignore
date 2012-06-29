@@ -12,3 +12,4 @@ dist
 *.a
 *.so.0
 proclaunch
+.idea
