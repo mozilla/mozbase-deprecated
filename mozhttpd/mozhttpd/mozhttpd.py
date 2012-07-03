@@ -244,8 +244,6 @@ def main(args=sys.argv[1:]):
     options, args = parser.parse_args(args)
     if args:
         parser.error("mozhttpd does not take any arguments")
-        parser.print_help()
-        parser.exit()
 
     if options.external_ip:
         host = iface.get_lan_ip()
