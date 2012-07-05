@@ -194,6 +194,12 @@ class ApiTest(unittest.TestCase):
         self.try_get(server_port, '')
         self.try_get(server_port, '?foo=bar')
 
+class ProxyTest(unittest.TestCase):
+
+    def tearDown(self):
+        # reset proxy opener in case it changed
+        urllib2.install_opener(None)
+
     def test_proxy(self):
         docroot = tempfile.mkdtemp()
         hosts = ('mozilla.com', 'mozilla.org')
