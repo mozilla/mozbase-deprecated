@@ -54,8 +54,25 @@ class SUTCli(object):
                                     'max_args': 0,
                                     'help_args': '',
                                     'help': 'get information on running processes on device'
+                                },
+                          'ls': { 'function': self.listfiles,
+                                  'min_args': 1,
+                                  'max_args': 1,
+                                  'help_args': '<remote>',
+                                  'help': 'list files on device'
+                                },
+                          'rm': { 'function': lambda file: self.dm.removeFile(file),
+                                    'min_args': 1,
+                                    'max_args': 1,
+                                    'help_args': '<remote>',
+                                    'help': 'remove file from device'
+                                },
+                          'rmdir': { 'function': lambda dir: self.dm.removeDir(dir),
+                                    'min_args': 1,
+                                    'max_args': 1,
+                                    'help_args': '<remote>',
+                                    'help': 'recursively remove directory from device'
                                 }
-
                           }
 
         for (commandname, command) in self.commands.iteritems():
@@ -143,6 +160,11 @@ class SUTCli(object):
         pslist = self.dm.getProcessList()
         for ps in pslist:
             print " ".join(ps)
+
+    def listfiles(self, dir):
+        filelist = self.dm.listFiles(dir)
+        for file in filelist:
+            print file
 
 def cli(args=sys.argv[1:]):
     # process the command line
