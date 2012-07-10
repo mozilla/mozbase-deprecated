@@ -6,11 +6,13 @@
 Command-line client to control a device with the SUTAgent software installed
 """
 
-from mozdevice import droid
+import os
+import posixpath
+import StringIO
 import sys
 from optparse import OptionParser
-import os
-import StringIO
+
+from mozdevice import droid
 
 class SUTCli(object):
 
@@ -119,12 +121,16 @@ class SUTCli(object):
                           default=20701)
 
     def push(self, src, dest):
+        is_dir = dest[-1] == '/' or self.dm.isDir(dest)
+        dest = posixpath.normpath(dest)
+        if is_dir:
+            dest = posixpath.join(dest, os.path.basename(src))
         self.dm.pushFile(src, dest)
 
     def install(self, apkfile):
         basename = os.path.basename(apkfile)
-        app_path_on_device = os.path.join(self.dm.getDeviceRoot(),
-                                          basename)
+        app_path_on_device = posixpath.join(self.dm.getDeviceRoot(),
+                                            basename)
         self.dm.pushFile(apkfile, app_path_on_device)
         self.dm.installApp(app_path_on_device)
 
