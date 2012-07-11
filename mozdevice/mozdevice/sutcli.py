@@ -121,11 +121,14 @@ class SUTCli(object):
                           default=20701)
 
     def push(self, src, dest):
-        is_dir = dest[-1] == '/' or self.dm.isDir(dest)
-        dest = posixpath.normpath(dest)
-        if is_dir:
-            dest = posixpath.join(dest, os.path.basename(src))
-        self.dm.pushFile(src, dest)
+        if os.path.isdir(src):
+            self.dm.pushDir(src, dest)
+        else:
+            dest_is_dir = dest[-1] == '/' or self.dm.isDir(dest)
+            dest = posixpath.normpath(dest)
+            if dest_is_dir:
+                dest = posixpath.join(dest, os.path.basename(src))
+            self.dm.pushFile(src, dest)
 
     def install(self, apkfile):
         basename = os.path.basename(apkfile)
