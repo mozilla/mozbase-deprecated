@@ -22,6 +22,9 @@ def make_proclaunch(aDir):
         Returns:
             the path to the proclaunch executable that is generated
     """
+    # Ideally make should take care of this, but since it doesn't - on windows,
+    # anyway, let's just call out both targets explicitly.
+    p = subprocess.call(["make", "-C", "iniparser"], cwd=aDir)
     p = subprocess.call(["make"], cwd=aDir)
     if sys.platform == "win32":
         exepath = os.path.join(aDir, "proclaunch.exe")
