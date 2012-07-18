@@ -13,7 +13,7 @@ import setup_development
 
 here = setup_development.here
 REPOSITORY_URL = 'git@github.com:mozilla/mozbase.git'
-
+REPOSITORY_PULL_URL = 'git://github.com/mozilla/mozbase.git'
 
 class CalledProcessError(Exception):
     """error for bad calls"""
@@ -169,8 +169,8 @@ def main(args=sys.argv[1:]):
                                                                    missing))
 
     # ensure you are up to date
-    print "Pulling from %s master" % REPOSITORY_URL
-    call([options.git_path, 'pull', REPOSITORY_URL, 'master'],
+    print "Pulling from %s master" % REPOSITORY_PULL_URL
+    call([options.git_path, 'pull', REPOSITORY_PULL_URL, 'master'],
          stdout=None, stderr=None, cwd=here)
 
     # bump versions of desired files
