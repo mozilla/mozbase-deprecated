@@ -12,7 +12,7 @@ import tempfile
 class DeviceManagerADB(DeviceManager):
 
   def __init__(self, host=None, port=20701, retrylimit=5, packageName='fennec',
-               adbPath='adb', deviceSerial=None):
+               adbPath='adb', deviceSerial=None, deviceRoot=None):
     self.host = host
     self.port = port
     self.retrylimit = retrylimit
@@ -24,7 +24,7 @@ class DeviceManagerADB(DeviceManager):
     self.useZip = False
     self.packageName = None
     self.tempDir = None
-    self.deviceRoot = None
+    self.deviceRoot = deviceRoot
 
     # the path to adb, or 'adb' to assume that it's on the PATH
     self.adbPath = adbPath
@@ -95,24 +95,13 @@ class DeviceManagerADB(DeviceManager):
   # success: <return code>
   # failure: None
   def shell(self, cmd, outputfile, env=None, cwd=None):
-    # need to quote and escape special characters here
-    for (index, arg) in enumerate(cmd):
-      arg.replace('&', '\&')
-
-      needsQuoting = False
-      for char in [ ' ', '(', ')', '"', '&' ]:
-        if arg.find(char):
-          needsQuoting = True
-          break
-      if needsQuoting:
-        cmd[index] = '\'%s\'' % arg
-
-    # This is more complex than you'd think because adb doesn't actually
-    # return the return code from a process, so we have to capture the output
-    # to get it
     # FIXME: this function buffers all output of the command into memory,
     # always. :(
-    cmdline = " ".join(cmd) + "; echo $?"
+
+    # Getting the return code is more complex than you'd think because adb
+    # doesn't actually return the return code from a process, so we have to
+    # capture the output to get it
+    cmdline = "%s; echo $?" % self._escapedCommandLine(cmd)
 
     # prepend cwd and env to command if necessary
     if cwd:
@@ -168,7 +157,6 @@ class DeviceManagerADB(DeviceManager):
         self.checkCmd(["push", os.path.realpath(localname), destname])
       if (self.isDir(destname)):
         destname = destname + "/" + os.path.basename(localname)
-      self.chmodDir(destname)
       return True
     except:
       return False
@@ -184,29 +172,9 @@ class DeviceManagerADB(DeviceManager):
         return None
       if 'file exists' in result.lower():
         return name
-
-      self.chmodDir(name)
       return name
     except:
       return None
-
-  # make directory structure on the device
-  # external function
-  # returns:
-  #  success: directory structure that we created
-  #  failure: None
-  def mkDirs(self, filename):
-    parts = filename.split('/')
-    name = ""
-    for part in parts:
-      if (part == parts[-1]): break
-      if (part != ""):
-        name += '/' + part
-        if (not self.dirExists(name)):
-          if (self.mkDir(name) == None):
-            print "failed making directory: " + str(name)
-            return None
-    return name
 
   # push localDir from host to remoteDir on the device
   # external function
@@ -253,7 +221,6 @@ class DeviceManagerADB(DeviceManager):
             targetDir = targetDir + dir
             if (not self.dirExists(targetDir)):
               self.mkDir(targetDir)
-      self.checkCmdAs(["shell", "chmod", "777", remoteDir])
       return remoteDir
     except:
       print "pushing " + localDir + " to " + remoteDir + " failed"
@@ -541,6 +508,13 @@ class DeviceManagerADB(DeviceManager):
 
   # Internal method to setup the device root and cache its value
   def setupDeviceRoot(self):
+    # if self.deviceRoot is already set, create it if necessary, and use it
+    if self.deviceRoot:
+      if not self.dirExists(self.deviceRoot):
+        if not self.mkDir(self.deviceRoot):
+          raise DMError("Unable to create device root %s" % self.deviceRoot)
+      return
+
     # /mnt/sdcard/tests is preferred to /data/local/tests, but this can be
     # over-ridden by creating /data/local/tests
     testRoot = "/data/local/tests"
@@ -752,20 +726,26 @@ class DeviceManagerADB(DeviceManager):
       args.insert(2, self.packageName)
     return self.checkCmd(args)
 
+  # external function
+  # returns:
+  #  success: True
+  #  failure: False
   def chmodDir(self, remoteDir):
     if (self.isDir(remoteDir)):
       files = self.listFiles(remoteDir.strip())
       for f in files:
-        if (self.isDir(remoteDir.strip() + "/" + f.strip())):
-          self.chmodDir(remoteDir.strip() + "/" + f.strip())
+        remoteEntry = remoteDir.strip() + "/" + f.strip()
+        if (self.isDir(remoteEntry)):
+          self.chmodDir(remoteEntry)
         else:
-          self.checkCmdAs(["shell", "chmod", "777", remoteDir.strip()])
-          print "chmod " + remoteDir.strip()
+          self.checkCmdAs(["shell", "chmod", "777", remoteEntry])
+          print "chmod " + remoteEntry
       self.checkCmdAs(["shell", "chmod", "777", remoteDir])
       print "chmod " + remoteDir
     else:
       self.checkCmdAs(["shell", "chmod", "777", remoteDir.strip()])
       print "chmod " + remoteDir.strip()
+    return True
 
   def verifyADB(self):
     # Check to see if adb itself can be executed.

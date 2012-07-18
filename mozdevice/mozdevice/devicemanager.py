@@ -7,6 +7,7 @@ import hashlib
 import socket
 import os
 import re
+import StringIO
 
 class FileError(Exception):
   " Signifies an error which occurs while doing a file operation."
@@ -64,15 +65,26 @@ class DeviceManager:
     failure: None
     """
     
-  @abstractmethod
   def mkDirs(self, filename):
     """
     make directory structure on the device
+    WARNING: does not create last part of the path
     external function
     returns:
     success: directory structure that we created
     failure: None
     """
+    parts = filename.split('/')
+    name = ""
+    for part in parts:
+        if (part == parts[-1]): break
+        if (part != ""):
+            name += '/' + part
+            if (not self.dirExists(name)):
+                if (self.mkDir(name) == None):
+                    print "failed making directory: " + str(name)
+                    return None
+    return name
     
   @abstractmethod
   def pushDir(self, localDir, remoteDir):
@@ -473,7 +485,63 @@ class DeviceManager:
     success: time in ms
     failure: None
     """
-    
+
+  def recordLogcat(self):
+    """
+    external function
+    returns:
+    success: file is created in <testroot>/logcat.log
+    failure: 
+    """
+    #TODO: spawn this off in a separate thread/process so we can collect all the logcat information
+
+    # Right now this is just clearing the logcat so we can only see what happens after this call.
+    buf = StringIO.StringIO()
+    self.shell(['/system/bin/logcat', '-c'], buf)
+
+  def getLogcat(self):
+    """
+    external function
+    returns: data from the local file
+    success: file is in 'filename'
+    failure: None
+    """
+    buf = StringIO.StringIO()
+    if self.shell(["/system/bin/logcat", "-d", "dalvikvm:S", "ConnectivityService:S", "WifiMonitor:S", "WifiStateTracker:S", "wpa_supplicant:S", "NetworkStateTracker:S"], buf) != 0:
+      return None
+
+    return str(buf.getvalue()[0:-1]).rstrip().split('\r')
+
+  @abstractmethod
+  def chmodDir(self, remoteDir):
+    """
+    external function
+    returns:
+    success: True
+    failure: False
+    """
+
+  @staticmethod
+  def _escapedCommandLine(cmd):
+    """ Utility function to return escaped and quoted version of command line """
+    quotedCmd = []
+
+    for arg in cmd:
+      arg.replace('&', '\&')
+
+      needsQuoting = False
+      for char in [ ' ', '(', ')', '"', '&' ]:
+        if arg.find(char) >= 0:
+          needsQuoting = True
+          break
+      if needsQuoting:
+        arg = '\'%s\'' % arg
+
+      quotedCmd.append(arg)
+
+    return " ".join(quotedCmd)
+
+
 class NetworkTools:
   def __init__(self):
     pass
