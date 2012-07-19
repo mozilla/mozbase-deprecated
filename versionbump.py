@@ -291,6 +291,8 @@ def main(args=sys.argv[1:]):
     # upload to pypi
     formatted_deps = dict([(package, set([dep['Name'] for dep in deps]))
                            for package, dep in dependent_versions.items()])
+    for package in versions.keys():
+        formatted_deps.setdefault(package, set())
     unrolled = setup_development.unroll_dependencies(formatted_deps)
     print "Uploading to pypi: %s" % ', '.join([('%s-%s' % (package,
                                                            versions[package]))
