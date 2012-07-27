@@ -697,6 +697,8 @@ falling back to not using job objects for managing child processes"""
         terminated.
 
         If timeout is not None, will return after timeout seconds.
+        This timeout is only for waitForFinish and doesn't affect
+        the didTimeout or onTimeout properties.
         """
         if self.outThread:
             # Thread.join() blocks the main thread until outThread is finished
