@@ -266,8 +266,8 @@ class Permissions(object):
         for (i, l) in itertools.izip(itertools.count(1), privileged):
             prefs.append(("capability.principal.codebase.p%s.granted" % i, "UniversalXPConnect"))
 
-            prefs.append(("capability.principal.codebase.p%s.id" % i, l.scheme
-                + "://" + l.host + ":" + l.port))
+            prefs.append(("capability.principal.codebase.p%s.id" % i, "%s://%s:%s" %
+                        (l.scheme, l.host, l.port)))
             prefs.append(("capability.principal.codebase.p%s.subjectName" % i, ""))
 
         if proxy:
