@@ -48,10 +48,10 @@ class TestResult(object):
         context = TestContext instance; can be None
         result_expected = string representing the expected outcome of the test"""
 
-        assert isinstance(name, basestring), "name has to be a string"
-        assert result_expected in self.POSSIBLE_RESULTS, "Result '%s' not in \
-                    possible results: %s" %\
+        msg = "Result '%s' not in possible results: %s" %\
                     (result_expected, ', '.join(self.POSSIBLE_RESULTS))
+        assert isinstance(name, basestring), "name has to be a string"
+        assert result_expected in self.POSSIBLE_RESULTS, msg
 
         self.name = name
         self.test_class = test_class
@@ -74,7 +74,9 @@ class TestResult(object):
 
     def finish(self, result, time_end=None, output=None, reason=None):
         """ Marks the test as finished, storing its end time and status """
-        assert result in TestResult.POSSIBLE_RESULTS
+        msg = "Result '%s' not in possible results: %s" %\
+                    (result, ', '.join(self.POSSIBLE_RESULTS))
+        assert result in self.POSSIBLE_RESULTS, msg
 
         # use lists instead of multiline strings
         if isinstance(output, basestring):
