@@ -6,7 +6,7 @@ import math
 import time
 import unittest
 
-from results import TestContext, TestResult, TestResultCollection
+from moztest.results import TestContext, TestResult, TestResultCollection
 
 
 class Result(unittest.TestCase):
