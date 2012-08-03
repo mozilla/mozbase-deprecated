@@ -11,6 +11,8 @@ import mozinfo
 class TestContext(object):
     """ Stores context data about the test """
 
+    attrs = ['hostname', 'arch', 'env', 'os', 'os_version']
+
     def __init__(self, hostname='localhost'):
         self.hostname = hostname
         self.arch = mozinfo.processor
@@ -23,6 +25,20 @@ class TestContext(object):
 
     def __repr__(self):
         return '<%s>' % self.__str__()
+
+    def __eq__(self, other):
+        if not isinstance(other, TestContext):
+            return False
+        diffs = [a for a in self.attrs if getattr(self, a) != getattr(other, a)]
+        return len(diffs) == 0
+
+    def __hash__(self):
+        def get(attr):
+            value = getattr(self, attr)
+            if isinstance(value, dict):
+                value = frozenset(value.items())
+            return value
+        return hash(frozenset([get(a) for a in self.attrs]))
 
 
 class TestResult(object):
@@ -56,7 +72,7 @@ class TestResult(object):
         self.name = name
         self.test_class = test_class
         self.context = context
-        self.time_start = time_start or time.time()
+        self.time_start = time_start if time_start is not None else time.time()
         self.time_end = None
         self.result_expected = result_expected
         self.result_actual = None
@@ -82,7 +98,7 @@ class TestResult(object):
         if isinstance(output, basestring):
             output = output.splitlines()
 
-        self.time_end = time_end or time.time()
+        self.time_end = time_end if time_end is not None else time.time()
         self.output = output or self.output
         self.result_actual = result
         self.reason = reason
@@ -125,7 +141,7 @@ class TestResultCollection(list):
                                 list.__str__(self))
 
     @property
-    def contexts(self):  # don't mind test contexts yet
+    def contexts(self):
         """ List of unique contexts for the test results contained """
         cs = [tr.context for tr in self]
         return list(set(cs))
