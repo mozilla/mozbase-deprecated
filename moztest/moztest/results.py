@@ -194,17 +194,20 @@ class TestResultCollection(list):
             add_test_result(test, result_actual='UNEXPECTED-FAIL',
                             output=output)
 
-        for test in result.unexpectedSuccesses:
-            add_test_result(test, result_expected='KNOWN-FAIL',
-                            result_actual='UNEXPECTED-PASS')
+        if hasattr(result, 'unexpectedSuccesses'):
+            for test in result.unexpectedSuccesses:
+                add_test_result(test, result_expected='KNOWN-FAIL',
+                                result_actual='UNEXPECTED-PASS')
 
-        for test, output in result.skipped:
-            add_test_result(test, result_expected='SKIPPED',
-                            result_actual='SKIPPED', output=output)
+        if hasattr(result, 'skipped'):
+            for test, output in result.skipped:
+                add_test_result(test, result_expected='SKIPPED',
+                                result_actual='SKIPPED', output=output)
 
-        for test, output in result.expectedFailures:
-            add_test_result(test, result_expected='KNOWN-FAIL',
-                            result_actual='KNOWN-FAIL', output=output)
+        if hasattr(result, 'expectedFailures'):
+            for test, output in result.expectedFailures:
+                add_test_result(test, result_expected='KNOWN-FAIL',
+                                result_actual='KNOWN-FAIL', output=output)
 
         # unittest does not store these by default
         if hasattr(result, 'tests_passed'):
