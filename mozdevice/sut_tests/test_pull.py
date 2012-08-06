@@ -3,7 +3,11 @@
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 import hashlib
+import os
+import posixpath
+
 from dmunit import DeviceManagerTestCase
+
 
 class PullTestCase(DeviceManagerTestCase):
 
@@ -12,11 +16,11 @@ class PullTestCase(DeviceManagerTestCase):
         """
         m_orig = hashlib.md5()
         m_new = hashlib.md5()
-        local_test_file = 'test-files/mybinary.zip'
+        local_test_file = os.path.join('test-files', 'mybinary.zip')
         m_orig.update(file(local_test_file, 'r').read())
 
         testroot = self.dm.getDeviceRoot()
-        remote_test_file = testroot + '/mybinary.zip'
+        remote_test_file = posixpath.join(testroot, 'mybinary.zip')
         self.dm.removeFile(remote_test_file)
         self.dm.pushFile(local_test_file, remote_test_file)
         m_new.update(self.dm.pullFile(remote_test_file))
@@ -24,6 +28,6 @@ class PullTestCase(DeviceManagerTestCase):
         # if assert fails
         self.assertEqual(m_orig.hexdigest(), m_new.hexdigest())
 
-        remote_missing_file = testroot + '/doesnotexist'
+        remote_missing_file = posixpath.join(testroot, 'doesnotexist')
         self.dm.removeFile(remote_missing_file)  # just to be sure
         self.assertEqual(self.dm.pullFile(remote_missing_file), None)

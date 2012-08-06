@@ -25,7 +25,8 @@ def main(ip, port, scripts, directory, isTestDevice):
         # (and get rid of it if they did)
         scripts = map(lambda x: x.split('.')[0], scripts)
     else:
-        # Go through the directory and pick up everything named test_*.py and run it
+        # Go through the directory and pick up everything
+        # named test_*.py and run it
         testfile = re.compile('^test_.*\.py$')
         files = os.listdir(directory)
 
@@ -66,17 +67,19 @@ if  __name__ == "__main__":
                       "what's provided in $TEST_DEVICE or 20701",
                       default=(env_port or default_port))
 
-    parser.add_option("--script", action="append", type="string", dest="scripts",
-                      help="Name of test script to run, can be specified multiple times",
-                      default=[])
+    parser.add_option("--script", action="append", type="string",
+                      dest="scripts", help="Name of test script to run, "
+                      "can be specified multiple times", default=[])
 
     parser.add_option("--directory", action="store", type="string", dest="dir",
-                      help="Directory to look for tests in, defaults to current directory",
-                      default=os.getcwd())
+                      help="Directory to look for tests in, defaults to "
+                      "current directory", default=os.getcwd())
 
     parser.add_option("--testDevice", action="store_true", dest="isTestDevice",
-                      help="Specifies that the device is a local test agent", default=False)
+                      help="Specifies that the device is a local test agent",
+                      default=False)
 
     (options, args) = parser.parse_args()
 
-    main(options.ip, options.port, options.scripts, options.dir, options.isTestDevice)
+    main(options.ip, options.port, options.scripts,
+         options.dir, options.isTestDevice)

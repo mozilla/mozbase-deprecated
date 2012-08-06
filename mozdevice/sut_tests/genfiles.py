@@ -31,45 +31,50 @@ def mkdir(path, *args):
 
 
 def gen_folder_structure():
-    root = 'test-files/'
-    prefix = root + 'push2/'
+    root = 'test-files'
+    prefix = os.path.join(root, 'push2')
     mkdir(prefix)
 
-    gen_binary_file(prefix + 'file4.bin', 59036)
-    mkdir(prefix + 'sub1')
-    shutil.copyfile(root + 'mytext.txt', prefix + 'sub1/file1.txt')
-    mkdir(prefix + 'sub1/sub1.1')
-    shutil.copyfile(root + 'mytext.txt', prefix + 'sub1/sub1.1/file2.txt')
-    mkdir(prefix + 'sub2')
-    shutil.copyfile(root + 'mytext.txt', prefix + 'sub2/file3.txt')
+    gen_binary_file(os.path.join(prefix, 'file4.bin'), 59036)
+    mkdir(os.path.join(prefix, 'sub1'))
+    shutil.copyfile(os.path.join(root, 'mytext.txt'),
+                    os.path.join(prefix, 'sub1', 'file1.txt'))
+    mkdir(os.path.join(prefix, 'sub1', 'sub1.1'))
+    shutil.copyfile(os.path.join(root, 'mytext.txt'),
+                    os.path.join(prefix, 'sub1', 'sub1.1', 'file2.txt'))
+    mkdir(os.path.join(prefix, 'sub2'))
+    shutil.copyfile(os.path.join(root, 'mytext.txt'),
+                    os.path.join(prefix, 'sub2', 'file3.txt'))
 
 
 def gen_test_files():
     gen_folder_structure()
     flist = [
-                'test-files/push2',
-                'test-files/push2/file4.bin',
-                'test-files/push2/sub1',
-                'test-files/push2/sub1/file1.txt',
-                'test-files/push2/sub1/sub1.1',
-                'test-files/push2/sub1/sub1.1/file2.txt',
-                'test-files/push2/sub2',
-                'test-files/push2/sub2/file3.txt'
-            ]
-    gen_zip('test-files/mybinary.zip', flist, stripped_prefix='test-files/')
-    gen_zip('test-files/mytext.zip', ['test-files/mytext.txt'])
+        os.path.join('test-files', 'push2'),
+        os.path.join('test-files', 'push2', 'file4.bin'),
+        os.path.join('test-files', 'push2', 'sub1'),
+        os.path.join('test-files', 'push2', 'sub1', 'file1.txt'),
+        os.path.join('test-files', 'push2', 'sub1', 'sub1.1'),
+        os.path.join('test-files', 'push2', 'sub1', 'sub1.1', 'file2.txt'),
+        os.path.join('test-files', 'push2', 'sub2'),
+        os.path.join('test-files', 'push2', 'sub2', 'file3.txt')
+    ]
+    gen_zip(os.path.join('test-files', 'mybinary.zip'),
+            flist, stripped_prefix=('test-files' + os.path.sep))
+    gen_zip(os.path.join('test-files', 'mytext.zip'),
+            [os.path.join('test-files', 'mytext.txt')])
 
 
 def clean_test_files():
-    dirs = ['test-files/push1', 'test-files/push2']
-    for d in dirs:
+    ds = [os.path.join('test-files', d) for d in ('push1', 'push2')]
+    for d in ds:
         try:
             shutil.rmtree(d)
         except OSError:
             pass
 
-    files = ['test-files/mybinary.zip', 'test-files/mytext.zip']
-    for f in files:
+    fs = [os.path.join('test-files', f) for f in ('mybinary.zip', 'mytext.zip')]
+    for f in fs:
         try:
             os.remove(f)
         except OSError:

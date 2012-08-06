@@ -15,7 +15,8 @@ class DeviceManagerTestCase(unittest.TestCase):
     """DeviceManager tests should subclass this.
     """
 
-    """Set to False in your derived class if this test should not be run on the Python agent.
+    """Set to False in your derived class if this test
+    should not be run on the Python agent.
     """
     runs_on_test_device = True
 

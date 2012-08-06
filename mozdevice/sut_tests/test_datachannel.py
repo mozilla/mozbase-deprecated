@@ -2,12 +2,11 @@
 # License, v. 2.0. If a copy of the MPL was not distributed with this
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-from dmunit import DeviceManagerTestCase
-import ConfigParser
 import socket
-from time import sleep, strptime
-import sys
+from time import strptime
 import re
+
+from dmunit import DeviceManagerTestCase
 
 
 class DataChannelTestCase(DeviceManagerTestCase):
@@ -17,7 +16,6 @@ class DataChannelTestCase(DeviceManagerTestCase):
     def runTest(self):
         """ This tests the heartbeat and the data channel
         """
-        cfg = ConfigParser.RawConfigParser()
         ip = self.dm.host
         port = 20700
 
@@ -32,26 +30,27 @@ class DataChannelTestCase(DeviceManagerTestCase):
         numbeats = 0
         capturedHeader = False
         while(numbeats < 3):
-          data = self._datasock.recv(1024)
-          print data
-          self.assertNotEqual(len(data), 0)
+            data = self._datasock.recv(1024)
+            print data
+            self.assertNotEqual(len(data), 0)
 
-          # Check for the header
-          if not capturedHeader:
-            m = re.match(r"(.*?) trace output", data)
-            self.assertNotEqual(m, None, 'trace output line does not match. The line: ' + str(data))
-            lastHeartbeatTime = strptime(m.group(1), "%Y%m%d-%H:%M:%S")
-            capturedHeader = True
+            # Check for the header
+            if not capturedHeader:
+                m = re.match(r"(.*?) trace output", data)
+                self.assertNotEqual(m, None,
+                    'trace output line does not match. The line: ' + str(data))
+                lastHeartbeatTime = strptime(m.group(1), "%Y%m%d-%H:%M:%S")
+                capturedHeader = True
 
-          # Check for standard heartbeat messsage
-          m = re.match(r"(.*?) Thump thump - (.*)", data)
-          if m == None:
-            # This isn't an error, it usually means we've obtained some
-            # unexpected data from the device
-            continue
+            # Check for standard heartbeat messsage
+            m = re.match(r"(.*?) Thump thump - (.*)", data)
+            if m == None:
+                # This isn't an error, it usually means we've obtained some
+                # unexpected data from the device
+                continue
 
-          # Ensure it matches our format
-          mHeartbeatTime = m.group(1)
-          mHeartbeatTime = strptime(mHeartbeatTime, "%Y%m%d-%H:%M:%S")
-          mDeviceID = m.group(2)
-          numbeats = numbeats + 1
+            # Ensure it matches our format
+            mHeartbeatTime = m.group(1)
+            mHeartbeatTime = strptime(mHeartbeatTime, "%Y%m%d-%H:%M:%S")
+            mDeviceID = m.group(2)
+            numbeats = numbeats + 1

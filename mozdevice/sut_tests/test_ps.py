@@ -3,7 +3,9 @@
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 import re
+
 from dmunit import DeviceManagerTestCase
+
 
 class ProcessListTestCase(DeviceManagerTestCase):
 
@@ -22,5 +24,5 @@ class ProcessListTestCase(DeviceManagerTestCase):
         self.assertNotEqual(len(proclist), 0)
 
         for item in proclist:
-          self.assert_(procid.match(item[0]))
-          self.assert_(procname.match(item[1]))
+            self.assert_(procid.match(item[0]))
+            self.assert_(procname.match(item[1]))
