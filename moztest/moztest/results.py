@@ -184,7 +184,8 @@ class TestResultCollection(list):
                      output=output)
             self.append(t)
 
-        self.time_taken += result.time_taken
+        if hasattr(result, 'time_taken'):
+            self.time_taken += result.time_taken
 
         for test, output in result.errors:
             add_test_result(test, result_actual='ERROR', output=output)
@@ -211,20 +212,19 @@ class TestResultCollection(list):
                 add_test_result(test)
 
     @classmethod
-    def from_unittest_results(cls, results_list):
+    def from_unittest_results(cls, *results):
         """ Creates a TestResultCollection containing the given python
         unittest results """
 
-        # so we can pass in a single unittest result instance as well
-        if type(results_list) is not list:
-            results_list = list(results_list)
+        if not results:
+            return cls('from unittest')
 
         # all the TestResult instances share the same context
         context = TestContext()
 
-        collection = cls('from %s' % results_list[0].__class__.__name__)
+        collection = cls('from %s' % results[0].__class__.__name__)
 
-        for result in results_list:
+        for result in results:
             collection.add_unittest_result(result, context)
 
         return collection

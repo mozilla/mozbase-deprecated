@@ -15,6 +15,8 @@ import os
 import sys
 import unittest
 
+from moztest.results import TestResultCollection
+
 here = os.path.dirname(os.path.abspath(__file__))
 
 def unittests(path):
@@ -58,10 +60,10 @@ def main(args=sys.argv[1:]):
     # run the tests
     suite = unittest.TestSuite(unittestlist)
     runner = unittest.TextTestRunner()
-    results = runner.run(suite)
+    results = TestResultCollection.from_unittest_results(runner.run(suite))
 
     # exit according to results
-    sys.exit((results.failures or results.errors) and 1 or 0)
+    sys.exit(1 if len(list(results.unsuccessful)) else 0)
 
 if __name__ == '__main__':
     main()
