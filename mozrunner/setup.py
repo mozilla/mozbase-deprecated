@@ -4,7 +4,7 @@
 
 import os
 import sys
-from setuptools import setup, find_packages
+from setuptools import setup
 
 PACKAGE_NAME = "mozrunner"
 PACKAGE_VERSION = '5.8'
@@ -39,10 +39,10 @@ setup(name=PACKAGE_NAME,
                    ],
       keywords='mozilla',
       author='Mozilla Automation and Tools team',
-      author_email='tools@lists.mozilla.com',
-      url='https://github.com/mozilla/mozbase/tree/master/mozrunner',
+      author_email='tools@lists.mozilla.org',
+      url='https://wiki.mozilla.org/Auto-tools/Projects/MozBase',
       license='MPL 2.0',
-      packages=find_packages(exclude=['legacy']),
+      packages=['mozrunner'],
       zip_safe=False,
       install_requires = deps,
       entry_points="""

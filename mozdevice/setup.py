@@ -3,7 +3,7 @@
 # You can obtain one at http://mozilla.org/MPL/2.0/.
 
 import os
-from setuptools import setup, find_packages
+from setuptools import setup
 
 PACKAGE_VERSION = '0.4'
 
@@ -23,10 +23,10 @@ setup(name='mozdevice',
       classifiers=[], # Get strings from http://pypi.python.org/pypi?%3Aaction=list_classifiers
       keywords='',
       author='Mozilla Automation and Testing Team',
-      author_email='tools@lists.mozilla.com',
-      url='http://github.com/mozilla/mozbase',
+      author_email='tools@lists.mozilla.org',
+      url='https://wiki.mozilla.org/Auto-tools/Projects/MozBase',
       license='MPL',
-      packages=find_packages(exclude=['ez_setup', 'examples', 'tests']),
+      packages=['mozdevice'],
       include_package_data=True,
       zip_safe=False,
       install_requires=deps,
