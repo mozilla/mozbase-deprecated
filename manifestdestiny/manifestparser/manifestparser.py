@@ -1024,7 +1024,7 @@ def main(args=sys.argv[1:]):
 
     # set up an option parser
     usage = '%prog [options] [command] ...'
-    description = __doc__
+    description = "%s. Use `help` to display commands" % __doc__.strip()
     parser = OptionParser(usage=usage, description=description)
     parser.add_option('-s', '--strict', dest='strict',
                       action='store_true', default=False,
