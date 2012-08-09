@@ -195,13 +195,15 @@ class Runner(object):
         """
         if self.process_handler is None:
             return
+
         if isinstance(self.process_handler, subprocess.Popen):
             self.process_handler.wait()
         else:
             self.process_handler.waitForFinish(timeout)
-            if not getattr(self.process_handler.proc, 'returncode', False):
+            if self.process_handler.proc.poll() is None:
                 # waitForFinish timed out
                 return
+
         self.process_handler = None
 
     def stop(self):
