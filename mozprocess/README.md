@@ -59,6 +59,18 @@ Basic usage:
         the OS
         """
 
+    def processOutput(self, timeout=None, outputTimeout=None):
+        """
+        Handle process output until the process terminates or times out.
+
+        If timeout is not None, the process will be allowed to continue for
+        that number of seconds before being killed.
+
+        If outputTimeout is not None, the process will be allowed to continue
+        for that number of seconds without producing any output before
+        being killed.
+        """
+
     def processOutputLine(self, line):
         """Called for each line of output that a process sends to stdout/stderr."""
         for handler in self.processOutputLineHandlers:
@@ -74,16 +86,14 @@ Basic usage:
         for handler in self.onFinishHandlers:
             handler()
 
-    def waitForFinish(self, timeout=None, outputTimeout=None):
+    def waitForFinish(self, timeout=None):
         """
-        Handle process output until the process terminates or times out.
+        Waits until all output has been read and the process is 
+        terminated.
 
-        If timeout is not None, the process will be allowed to continue for
-        that number of seconds before being killed.
-
-        If outputTimeout is not None, the process will be allowed to continue
-        for that number of seconds without producing any output before
-        being killed.
+        If timeout is not None, will return after timeout seconds.
+        This timeout is only for waitForFinish and doesn't affect
+        the didTimeout or onTimeout properties.
         """
 
 See https://github.com/mozilla/mozbase/blob/master/mozprocess/mozprocess/processhandler.py
