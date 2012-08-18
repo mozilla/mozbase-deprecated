@@ -199,6 +199,14 @@ class TestResultCollection(list):
         """ Generator of all tests in the collection """
         return (t for t in self)
 
+    @property
+    def num_failures(self):
+        fails = 0
+        for t in self:
+            if t.result in TestResult.FAIL_RESULTS:
+                fails += 1
+        return fails
+
     def add_unittest_result(self, result, context=None):
         """ Adds the python unittest result provided to the collection"""
 
