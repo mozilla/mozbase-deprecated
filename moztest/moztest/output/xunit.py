@@ -3,25 +3,10 @@
 # You can obtain one at http://mozilla.org/MPL/2.0/.
 
 
-from abc import abstractmethod
-from contextlib import closing
-from StringIO import StringIO
 import xml.dom.minidom as dom
 
-
-class Output(object):
-    """ Abstract base class for outputting test results """
-
-    @abstractmethod
-    def serialize(self, results_collection, file_obj):
-        """ Writes the string representation of the results collection
-        to the given file object"""
-
-    def dump_string(self, results_collection):
-        """ Returns the string representation of the results collection """
-        with closing(StringIO()) as s:
-            self.serialize(results_collection, s)
-            return s.getvalue()
+from base import Output, count
+from moztest.results import TestResult
 
 
 class XUnitOutput(Output):
@@ -68,15 +53,18 @@ class XUnitOutput(Output):
 
         doc = dom.Document()
 
+        failed = sum([count(results_collection.tests_with_result(t))
+                     for t in TestResult.FAIL_RESULTS])
+        passed = count(results_collection.tests_with_result('PASS'))
+        skipped = count(results_collection.tests_with_result('SKIPPED'))
+
         assembly = doc.createElement('assembly')
         assembly.setAttribute('name', results_collection.suite_name)
         assembly.setAttribute('time', str(results_collection.time_taken))
         assembly.setAttribute('total', str(len(results_collection)))
-        assembly.setAttribute('passed',
-                              str(len(list(results_collection.tests_with_result('PASS')))))
-        assembly.setAttribute('failed', str(len(list(results_collection.unsuccessful))))
-        assembly.setAttribute('skipped',
-                              str(len(list(results_collection.tests_with_result('SKIPPED')))))
+        assembly.setAttribute('passed', str(passed))
+        assembly.setAttribute('failed', str(failed))
+        assembly.setAttribute('skipped', str(skipped))
 
         classes = {}  # str -> xml class element
 
@@ -87,13 +75,13 @@ class XUnitOutput(Output):
             _extract_xml(tr, text=tr.output, result='Fail')
 
         for tr in results_collection.tests_with_result('UNEXPECTED-PASS'):
-            _extract_xml(tr, text='TEST-UNEXPECTED-PASS', result='Fail')
+            _extract_xml(tr, text='UNEXPECTED-PASS', result='Fail')
 
         for tr in results_collection.tests_with_result('SKIPPED'):
             _extract_xml(tr, text=tr.output, result='Skip')
 
         for tr in results_collection.tests_with_result('KNOWN-FAIL'):
-            _extract_xml(tr, text=tr.output, result='Skip')
+            _extract_xml(tr, text=tr.output, result='Pass')
 
         for tr in results_collection.tests_with_result('PASS'):
             _extract_xml(tr, result='Pass')
