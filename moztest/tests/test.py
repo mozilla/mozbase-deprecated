@@ -25,11 +25,6 @@ class Result(unittest.TestCase):
         duration = time.time() - now
         self.assertTrue(math.fabs(duration - t.duration) < 1)
 
-    def test_successful(self):
-        t = TestResult('test', result_expected='KNOWN-FAIL')
-        t.finish(result='KNOWN-FAIL')
-        self.assertTrue(t.successful)
-
     def test_custom_time(self):
         t = TestResult('test', time_start=0)
         t.finish(result='PASS', time_end=1000)
