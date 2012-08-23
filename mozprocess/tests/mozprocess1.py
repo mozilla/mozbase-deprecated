@@ -24,8 +24,8 @@ def make_proclaunch(aDir):
     """
     # Ideally make should take care of this, but since it doesn't - on windows,
     # anyway, let's just call out both targets explicitly.
-    p = subprocess.call(["make", "-C", "iniparser"], cwd=aDir)
-    p = subprocess.call(["make"], cwd=aDir)
+    p = subprocess.call(["make", "-C", "iniparser"], stdout=subprocess.PIPE, stderr=subprocess.PIPE, cwd=aDir)
+    p = subprocess.call(["make"],stdout=subprocess.PIPE, stderr=subprocess.PIPE ,cwd=aDir)
     if sys.platform == "win32":
         exepath = os.path.join(aDir, "proclaunch.exe")
     else:

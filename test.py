@@ -59,7 +59,7 @@ def main(args=sys.argv[1:]):
 
     # run the tests
     suite = unittest.TestSuite(unittestlist)
-    runner = unittest.TextTestRunner()
+    runner = unittest.TextTestRunner(verbosity=2) # default=1 does not show success of unittests
     results = TestResultCollection.from_unittest_results(runner.run(suite))
 
     # exit according to results
