@@ -12,17 +12,23 @@ class TestContext(object):
     """ Stores context data about the test """
 
     attrs = ['hostname', 'arch', 'env', 'os', 'os_version', 'tree', 'revision',
-             'product']
+             'product', 'logfile', 'testgroup', 'harness', 'buildtype']
 
-    def __init__(self, hostname='localhost', tree='', revision='', product=''):
+    def __init__(self, hostname='localhost', tree='', revision='', product='',
+                 logfile=None, arch='', operating_system='', testgroup='',
+                 harness='moztest', buildtype=''):
         self.hostname = hostname
-        self.arch = mozinfo.processor
+        self.arch = arch or mozinfo.processor
         self.env = os.environ.copy()
-        self.os = mozinfo.os
+        self.os = operating_system or mozinfo.os
         self.os_version = mozinfo.version
         self.tree = tree
         self.revision = revision
         self.product = product
+        self.logfile = logfile
+        self.testgroup = testgroup
+        self.harness = harness
+        self.buildtype = buildtype
 
     def __str__(self):
         return '%s (%s, %s)' % (self.hostname, self.os, self.arch)
@@ -253,7 +259,7 @@ class TestResultCollection(list):
                 add_test_result(test)
 
     @classmethod
-    def from_unittest_results(cls, *results):
+    def from_unittest_results(cls, context, *results):
         """ Creates a TestResultCollection containing the given python
         unittest results """
 
@@ -261,7 +267,7 @@ class TestResultCollection(list):
             return cls('from unittest')
 
         # all the TestResult instances share the same context
-        context = TestContext()
+        context = context or TestContext()
 
         collection = cls('from %s' % results[0].__class__.__name__)
 

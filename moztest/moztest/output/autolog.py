@@ -16,8 +16,6 @@ class AutologOutput(Output):
                  harness='moztest'):
         self.es_server = es_server
         self.rest_server = rest_server
-        self.name = name
-        self.harness = harness
 
     def serialize(self, results_collection, file_obj):
         file_obj.write(self.make_testgroup(results_collection).serialize())
@@ -34,13 +32,14 @@ class AutologOutput(Output):
             known_fails = coll.tests_with_result('KNOWN-FAIL')
 
             testgroup = RESTfulAutologTestGroup(
-                 testgroup=self.name,
+                 testgroup=context.testgroup,
                  os=context.os,
                  platform=context.arch,
-                 harness=self.harness,
+                 harness=context.harness,
                  server=self.es_server,
                  restserver=self.rest_server,
                  machine=context.hostname,
+                 logfile=context.logfile,
                 )
             testgroup.add_test_suite(
                 testsuite=results_collection.suite_name,
@@ -52,19 +51,20 @@ class AutologOutput(Output):
             testgroup.set_primary_product(
                 tree=context.tree,
                 revision=context.revision,
-                productname=context.product
+                productname=context.product,
+                buildtype=context.buildtype,
                 )
             for f in failed:
                 testgroup.add_test_failure(
                     test=long_name(f),
                     text='\n'.join(f.output),
-                    status=f.result_actual
+                    status=f.result,
                     )
             testgroups.append(testgroup)
         return testgroups
 
-    def post(self, *data):
-        msg = "Must pass in data returned by make_testgroups."
+    def post(self, data):
+        msg = "Must pass in a list returned by make_testgroups."
         for d in data:
             assert isinstance(d, RESTfulAutologTestGroup), msg
             d.submit()
