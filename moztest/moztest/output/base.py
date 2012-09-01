@@ -33,6 +33,6 @@ def count(iterable):
 
 
 def long_name(test):
-    if test.class_name:
+    if test.test_class:
         return '%s.%s' % (test.test_class, test.name)
     return test.name

@@ -18,7 +18,9 @@ class AutologOutput(Output):
         self.rest_server = rest_server
 
     def serialize(self, results_collection, file_obj):
-        file_obj.write(self.make_testgroup(results_collection).serialize())
+        grps = self.make_testgroups(results_collection)
+        for g in grps:
+            file_obj.write(g.serialize())
 
     def make_testgroups(self, results_collection):
         testgroups = []
@@ -54,7 +56,8 @@ class AutologOutput(Output):
                 productname=context.product,
                 buildtype=context.buildtype,
                 )
-            for f in failed:
+            # need to call this again since we already used the generator
+            for f in coll.tests_with_result('UNEXPECTED-FAIL'):
                 testgroup.add_test_failure(
                     test=long_name(f),
                     text='\n'.join(f.output),
