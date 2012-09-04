@@ -180,10 +180,7 @@ class Runner(object):
         else:
             # this run uses the managed processhandler
             self.process_handler = self.process_class(cmd, env=self.env, **self.kp_kwargs)
-            self.process_handler.run()
-
-            # start processing output from the process
-            self.process_handler.processOutput(timeout, outputTimeout)
+            self.process_handler.run(timeout, outputTimeout)
 
     def wait(self, timeout=None):
         """
@@ -199,7 +196,7 @@ class Runner(object):
         if isinstance(self.process_handler, subprocess.Popen):
             self.process_handler.wait()
         else:
-            self.process_handler.waitForFinish(timeout)
+            self.process_handler.wait(timeout)
             if self.process_handler.proc.poll() is None:
                 # waitForFinish timed out
                 return

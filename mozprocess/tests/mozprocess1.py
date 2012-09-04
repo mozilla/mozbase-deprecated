@@ -81,8 +81,7 @@ class ProcTest1(unittest.TestCase):
         p = processhandler.ProcessHandler([self.proclaunch, "process_normal_finish.ini"],
                                           cwd=here)
         p.run()
-        p.processOutput()
-        p.waitForFinish()
+        p.wait()
 
         detected, output = check_for_process(self.proclaunch)
         self.determine_status(detected,
@@ -96,9 +95,8 @@ class ProcTest1(unittest.TestCase):
         """
         p = processhandler.ProcessHandler([self.proclaunch, "process_waittimeout.ini"],
                                           cwd=here)
-        p.run()
-        p.processOutput(timeout=10) 
-        p.waitForFinish()
+        p.run(timeout=10)
+        p.wait()
 
         detected, output = check_for_process(self.proclaunch)
         self.determine_status(detected,
@@ -114,7 +112,6 @@ class ProcTest1(unittest.TestCase):
         p = processhandler.ProcessHandler([self.proclaunch, "process_normal_finish.ini"],
                                           cwd=here)
         p.run()
-        p.processOutput()
         p.kill()
 
         detected, output = check_for_process(self.proclaunch)
