@@ -78,6 +78,7 @@ class TestResult(object):
         test_class = the class that the test belongs to
         time_start = timestamp (seconds since UNIX epoch) of when the test started
                      running; if not provided, defaults to the current time
+                     ! Provide 0 if you only have the duration
         context = TestContext instance; can be None
         result_expected = string representing the expected outcome of the test"""
 
@@ -129,7 +130,8 @@ class TestResult(object):
         return 'ERROR'
 
     def finish(self, result, time_end=None, output=None, reason=None):
-        """ Marks the test as finished, storing its end time and status """
+        """ Marks the test as finished, storing its end time and status
+        ! Provide the duration as time_end if you only have that. """
         msg = "Result '%s' not in possible results: %s" %\
                     (result, ', '.join(self.POSSIBLE_RESULTS))
         assert result in self.POSSIBLE_RESULTS, msg
