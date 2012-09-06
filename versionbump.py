@@ -4,9 +4,11 @@
 
 import optparse
 import os
+import pkg_resources
 import re
 import subprocess
 import sys
+import xmlrpclib
 
 # import setup_development.py from the same directory
 import setup_development
@@ -67,6 +69,9 @@ def main(args=sys.argv[1:]):
                       help="bump dependencies specified as '==' but not '>='")
     parser.add_option('--git', dest='git_path', default='git',
                       help='git binary to use')
+    parser.add_option('--pypi', dest='pypi_versions',
+                      action='store_true', default=False,
+                      help="display in-tree package versions and versions on pypi")
     options, args = parser.parse_args()
     globals()['dry_run'] = options.dry_run
 
@@ -87,6 +92,18 @@ def main(args=sys.argv[1:]):
         for value in info.values():
             print '%s %s : %s' % (value['Name'], value['Version'],
                                   ', '.join(dependencies[value['Name']]))
+        parser.exit()
+
+    if options.pypi_versions:
+        # print package version information and version info from pypi and exit
+        client = xmlrpclib.ServerProxy('http://pypi.python.org/pypi')
+        for value in info.values():
+            versions = client.package_releases(value['Name'])
+            if versions:
+                version = max(versions, key=lambda x: pkg_resources.parse_version(x))
+            else:
+                version = None
+            print '%s %s : pypi version %s' % (value['Name'], value['Version'], version)
         parser.exit()
 
     # check for pypirc file
