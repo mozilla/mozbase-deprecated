@@ -3,10 +3,22 @@
 # You can obtain one at http://mozilla.org/MPL/2.0/.
 
 
-from abc import abstractmethod
+from __future__ import with_statement
 from contextlib import closing
 from StringIO import StringIO
 
+try:
+    from abc import abstractmethod
+except ImportError:
+    # abc is python 2.6+
+    # from https://github.com/mozilla/mozbase/blob/master/mozdevice/mozdevice/devicemanager.py
+    def abstractmethod(method):
+        line = method.func_code.co_firstlineno
+        filename = method.func_code.co_filename
+        def not_implemented(*args, **kwargs):
+            raise NotImplementedError('Abstract method %s at File "%s", line %s  should be implemented by a concrete class' %
+                                      (repr(method), filename,line))
+        return not_implemented
 
 class Output(object):
     """ Abstract base class for outputting test results """
