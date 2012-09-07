@@ -131,17 +131,12 @@ class TestResult(object):
 
     def infer_results(self, computed_result):
         assert computed_result in self.COMPUTED_RESULTS
-        if computed_result == 'ERROR':
-            expected = 'PASS'
-            actual = 'ERROR'
-        elif computed_result == 'UNEXPECTED-PASS':
+        if computed_result == 'UNEXPECTED-PASS':
             expected = 'FAIL'
             actual = 'PASS'
         elif computed_result == 'UNEXPECTED-FAIL':
             expected = 'PASS'
             actual = 'FAIL'
-        elif computed_result == 'PASS':
-            expected = actual = 'PASS'
         elif computed_result == 'KNOWN-FAIL':
             expected = actual = 'FAIL'
         elif computed_result == 'SKIPPED':
@@ -155,13 +150,13 @@ class TestResult(object):
         """ Marks the test as finished, storing its end time and status
         ! Provide the duration as time_end if you only have that. """
 
-        if result in self.COMPUTED_RESULTS:
-            self.infer_results(result)
-            self.result = result
-        elif result in self.POSSIBLE_RESULTS:
+        if result in self.POSSIBLE_RESULTS:
             self._result_actual = result
             self.result = self.calculate_result(self._result_expected,
                                             self._result_actual)
+        elif result in self.COMPUTED_RESULTS:
+            self.infer_results(result)
+            self.result = result
         else:
             valid = self.POSSIBLE_RESULTS + self.COMPUTED_RESULTS
             msg = "Result '%s' not valid. Need one of: %s" %\
