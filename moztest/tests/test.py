@@ -15,7 +15,7 @@ class Result(unittest.TestCase):
         self.assertRaises(AssertionError,
                           lambda: TestResult('test', result_expected='hello'))
         t = TestResult('test')
-        self.assertRaises(AssertionError, lambda: t.finish(result='good bye'))
+        self.assertRaises(ValueError, lambda: t.finish(result='good bye'))
 
     def test_time(self):
         now = time.time()

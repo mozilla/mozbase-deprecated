@@ -129,12 +129,44 @@ class TestResult(object):
         # here it is definitely some kind of error
         return 'ERROR'
 
+    def infer_results(self, computed_result):
+        assert computed_result in self.COMPUTED_RESULTS
+        if computed_result == 'ERROR':
+            expected = 'PASS'
+            actual = 'ERROR'
+        elif computed_result == 'UNEXPECTED-PASS':
+            expected = 'FAIL'
+            actual = 'PASS'
+        elif computed_result == 'UNEXPECTED-FAIL':
+            expected = 'PASS'
+            actual = 'FAIL'
+        elif computed_result == 'PASS':
+            expected = actual = 'PASS'
+        elif computed_result == 'KNOWN-FAIL':
+            expected = actual = 'FAIL'
+        elif computed_result == 'SKIPPED':
+            expected = actual = 'SKIP'
+        else:
+            return
+        self._result_expected = expected
+        self._result_actual = actual
+
     def finish(self, result, time_end=None, output=None, reason=None):
         """ Marks the test as finished, storing its end time and status
         ! Provide the duration as time_end if you only have that. """
-        msg = "Result '%s' not in possible results: %s" %\
-                    (result, ', '.join(self.POSSIBLE_RESULTS))
-        assert result in self.POSSIBLE_RESULTS, msg
+
+        if result in self.COMPUTED_RESULTS:
+            self.infer_results(result)
+            self.result = result
+        elif result in self.POSSIBLE_RESULTS:
+            self._result_actual = result
+            self.result = self.calculate_result(self._result_expected,
+                                            self._result_actual)
+        else:
+            valid = self.POSSIBLE_RESULTS + self.COMPUTED_RESULTS
+            msg = "Result '%s' not valid. Need one of: %s" %\
+                    (result, ', '.join(valid))
+            raise ValueError(msg)
 
         # use lists instead of multiline strings
         if isinstance(output, basestring):
@@ -142,9 +174,6 @@ class TestResult(object):
 
         self.time_end = time_end if time_end is not None else time.time()
         self.output = output or self.output
-        self._result_actual = result
-        self.result = self.calculate_result(self._result_expected,
-                                            self._result_actual)
         self.reason = reason
 
     @property
