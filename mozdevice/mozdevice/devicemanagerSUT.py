@@ -26,7 +26,7 @@ class DeviceManagerSUT(DeviceManager):
     agentErrorRE = re.compile('^##AGENT-WARNING##\ ?(.*)')
     default_timeout = 300
 
-    def __init__(self, host, port = 20701, retrylimit = 5, deviceRoot = None):
+    def __init__(self, host, port = 20701, retrylimit = 5, deviceRoot = None, **kwargs):
         self.host = host
         self.port = port
         self.retrylimit = retrylimit
