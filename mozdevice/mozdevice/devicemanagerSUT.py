@@ -30,7 +30,6 @@ class DeviceManagerSUT(DeviceManager):
   host = ''
   port = 0
   debug = 2
-  retries = 0
   tempRoot = os.getcwd()
   base_prompt = '$>'
   base_prompt_re = '\$\>'
@@ -50,7 +49,6 @@ class DeviceManagerSUT(DeviceManager):
     self.host = host
     self.port = port
     self.retrylimit = retrylimit
-    self.retries = 0
     self._sock = None
     self.deviceRoot = deviceRoot
     if self.getDeviceRoot() == None:
@@ -130,7 +128,8 @@ class DeviceManagerSUT(DeviceManager):
     one fails.  this is necessary in particular for pushFile(), where we don't want
     to accidentally send extra data if a failure occurs during data transmission.
     '''
-    while self.retries < self.retrylimit:
+    retries = 0
+    while retries < self.retrylimit:
       try:
         self._doCmds(cmdlist, outputfile, timeout)
         return
@@ -141,7 +140,12 @@ class DeviceManagerSUT(DeviceManager):
           raise err
         if self.debug >= 2:
           print err
-        self.retries += 1
+        retries += 1
+        # if we lost the connection or failed to establish one, wait a bit
+        if retries < self.retrylimit and not self._sock:
+          sleep_time = 5 * retries
+          print 'Could not connect; sleeping for %d seconds.' % sleep_time
+          time.sleep(sleep_time)
 
     raise AgentError("unable to connect to %s after %s attempts" % (self.host, self.retrylimit))
 
