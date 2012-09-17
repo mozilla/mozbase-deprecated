@@ -37,6 +37,7 @@ class DeviceManagerSUT(DeviceManager):
   prompt_sep = '\x00'
   prompt_regex = '.*(' + base_prompt_re + prompt_sep + ')'
   agentErrorRE = re.compile('^##AGENT-WARNING##\ ?(.*)')
+  default_timeout = 300
 
   # TODO: member variable to indicate error conditions.
   # This should be set to a standard error from the errno module.
@@ -129,8 +130,6 @@ class DeviceManagerSUT(DeviceManager):
     one fails.  this is necessary in particular for pushFile(), where we don't want
     to accidentally send extra data if a failure occurs during data transmission.
     '''
-    if timeout:
-      raise NotImplementedError("'timeout' parameter is not yet supported")
     while self.retries < self.retrylimit:
       try:
         self._doCmds(cmdlist, outputfile, timeout)
@@ -162,6 +161,10 @@ class DeviceManagerSUT(DeviceManager):
     shouldCloseSocket = False
     recvGuard = 1000
 
+    if not timeout:
+      # We are asserting that all commands will complete in this time unless otherwise specified
+      timeout = self.default_timeout
+
     if not self._sock:
       try:
         if self.debug >= 1:
@@ -173,7 +176,11 @@ class DeviceManagerSUT(DeviceManager):
 
       try:
         self._sock.connect((self.host, int(self.port)))
-        self._sock.recv(1024)
+        if select.select([self._sock], [], [], timeout)[0]:
+          self._sock.recv(1024)
+        else:
+          raise AgentError("Timeout in connecting", fatal=True)
+          return False
       except socket.error, msg:
         self._sock.close()
         self._sock = None
@@ -193,7 +200,7 @@ class DeviceManagerSUT(DeviceManager):
               raise AgentError("ERROR: we had %s bytes of data to send, but "
                                "only sent %s" % (len(cmd['data']), sent))
 
-        if (self.debug >= 4): print "sent cmd: " + str(cmd['cmd'])
+        if self.debug >= 4: print "sent cmd: " + str(cmd['cmd'])
       except socket.error, msg:
         self._sock.close()
         self._sock = None
@@ -205,22 +212,28 @@ class DeviceManagerSUT(DeviceManager):
       shouldCloseSocket = self._shouldCmdCloseSocket(cmd['cmd'])
 
       # Handle responses from commands
-      if (self._cmdNeedsResponse(cmd['cmd'])):
+      if self._cmdNeedsResponse(cmd['cmd']):
         found = False
         loopguard = 0
         data = ""
+        timer = 0
+        select_timeout = 1
         commandFailed = False
 
-        while (found == False and (loopguard < recvGuard)):
+        while found == False and (loopguard < recvGuard):
           temp = ''
-          if (self.debug >= 4): print "recv'ing..."
+          if self.debug >= 4: print "recv'ing..."
 
           # Get our response
           try:
              # Wait up to a second for socket to become ready for reading...
-            if select.select([self._sock], [], [], 1)[0]:
-                temp = self._sock.recv(1024)
-            if (self.debug >= 4): print "response: " + str(temp)
+            if select.select([self._sock], [], [], select_timeout)[0]:
+              temp = self._sock.recv(1024)
+              if self.debug >= 4: print "response: " + str(temp)
+              timer = 0
+            timer += select_timeout
+            if timer > timeout:
+              raise AgentError("Automation Error: Timeout in command %s" % cmd['cmd'], fatal=True)
           except socket.error, err:
             self._sock.close()
             self._sock = None
@@ -254,7 +267,7 @@ class DeviceManagerSUT(DeviceManager):
 
           # If we violently lose the connection to the device, this loop tends to spin,
           # this guard prevents that
-          if (temp == ''):
+          if temp == '':
             loopguard += 1
 
         if commandFailed:
@@ -633,10 +646,22 @@ class DeviceManagerSUT(DeviceManager):
     # the class level if we wanted to refactor sendCMD().  For now they are
     # only used to pull files.
 
-    def uread(to_recv, error_msg):
+    def uread(to_recv, error_msg, timeout=None):
       """ unbuffered read """
+      timer = 0
+      select_timeout = 1
+      if not timeout:
+        timeout = self.default_timeout
+
       try:
-        data = self._sock.recv(to_recv)
+        if select.select([self._sock], [], [], select_timeout)[0]:
+          data = self._sock.recv(to_recv)
+          timer = 0
+        timer += select_timeout
+        if timer > timeout:
+          err('timeout in uread while retrieving file')
+          return None
+
         if not data:
           err(error_msg)
           return None
@@ -1003,21 +1028,23 @@ class DeviceManagerSUT(DeviceManager):
   """
   # external function
   # returns:
-  #  success: output from agent for inst command
-  #  failure: None
+  #  success: None
+  #  failure: error string
   def installApp(self, appBundlePath, destPath=None):
     cmd = 'inst ' + appBundlePath
     if destPath:
       cmd += ' ' + destPath
+
     try:
       data = self.runCmds([{ 'cmd': cmd }])
-    except AgentError:
-      return None
+    except AgentError, err:
+      print "Error installing app: %s" % err
+      return "%s" % err
 
     f = re.compile('Failure')
     for line in data.split():
       if (f.match(line)):
-        return data
+        return line
     return None
 
   """

@@ -7,6 +7,8 @@ import socket
 import mozdevice
 from threading import Thread
 import unittest
+import sys
+import time
 
 class BasicTest(unittest.TestCase):
 
@@ -18,8 +20,11 @@ class BasicTest(unittest.TestCase):
             data = conn.recv(1024).strip()
             self.assertEqual(data, command)
             # send response and prompt separately to test for bug 789496
-            conn.send("%s\n" % response)
-            conn.send("$>\x00")
+            if response is None:
+                time.sleep(3)
+            else:
+                conn.send("%s\n" % response)
+                conn.send("$>\x00")
 
     def _serve(self, commands):
         self.commands = commands
@@ -58,6 +63,45 @@ class BasicTest(unittest.TestCase):
         port = self._sock.getsockname()[1]
         mozdevice.DroidSUT.debug = 4
         dm = mozdevice.DroidSUT("127.0.0.1", port=port)
+        thread.join()
+
+    def test_timeout_normal(self):
+        """Tests DeviceManager timeout, normal case."""
+        self._sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        self._sock.bind(("127.0.0.1", 0))
+        self._sock.listen(1)
+
+        thread = self._serve([("testroot", "/mnt/sdcard"),
+                              ("cd /mnt/sdcard/tests", ""),
+                              ("cwd", "/mnt/sdcard/tests"),
+                              ("ver", "SUTAgentAndroid Version XX"),
+                              ("rm /mnt/sdcard/tests/test.txt", "Removed the file")])
+        
+        port = self._sock.getsockname()[1]
+        mozdevice.DroidSUT.debug = 4
+        d = mozdevice.DroidSUT("127.0.0.1", port=port)
+        data = d.removeFile('/mnt/sdcard/tests/test.txt')
+        self.assertEqual(data, "Removed the file")
+        thread.join()
+
+    def test_timeout_timeout(self):
+        """Tests DeviceManager timeout, timeout case."""
+        self._sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        self._sock.bind(("127.0.0.1", 0))
+        self._sock.listen(1)
+
+        thread = self._serve([("testroot", "/mnt/sdcard"),
+                              ("cd /mnt/sdcard/tests", ""),
+                              ("cwd", "/mnt/sdcard/tests"),
+                              ("ver", "SUTAgentAndroid Version XX"),
+                              ("rm /mnt/sdcard/tests/test.txt", None)])
+        
+        port = self._sock.getsockname()[1]
+        mozdevice.DroidSUT.debug = 4
+        d = mozdevice.DroidSUT("127.0.0.1", port=port)
+        d.default_timeout = 1
+        data = d.removeFile('/mnt/sdcard/tests/test.txt')
+        self.assertEqual(data, None)
         thread.join()
 
 if __name__ == '__main__':
