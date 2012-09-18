@@ -163,7 +163,6 @@ class DeviceManagerSUT(DeviceManager):
   def _doCmds(self, cmdlist, outputfile, timeout):
     promptre = re.compile(self.prompt_regex + '$')
     shouldCloseSocket = False
-    recvGuard = 1000
 
     if not timeout:
       # We are asserting that all commands will complete in this time unless otherwise specified
@@ -217,14 +216,15 @@ class DeviceManagerSUT(DeviceManager):
 
       # Handle responses from commands
       if self._cmdNeedsResponse(cmd['cmd']):
-        found = False
-        loopguard = 0
+        foundPrompt = False
         data = ""
         timer = 0
         select_timeout = 1
         commandFailed = False
 
-        while found == False and (loopguard < recvGuard):
+        while not foundPrompt:
+          socketClosed = False
+          errStr = ''
           temp = ''
           if self.debug >= 4: print "recv'ing..."
 
@@ -235,16 +235,23 @@ class DeviceManagerSUT(DeviceManager):
               temp = self._sock.recv(1024)
               if self.debug >= 4: print "response: " + str(temp)
               timer = 0
+              if not temp:
+                socketClosed = True
+                errStr = 'connection closed'
             timer += select_timeout
             if timer > timeout:
               raise AgentError("Automation Error: Timeout in command %s" % cmd['cmd'], fatal=True)
           except socket.error, err:
-            self._sock.close()
-            self._sock = None
+            socketClosed = True
+            errStr = str(err)
             # This error shows up with we have our tegra rebooted.
             if err[0] == errno.ECONNRESET:
-              raise AgentError("Automation error: Error receiving data from socket (possible reboot). cmd=%s; err=%s" % (cmd, err))
-            raise AgentError("Error receiving data from socket. cmd=%s; err=%s" % (cmd, err))
+              errStr += ' - possible reboot'
+
+          if socketClosed:
+            self._sock.close()
+            self._sock = None
+            raise AgentError("Error receiving data from socket. cmd=%s; err=%s" % (cmd, errStr))
 
           data += temp
 
@@ -259,7 +266,7 @@ class DeviceManagerSUT(DeviceManager):
 
           for line in data.splitlines():
             if promptre.match(line):
-              found = True
+              foundPrompt = True
               data = self._stripPrompt(data)
               break
 
@@ -268,11 +275,6 @@ class DeviceManagerSUT(DeviceManager):
           if len(data) > 1024:
               outputfile.write(data[0:1024])
               data = data[1024:]
-
-          # If we violently lose the connection to the device, this loop tends to spin,
-          # this guard prevents that
-          if temp == '':
-            loopguard += 1
 
         if commandFailed:
           raise AgentError("Agent Error processing command '%s'; err='%s'" %

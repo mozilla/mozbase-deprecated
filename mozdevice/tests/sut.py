@@ -13,15 +13,23 @@ import time
 class BasicTest(unittest.TestCase):
 
     def _serve_thread(self):
-        conn, addr = self._sock.accept()
-        conn.send("$>\x00")
+        conn = None
         while self.commands:
+            if not conn:
+                conn, addr = self._sock.accept()
+                conn.send("$>\x00")
             (command, response) = self.commands.pop(0)
             data = conn.recv(1024).strip()
             self.assertEqual(data, command)
             # send response and prompt separately to test for bug 789496
+            # FIXME: Improve the mock agent, since overloading the meaning
+            # of 'response' is getting confusing.
             if response is None:
-                time.sleep(3)
+                conn.shutdown(socket.SHUT_RDWR)
+                conn.close()
+                conn = None
+            elif type(response) is int:
+                time.sleep(response)
             else:
                 conn.send("%s\n" % response)
                 conn.send("$>\x00")
@@ -42,7 +50,25 @@ class BasicTest(unittest.TestCase):
                               ("cd /mnt/sdcard/tests", ""),
                               ("cwd", "/mnt/sdcard/tests"),
                               ("ver", "SUTAgentAndroid Version XX")])
-        
+
+        port = self._sock.getsockname()[1]
+        mozdevice.DroidSUT.debug = 4
+        d = mozdevice.DroidSUT("127.0.0.1", port=port)
+        thread.join()
+
+    def test_reconnect(self):
+        """Tests DeviceManager initialization."""
+        self._sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        self._sock.bind(("127.0.0.1", 0))
+        self._sock.listen(1)
+
+        thread = self._serve([("testroot", "/mnt/sdcard"),
+                              ("cd /mnt/sdcard/tests", ""),
+                              ("cwd", None),
+                              ("cd /mnt/sdcard/tests", ""),
+                              ("cwd", "/mnt/sdcard/tests"),
+                              ("ver", "SUTAgentAndroid Version XX")])
+
         port = self._sock.getsockname()[1]
         mozdevice.DroidSUT.debug = 4
         d = mozdevice.DroidSUT("127.0.0.1", port=port)
@@ -76,7 +102,7 @@ class BasicTest(unittest.TestCase):
                               ("cwd", "/mnt/sdcard/tests"),
                               ("ver", "SUTAgentAndroid Version XX"),
                               ("rm /mnt/sdcard/tests/test.txt", "Removed the file")])
-        
+
         port = self._sock.getsockname()[1]
         mozdevice.DroidSUT.debug = 4
         d = mozdevice.DroidSUT("127.0.0.1", port=port)
@@ -94,8 +120,8 @@ class BasicTest(unittest.TestCase):
                               ("cd /mnt/sdcard/tests", ""),
                               ("cwd", "/mnt/sdcard/tests"),
                               ("ver", "SUTAgentAndroid Version XX"),
-                              ("rm /mnt/sdcard/tests/test.txt", None)])
-        
+                              ("rm /mnt/sdcard/tests/test.txt", 3)])
+
         port = self._sock.getsockname()[1]
         mozdevice.DroidSUT.debug = 4
         d = mozdevice.DroidSUT("127.0.0.1", port=port)
