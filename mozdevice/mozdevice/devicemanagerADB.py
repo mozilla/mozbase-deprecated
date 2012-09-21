@@ -610,26 +610,6 @@ class DeviceManagerADB(DeviceManager):
         print "devicemanagerADB: getAppRoot failed"
         return None
 
-    # Gets the directory location on the device for a specific test type
-    # Type is one of: xpcshell|reftest|mochitest
-    # external function
-    # returns:
-    #  success: path for test root
-    #  failure: None
-    def getTestRoot(self, type):
-        devroot = self.getDeviceRoot()
-        if (devroot == None):
-            return None
-
-        if (re.search('xpcshell', type, re.I)):
-            self.testRoot = devroot + '/xpcshell'
-        elif (re.search('?(i)reftest', type)):
-            self.testRoot = devroot + '/reftest'
-        elif (re.search('?(i)mochitest', type)):
-            self.testRoot = devroot + '/mochitest'
-        return self.testRoot
-
-
     # external function
     # returns:
     #  success: status from test agent
