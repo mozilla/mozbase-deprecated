@@ -77,10 +77,10 @@ class DeviceManagerSUT(DeviceManager):
         return True
 
     def _stripPrompt(self, data):
-        '''
+        """ 
         internal function
         take a data blob and strip instances of the prompt '$>\x00'
-        '''
+        """ 
         promptre = re.compile(self.prompt_regex + '.*')
         retVal = []
         lines = data.split('\n')
@@ -120,14 +120,14 @@ class DeviceManagerSUT(DeviceManager):
         return False
 
     def sendCmds(self, cmdlist, outputfile, timeout = None):
-        '''
+        """
         a wrapper for _doCmds that loops up to self.retrylimit iterations.
         this allows us to move the retry logic outside of the _doCmds() to make it
         easier for debugging in the future.
         note that since cmdlist is a list of commands, they will all be retried if
         one fails.  this is necessary in particular for pushFile(), where we don't want
         to accidentally send extra data if a failure occurs during data transmission.
-        '''
+        """
         retries = 0
         while retries < self.retrylimit:
             try:
@@ -150,11 +150,11 @@ class DeviceManagerSUT(DeviceManager):
         raise AgentError("Remote Device Error: unable to connect to %s after %s attempts" % (self.host, self.retrylimit))
 
     def runCmds(self, cmdlist, timeout = None):
-        '''
+        """ 
         similar to sendCmds, but just returns any output as a string instead of
         writing to a file. this is normally what you want to call to send a set
         of commands to the agent
-        '''
+        """
         outputfile = StringIO.StringIO()
         self.sendCmds(cmdlist, outputfile, timeout)
         outputfile.seek(0)
@@ -294,11 +294,13 @@ class DeviceManagerSUT(DeviceManager):
                 self._sock = None
                 raise AgentError("Automation Error: Error closing socket")
 
-    # external function: executes shell command on device
-    # returns:
-    # success: <return code>
-    # failure: None
     def shell(self, cmd, outputfile, env=None, cwd=None, timeout=None, root=False):
+        """
+        external function: executes shell command on device
+        returns:
+         success: <return code>
+         failure: None
+        """
         cmdline = self._escapedCommandLine(cmd)
         if env:
             cmdline = '%s %s' % (self.formatEnvString(env), cmdline)
@@ -343,11 +345,13 @@ class DeviceManagerSUT(DeviceManager):
         # woops, we couldn't find an end of line/return value
         return None
 
-    # external function
-    # returns:
-    #  success: True
-    #  failure: False
     def pushFile(self, localname, destname):
+        """
+        external function
+        returns:
+          success: True
+          failure: False
+        """
         if (os.name == "nt"):
             destname = destname.replace('\\', '/')
 
@@ -408,11 +412,13 @@ class DeviceManagerSUT(DeviceManager):
                 print "Automation Error: Push File Failed to Validate!"
             return False
 
-    # external function
-    # returns:
-    #  success: directory name
-    #  failure: None
     def mkDir(self, name):
+        """
+        external function
+        returns:
+          success: directory name
+          failure: None
+        """
         if (self.dirExists(name)):
             return name
         else:
@@ -422,12 +428,14 @@ class DeviceManagerSUT(DeviceManager):
                 retVal = None
             return retVal
 
-    # push localDir from host to remoteDir on the device
-    # external function
-    # returns:
-    #  success: remoteDir
-    #  failure: None
     def pushDir(self, localDir, remoteDir):
+        """
+        push localDir from host to remoteDir on the device
+        external function
+        returns:
+          success: remoteDir
+          failure: None
+        """
         if (self.debug >= 2):
             print "pushing directory: %s to %s" % (localDir, remoteDir)
         for root, dirs, files in os.walk(localDir, followlinks=True):
@@ -447,11 +455,13 @@ class DeviceManagerSUT(DeviceManager):
                         return None
         return remoteDir
 
-    # external function
-    # returns:
-    #  success: True
-    #  failure: False
     def dirExists(self, dirname):
+        """
+        external function
+        returns:
+          success: True
+          failure: False
+        """
         match = ".*" + dirname.replace('^', '\^') + "$"
         dirre = re.compile(match)
         try:
@@ -468,11 +478,13 @@ class DeviceManagerSUT(DeviceManager):
 
     # Because we always have / style paths we make this a lot easier with some
     # assumptions
-    # external function
-    # returns:
-    #  success: True
-    #  failure: False
     def fileExists(self, filepath):
+        """
+        external function
+        returns:
+          success: True
+          failure: False
+        """
         s = filepath.split('/')
         containingpath = '/'.join(s[:-1])
         listfiles = self.listFiles(containingpath)
@@ -481,12 +493,14 @@ class DeviceManagerSUT(DeviceManager):
                 return True
         return False
 
-    # list files on the device, requires cd to directory first
-    # external function
-    # returns:
-    #  success: array of filenames, ['file1', 'file2', ...]
-    #  failure: []
     def listFiles(self, rootdir):
+        """
+        list files on the device, requires cd to directory first
+        external function
+        returns:
+          success: array of filenames, ['file1', 'file2', ...]
+          failure: []
+        """
         rootdir = rootdir.rstrip('/')
         if (self.dirExists(rootdir) == False):
             return []
@@ -501,11 +515,13 @@ class DeviceManagerSUT(DeviceManager):
             return []
         return files
 
-    # external function
-    # returns:
-    #  success: output of telnet, i.e. "removing file: /mnt/sdcard/tests/test.txt"
-    #  failure: None
     def removeFile(self, filename):
+        """
+        external function
+        returns:
+          success: output of telnet, i.e. "removing file: /mnt/sdcard/tests/test.txt"
+          failure: None
+        """
         if (self.debug>= 2):
             print "removing file: " + filename
         try:
@@ -515,12 +531,14 @@ class DeviceManagerSUT(DeviceManager):
 
         return retVal
 
-    # does a recursive delete of directory on the device: rm -Rf remoteDir
-    # external function
-    # returns:
-    #  success: output of telnet, i.e. "removing file: /mnt/sdcard/tests/test.txt"
-    #  failure: None
     def removeDir(self, remoteDir):
+        """
+        does a recursive delete of directory on the device: rm -Rf remoteDir
+        external function
+        returns:
+          success: output of telnet, i.e. "removing file: /mnt/sdcard/tests/test.txt"
+          failure: None
+        """
         try:
             retVal = self.runCmds([{ 'cmd': 'rmdr ' + remoteDir }])
         except AgentError:
@@ -528,11 +546,13 @@ class DeviceManagerSUT(DeviceManager):
 
         return retVal
 
-    # external function
-    # returns:
-    #  success: array of process tuples
-    #  failure: []
     def getProcessList(self):
+        """
+        external function
+        returns:
+          success: array of process tuples
+          failure: []
+        """
         try:
             data = self.runCmds([{ 'cmd': 'ps' }])
         except AgentError:
@@ -549,12 +569,14 @@ class DeviceManagerSUT(DeviceManager):
                     files += [[pidproc[1], pidproc[2], pidproc[0]]]
         return files
 
-    # external function
-    # DEPRECATED: Use shell() or launchApplication() for new code
-    # returns:
-    #  success: pid
-    #  failure: None
     def fireProcess(self, appname, failIfRunning=False):
+        """
+        external function
+        DEPRECATED: Use shell() or launchApplication() for new code
+        returns:
+          success: pid
+          failure: None
+        """
         if (not appname):
             if (self.debug >= 1):
                 print "WARNING: fireProcess called with no command to run"
@@ -581,12 +603,14 @@ class DeviceManagerSUT(DeviceManager):
 
         return process
 
-    # external function
-    # DEPRECATED: Use shell() or launchApplication() for new code
-    # returns:
-    #  success: output filename
-    #  failure: None
     def launchProcess(self, cmd, outputFile = "process.txt", cwd = '', env = '', failIfRunning=False):
+        """
+        external function
+        DEPRECATED: Use shell() or launchApplication() for new code
+        returns:
+          success: output filename
+          failure: None
+        """
         if not cmd:
             if (self.debug >= 1):
                 print "WARNING: launchProcess called without command to run"
@@ -607,11 +631,13 @@ class DeviceManagerSUT(DeviceManager):
             return None
         return outputFile
 
-    # external function
-    # returns:
-    #  success: True
-    #  failure: False
     def killProcess(self, appname, forceKill=False):
+        """
+        external function
+        returns:
+          success: True
+          failure: False
+        """
         if forceKill:
             print "WARNING: killProcess(): forceKill parameter unsupported on SUT"
         try:
@@ -621,11 +647,13 @@ class DeviceManagerSUT(DeviceManager):
 
         return True
 
-    # external function
-    # returns:
-    #  success: tmpdir, string
-    #  failure: None
     def getTempDir(self):
+        """
+        external function
+        returns:
+          success: tmpdir, string
+          failure: None
+        """
         try:
             data = self.runCmds([{ 'cmd': 'tmpd' }])
         except AgentError:
@@ -633,11 +661,13 @@ class DeviceManagerSUT(DeviceManager):
 
         return data.strip()
 
-    # external function
-    # returns:
-    #  success: filecontents
-    #  failure: None
     def catFile(self, remoteFile):
+        """
+        external function
+        returns:
+          success: filecontents
+          failure: None
+        """
         try:
             data = self.runCmds([{ 'cmd': 'cat ' + remoteFile }])
         except AgentError:
@@ -645,10 +675,6 @@ class DeviceManagerSUT(DeviceManager):
 
         return data
 
-    # external function
-    # returns:
-    #  success: output of pullfile, string
-    #  failure: None
     def pullFile(self, remoteFile):
         """Returns contents of remoteFile using the "pull" command.
         The "pull" command is different from other commands in that DeviceManager
@@ -656,6 +682,11 @@ class DeviceManagerSUT(DeviceManager):
         next prompt.  This is more robust than the "cat" command, which will be
         confused if the prompt string exists within the file being catted.
         However it means we can't use the response-handling logic in sendCMD().
+        
+        external function
+        returns:
+          success: output of pullfile, string
+          failure: None
         """
 
         def err(error_msg):
@@ -762,12 +793,14 @@ class DeviceManagerSUT(DeviceManager):
             return buf
         return buf[:-len(prompt)]
 
-    # copy file from device (remoteFile) to host (localFile)
-    # external function
-    # returns:
-    #  success: output of pullfile, string
-    #  failure: None
     def getFile(self, remoteFile, localFile = ''):
+        """
+        copy file from device (remoteFile) to host (localFile)
+        external function
+        returns:
+          success: output of pullfile, string
+          failure: None
+        """
         if localFile == '':
             localFile = os.path.join(self.tempRoot, "temp.txt")
 
@@ -787,15 +820,17 @@ class DeviceManagerSUT(DeviceManager):
             return None
         return retVal
 
-    # copy directory structure from device (remoteDir) to host (localDir)
-    # external function
-    # checkDir exists so that we don't create local directories if the
-    # remote directory doesn't exist but also so that we don't call isDir
-    # twice when recursing.
-    # returns:
-    #  success: list of files, string
-    #  failure: None
     def getDirectory(self, remoteDir, localDir, checkDir=True):
+        """
+        copy directory structure from device (remoteDir) to host (localDir)
+        external function
+        checkDir exists so that we don't create local directories if the
+        remote directory doesn't exist but also so that we don't call isDir
+        twice when recursing.
+        returns:
+          success: list of files, string
+          failure: None
+        """
         if (self.debug >= 2):
             print "getting files in '" + remoteDir + "'"
         if checkDir:
@@ -835,12 +870,14 @@ class DeviceManagerSUT(DeviceManager):
                     print 'failed to get file "%s"; continuing anyway...' % remotePath
         return filelist
 
-    # external function
-    # returns:
-    #  success: True
-    #  failure: False
-    #  Throws a FileError exception when null (invalid dir/filename)
     def isDir(self, remotePath):
+        """
+        external function
+        returns:
+          success: True
+          failure: False
+        Throws a FileError exception when null (invalid dir/filename)
+        """
         try:
             data = self.runCmds([{ 'cmd': 'isdir ' + remotePath }])
         except AgentError:
@@ -854,12 +891,14 @@ class DeviceManagerSUT(DeviceManager):
             raise FileError('isdir returned null')
         return retVal == 'TRUE'
 
-    # true/false check if the two files have the same md5 sum
-    # external function
-    # returns:
-    #  success: True
-    #  failure: False
     def validateFile(self, remoteFile, localFile):
+        """
+        true/false check if the two files have the same md5 sum
+        external function
+        returns:
+          success: True
+          failure: False
+        """
         remoteHash = self.getRemoteHash(remoteFile)
         localHash = self.getLocalHash(localFile)
 
@@ -871,12 +910,14 @@ class DeviceManagerSUT(DeviceManager):
 
         return False
 
-    # return the md5 sum of a remote file
-    # internal function
-    # returns:
-    #  success: MD5 hash for given filename
-    #  failure: None
     def getRemoteHash(self, filename):
+        """
+        return the md5 sum of a remote file
+        internal function
+        returns:
+          success: MD5 hash for given filename
+          failure: None
+        """
         try:
             data = self.runCmds([{ 'cmd': 'hash ' + filename }])
         except AgentError:
@@ -889,24 +930,26 @@ class DeviceManagerSUT(DeviceManager):
             print "remote hash returned: '%s'" % retVal
         return retVal
 
-    # Gets the device root for the testing area on the device
-    # For all devices we will use / type slashes and depend on the device-agent
-    # to sort those out.  The agent will return us the device location where we
-    # should store things, we will then create our /tests structure relative to
-    # that returned path.
-    # Structure on the device is as follows:
-    # /tests
-    #       /<fennec>|<firefox>  --> approot
-    #       /profile
-    #       /xpcshell
-    #       /reftest
-    #       /mochitest
-    #
-    # external function
-    # returns:
-    #  success: path for device root
-    #  failure: None
     def getDeviceRoot(self):
+        """
+        Gets the device root for the testing area on the device
+        For all devices we will use / type slashes and depend on the device-agent
+        to sort those out.  The agent will return us the device location where we
+        should store things, we will then create our /tests structure relative to
+        that returned path.
+        Structure on the device is as follows:
+        /tests
+            /<fennec>|<firefox>  --> approot
+            /profile
+            /xpcshell
+            /reftest
+            /mochitest
+
+        external function
+        returns:
+          success: path for device root
+          failure: None
+        """
         if self.deviceRoot:
             deviceRoot = self.deviceRoot
         else:
@@ -932,11 +975,13 @@ class DeviceManagerSUT(DeviceManager):
 
         return data.strip()
 
-    # external function
-    # returns:
-    #  success: output of unzip command
-    #  failure: None
     def unpackFile(self, file_path, dest_dir=None):
+        """
+        external function
+        returns:
+          success: output of unzip command
+          failure: None
+        """
         devroot = self.getDeviceRoot()
         if (devroot == None):
             return None
@@ -955,11 +1000,13 @@ class DeviceManagerSUT(DeviceManager):
 
         return data
 
-    # external function
-    # returns:
-    #  success: status from test agent
-    #  failure: None
     def reboot(self, ipAddr=None, port=30000):
+        """
+        external function
+        returns:
+          success: status from test agent
+          failure: None
+        """
         cmd = 'rebt'
 
         if (self.debug > 3):
@@ -992,24 +1039,26 @@ class DeviceManagerSUT(DeviceManager):
             print "INFO: rebt- got status back: " + str(status)
         return status
 
-    # Returns information about the device:
-    # Directive indicates the information you want to get, your choices are:
-    # os - name of the os
-    # id - unique id of the device
-    # uptime - uptime of the device
-    # uptimemillis - uptime of the device in milliseconds (SUTAgent 1.11+)
-    # systime - system time of the device
-    # screen - screen resolution
-    # rotation - rotation of the device (in degrees)
-    # memory - memory stats
-    # process - list of running processes (same as ps)
-    # disk - total, free, available bytes on disk
-    # power - power status (charge, battery temp)
-    # all - all of them - or call it with no parameters to get all the information
-    # returns:
-    #   success: dict of info strings by directive name
-    #   failure: {}
     def getInfo(self, directive=None):
+        """
+        Returns information about the device:
+        Directive indicates the information you want to get, your choices are:
+          os - name of the os
+          id - unique id of the device
+          uptime - uptime of the device
+          uptimemillis - uptime of the device in milliseconds (SUTAgent 1.11+)
+          systime - system time of the device
+          screen - screen resolution
+          rotation - rotation of the device (in degrees)
+          memory - memory stats
+          process - list of running processes (same as ps)
+          disk - total, free, available bytes on disk
+          power - power status (charge, battery temp)
+          all - all of them - or call it with no parameters to get all the information
+        returns:
+          success: dict of info strings by directive name
+          failure: {}
+        """
         data = None
         result = {}
         collapseSpaces = re.compile('  +')
@@ -1046,18 +1095,19 @@ class DeviceManagerSUT(DeviceManager):
             print "results: " + str(result)
         return result
 
-    """
-    Installs the application onto the device
-    Application bundle - path to the application bundle on the device
-    Destination - destination directory of where application should be
-                                installed to (optional)
-    Returns None for success, or output if known failure
-    """
-    # external function
-    # returns:
-    #  success: None
-    #  failure: error string
     def installApp(self, appBundlePath, destPath=None):
+        """
+        Installs the application onto the device
+        Application bundle - path to the application bundle on the device
+        Destination - destination directory of where application should be
+                                    installed to (optional)
+        Returns None for success, or output if known failure
+
+        external function
+        returns:
+          success: None
+          failure: error string
+        """
         cmd = 'inst ' + appBundlePath
         if destPath:
             cmd += ' ' + destPath
@@ -1074,18 +1124,19 @@ class DeviceManagerSUT(DeviceManager):
                 return line
         return None
 
-    """
-    Uninstalls the named application from device and causes a reboot.
-    Takes an optional argument of installation path - the path to where the application
-    was installed.
-    Returns True, but it doesn't mean anything other than the command was sent,
-    the reboot happens and we don't know if this succeeds or not.
-    """
-    # external function
-    # returns:
-    #  success: True
-    #  failure: None
     def uninstallAppAndReboot(self, appName, installPath=None):
+        """
+        Uninstalls the named application from device and causes a reboot.
+        Takes an optional argument of installation path - the path to where the application
+        was installed.
+        Returns True, but it doesn't mean anything other than the command was sent,
+        the reboot happens and we don't know if this succeeds or not.
+        
+        external function
+        returns:
+          success: True
+          failure: None
+        """
         cmd = 'uninst ' + appName
         if installPath:
             cmd += ' ' + installPath
@@ -1098,24 +1149,25 @@ class DeviceManagerSUT(DeviceManager):
             print "uninstallAppAndReboot: " + str(data)
         return True
 
-    """
-    Updates the application on the device.
-    Application bundle - path to the application bundle on the device
-    Process name of application - used to end the process if the applicaiton is
-                                                                currently running
-    Destination - Destination directory to where the application should be
-                                installed (optional)
-    ipAddr - IP address to await a callback ping to let us know that the device has updated
-                      properly - defaults to current IP.
-    port - port to await a callback ping to let us know that the device has updated properly
-                  defaults to 30000, and counts up from there if it finds a conflict
-    Returns True if succeeds, False if not
-    """
-    # external function
-    # returns:
-    #  success: text status from command or callback server
-    #  failure: None
     def updateApp(self, appBundlePath, processName=None, destPath=None, ipAddr=None, port=30000):
+        """
+        Updates the application on the device.
+        Application bundle - path to the application bundle on the device
+        Process name of application - used to end the process if the applicaiton is
+                                                                    currently running
+        Destination - Destination directory to where the application should be
+                                    installed (optional)
+        ipAddr - IP address to await a callback ping to let us know that the device has updated
+                          properly - defaults to current IP.
+        port - port to await a callback ping to let us know that the device has updated properly
+                      defaults to 30000, and counts up from there if it finds a conflict
+        Returns True if succeeds, False if not
+
+        external function
+        returns:
+          success: text status from command or callback server
+          failure: None
+        """
         status = None
         cmd = 'updt '
         if (processName == None):
@@ -1149,14 +1201,15 @@ class DeviceManagerSUT(DeviceManager):
 
         return status
 
-    """
-        return the current time on the device
-    """
-    # external function
-    # returns:
-    #  success: time in ms
-    #  failure: None
     def getCurrentTime(self):
+        """
+        return the current time on the device
+
+        external function
+        returns:
+          success: time in ms
+          failure: None
+        """
         try:
             data = self.runCmds([{ 'cmd': 'clok' }])
         except AgentError:
@@ -1164,12 +1217,12 @@ class DeviceManagerSUT(DeviceManager):
 
         return data.strip()
 
-    """
+    def getCallbackIpAndPort(self, aIp, aPort):
+        """
         Connect the ipaddress and port for a callback ping.  Defaults to current IP address
         And ports starting at 30000.
         NOTE: the detection for current IP address only works on Linux!
-    """
-    def getCallbackIpAndPort(self, aIp, aPort):
+        """
         ip = aIp
         nettools = NetworkTools()
         if (ip == None):
@@ -1180,13 +1233,13 @@ class DeviceManagerSUT(DeviceManager):
             port = nettools.findOpenPort(ip, 30000)
         return ip, port
 
-    """
+    def formatEnvString(self, env):
+        """
         Returns a properly formatted env string for the agent.
         Input - env, which is either None, '', or a dict
         Output - a quoted string of the form: '"envvar1=val1,envvar2=val2..."'
         If env is None or '' return '' (empty quoted string)
-    """
-    def formatEnvString(self, env):
+        """
         if (env == None or env == ''):
             return ''
 
@@ -1196,15 +1249,15 @@ class DeviceManagerSUT(DeviceManager):
 
         return retVal
 
-    """
+    def adjustResolution(self, width=1680, height=1050, type='hdmi'):
+        """
         adjust the screen resolution on the device, REBOOT REQUIRED
         NOTE: this only works on a tegra ATM
         success: True
         failure: False
 
         supported resolutions: 640x480, 800x600, 1024x768, 1152x864, 1200x1024, 1440x900, 1680x1050, 1920x1080
-    """
-    def adjustResolution(self, width=1680, height=1050, type='hdmi'):
+        """
         if self.getInfo('os')['os'][0].split()[0] != 'harmony-eng':
             if (self.debug >= 2):
                 print "WARNING: unable to adjust screen resolution on non Tegra device"
@@ -1244,11 +1297,13 @@ class DeviceManagerSUT(DeviceManager):
 
         return True
 
-    # external function
-    # returns:
-    #  success: True
-    #  failure: False
     def chmodDir(self, remoteDir):
+        """
+        external function
+        returns:
+          success: True
+          failure: False
+        """
         try:
             self.runCmds([{ 'cmd': "chmod "+remoteDir }])
         except AgentError:
