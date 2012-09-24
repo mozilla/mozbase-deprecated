@@ -432,18 +432,18 @@ class DeviceManagerSUT(DeviceManager):
             print "pushing directory: %s to %s" % (localDir, remoteDir)
         for root, dirs, files in os.walk(localDir, followlinks=True):
             parts = root.split(localDir)
-            for file in files:
+            for f in files:
                 remoteRoot = remoteDir + '/' + parts[1]
                 if (remoteRoot.endswith('/')):
-                    remoteName = remoteRoot + file
+                    remoteName = remoteRoot + f
                 else:
-                    remoteName = remoteRoot + '/' + file
+                    remoteName = remoteRoot + '/' + f
                 if (parts[1] == ""):
                     remoteRoot = remoteDir
-                if (self.pushFile(os.path.join(root, file), remoteName) == False):
+                if (self.pushFile(os.path.join(root, f), remoteName) == False):
                     # retry once
                     self.removeFile(remoteName)
-                    if (self.pushFile(os.path.join(root, file), remoteName) == False):
+                    if (self.pushFile(os.path.join(root, f), remoteName) == False):
                         return None
         return remoteDir
 
@@ -692,28 +692,28 @@ class DeviceManagerSUT(DeviceManager):
                 err(error_msg)
                 return None
 
-        def read_until_char(c, buffer, error_msg):
+        def read_until_char(c, buf, error_msg):
             """ read until 'c' is found; buffer rest """
-            while not '\n' in buffer:
+            while not '\n' in buf:
                 data = uread(1024, error_msg)
                 if data == None:
                     err(error_msg)
                     return ('', '', '')
-                buffer += data
-            return buffer.partition(c)
+                buf += data
+            return buf.partition(c)
 
-        def read_exact(total_to_recv, buffer, error_msg):
+        def read_exact(total_to_recv, buf, error_msg):
             """ read exact number of 'total_to_recv' bytes """
-            while len(buffer) < total_to_recv:
-                to_recv = min(total_to_recv - len(buffer), 1024)
+            while len(buf) < total_to_recv:
+                to_recv = min(total_to_recv - len(buf), 1024)
                 data = uread(to_recv, error_msg)
                 if data == None:
                     return None
-                buffer += data
-            return buffer
+                buf += data
+            return buf
 
         prompt = self.base_prompt + self.prompt_sep
-        buffer = ''
+        buf = ''
 
         # expected return value:
         # <filename>,<filesize>\n<filedata>
@@ -726,7 +726,7 @@ class DeviceManagerSUT(DeviceManager):
             return None
 
         # read metadata; buffer the rest
-        metadata, sep, buffer = read_until_char('\n', buffer, 'could not find metadata')
+        metadata, sep, buf = read_until_char('\n', buf, 'could not find metadata')
         if not metadata:
             return None
         if self.debug >= 3:
@@ -744,23 +744,23 @@ class DeviceManagerSUT(DeviceManager):
 
         if filesize == -1:
             # read error message
-            error_str, sep, buffer = read_until_char('\n', buffer, 'could not find error message')
+            error_str, sep, buf = read_until_char('\n', buf, 'could not find error message')
             if not error_str:
                 return None
             # prompt should follow
-            read_exact(len(prompt), buffer, 'could not find prompt')
+            read_exact(len(prompt), buf, 'could not find prompt')
             print "Remote Device Error: DeviceManager: error pulling file '%s': %s" % (remoteFile, error_str)
             return None
 
         # read file data
         total_to_recv = filesize + len(prompt)
-        buffer = read_exact(total_to_recv, buffer, 'Automation Error: could not get all file data')
-        if buffer == None:
+        buf = read_exact(total_to_recv, buf, 'Automation Error: could not get all file data')
+        if buf == None:
             return None
-        if buffer[-len(prompt):] != prompt:
+        if buf[-len(prompt):] != prompt:
             err('Automation Error: no prompt found after file data--DeviceManager may be out of sync with agent')
-            return buffer
-        return buffer[:-len(prompt)]
+            return buf
+        return buf[:-len(prompt)]
 
     # copy file from device (remoteFile) to host (localFile)
     # external function
@@ -1311,4 +1311,3 @@ class callbackServer():
             gCallbackData = self.request.recv(1024)
             #print "Callback Handler got data: " + str(gCallbackData)
             self.request.send("OK")
-

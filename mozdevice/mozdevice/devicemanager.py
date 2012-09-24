@@ -303,8 +303,8 @@ class DeviceManager:
         failure: None
         """
 
-        file = open(filename, 'rb')
-        if (file == None):
+        f = open(filename, 'rb')
+        if (f == None):
             return None
 
         try:
@@ -313,12 +313,12 @@ class DeviceManager:
             return None
 
         while 1:
-            data = file.read(1024)
+            data = f.read(1024)
             if not data:
                 break
             mdsum.update(data)
 
-        file.close()
+        f.close()
         hexval = mdsum.hexdigest()
         if (self.debug >= 3):
             print "local hash returned: '" + hexval + "'"
@@ -357,10 +357,10 @@ class DeviceManager:
         failure: None
         """
 
-    def getTestRoot(self, type):
+    def getTestRoot(self, harness):
         """
         Gets the directory location on the device for a specific test type
-        Type is one of: xpcshell|reftest|mochitest
+        Harness is one of: xpcshell|reftest|mochitest
         external function
         returns:
         success: path for test root
@@ -371,11 +371,11 @@ class DeviceManager:
         if (devroot == None):
             return None
 
-        if (re.search('xpcshell', type, re.I)):
+        if (re.search('xpcshell', harness, re.I)):
             self.testRoot = devroot + '/xpcshell'
-        elif (re.search('?(i)reftest', type)):
+        elif (re.search('?(i)reftest', harness)):
             self.testRoot = devroot + '/reftest'
-        elif (re.search('?(i)mochitest', type)):
+        elif (re.search('?(i)mochitest', harness)):
             self.testRoot = devroot + '/mochitest'
         return self.testRoot
 
@@ -425,13 +425,13 @@ class DeviceManager:
             print "validating directory: " + localDir + " to " + remoteDir
         for root, dirs, files in os.walk(localDir):
             parts = root.split(localDir)
-            for file in files:
+            for f in files:
                 remoteRoot = remoteDir + '/' + parts[1]
                 remoteRoot = remoteRoot.replace('/', '/')
                 if (parts[1] == ""):
                     remoteRoot = remoteDir
-                remoteName = remoteRoot + '/' + file
-                if (self.validateFile(remoteName, os.path.join(root, file)) <> True):
+                remoteName = remoteRoot + '/' + f
+                if (self.validateFile(remoteName, os.path.join(root, f)) <> True):
                         return False
         return True
 
@@ -608,18 +608,18 @@ class NetworkTools:
 
         return seed
 
-def _pop_last_line(file):
+def _pop_last_line(file_obj):
     '''
     Utility function to get the last line from a file (shared between ADB and
     SUT device managers). Function also removes it from the file. Intended to
     strip off the return code from a shell command.
     '''
     bytes_from_end = 1
-    file.seek(0, 2)
-    length = file.tell() + 1
+    file_obj.seek(0, 2)
+    length = file_obj.tell() + 1
     while bytes_from_end < length:
-        file.seek((-1)*bytes_from_end, 2)
-        data = file.read()
+        file_obj.seek((-1)*bytes_from_end, 2)
+        data = file_obj.read()
 
         if bytes_from_end == length-1 and len(data) == 0: # no data, return None
             return None
@@ -630,9 +630,9 @@ def _pop_last_line(file):
                 data = data[1:]
 
             # truncate off the return code line
-            file.truncate(length - bytes_from_end)
-            file.seek(0,2)
-            file.write('\0')
+            file_obj.truncate(length - bytes_from_end)
+            file_obj.seek(0,2)
+            file_obj.write('\0')
 
             return data
 

@@ -227,18 +227,18 @@ class DeviceManagerADB(DeviceManager):
             else:
                 for root, dirs, files in os.walk(localDir, followlinks=True):
                     relRoot = os.path.relpath(root, localDir)
-                    for file in files:
-                        localFile = os.path.join(root, file)
+                    for f in files:
+                        localFile = os.path.join(root, f)
                         remoteFile = remoteDir + "/"
                         if (relRoot!="."):
                             remoteFile = remoteFile + relRoot + "/"
-                        remoteFile = remoteFile + file
+                        remoteFile = remoteFile + f
                         self.pushFile(localFile, remoteFile)
-                    for dir in dirs:
+                    for d in dirs:
                         targetDir = remoteDir + "/"
                         if (relRoot!="."):
                             targetDir = targetDir + relRoot + "/"
-                        targetDir = targetDir + dir
+                        targetDir = targetDir + d
                         if (not self.dirExists(targetDir)):
                             self.mkDir(targetDir)
             return remoteDir
