@@ -147,7 +147,7 @@ class DeviceManagerSUT(DeviceManager):
           print 'Could not connect; sleeping for %d seconds.' % sleep_time
           time.sleep(sleep_time)
 
-    raise AgentError("Remote Device Error: unable to connect to %s after %s attempts" % (self.host, self.retrylimit))
+    raise AgentError("unable to connect to %s after %s attempts" % (self.host, self.retrylimit))
 
   def runCmds(self, cmdlist, timeout = None):
     '''
@@ -175,19 +175,19 @@ class DeviceManagerSUT(DeviceManager):
         self._sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
       except socket.error, msg:
         self._sock = None
-        raise AgentError("Automation Error: unable to create socket: "+str(msg))
+        raise AgentError("unable to create socket: "+str(msg))
 
       try:
         self._sock.connect((self.host, int(self.port)))
         if select.select([self._sock], [], [], timeout)[0]:
           self._sock.recv(1024)
         else:
-          raise AgentError("Remote Device Error: Timeout in connecting", fatal=True)
+          raise AgentError("Timeout in connecting", fatal=True)
           return False
       except socket.error, msg:
         self._sock.close()
         self._sock = None
-        raise AgentError("Remote Device Error: unable to connect socket: "+str(msg))
+        raise AgentError("unable to connect socket: "+str(msg))
 
     for cmd in cmdlist:
       cmdline = '%s\r\n' % cmd['cmd']
@@ -208,7 +208,7 @@ class DeviceManagerSUT(DeviceManager):
         self._sock.close()
         self._sock = None
         if self.debug >= 1:
-          print "Remote Device Error: Error sending data to socket. cmd="+str(cmd['cmd'])+"; err="+str(msg)
+          print "Error sending data to socket. cmd="+str(cmd['cmd'])+"; err="+str(msg)
         return False
 
       # Check if the command should close the socket
@@ -251,7 +251,7 @@ class DeviceManagerSUT(DeviceManager):
           if socketClosed:
             self._sock.close()
             self._sock = None
-            raise AgentError("Automation Error: Error receiving data from socket. cmd=%s; err=%s" % (cmd, errStr))
+            raise AgentError("Error receiving data from socket. cmd=%s; err=%s" % (cmd, errStr))
 
           data += temp
 
@@ -277,7 +277,7 @@ class DeviceManagerSUT(DeviceManager):
               data = data[1024:]
 
         if commandFailed:
-          raise AgentError("Automation Error: Agent Error processing command '%s'; err='%s'" %
+          raise AgentError("Agent Error processing command '%s'; err='%s'" %
                            (cmd['cmd'], errorMatch.group(1)), fatal=True)
 
         # Write any remaining data to outputfile
@@ -289,7 +289,7 @@ class DeviceManagerSUT(DeviceManager):
         self._sock = None
       except:
         self._sock = None
-        raise AgentError("Automation Error: Error closing socket")
+        raise AgentError("Error closing socket")
 
   # external function: executes shell command on device
   # returns:
@@ -358,7 +358,7 @@ class DeviceManagerSUT(DeviceManager):
       return True
 
     if self.mkDirs(destname) == None:
-      print "Automation Error: unable to make dirs: " + destname
+      print "unable to make dirs: " + destname
       return False
 
     if (self.debug >= 3): print "sending: push " + destname
@@ -372,7 +372,7 @@ class DeviceManagerSUT(DeviceManager):
       retVal = self.runCmds([{ 'cmd': 'push ' + destname + ' ' + str(filesize),
                                'data': data }])
     except AgentError, e:
-      print "Automation Error: error pushing file: %s" % e.msg
+      print "error pushing file: %s" % e.msg
       return False
 
     if (self.debug >= 3): print "push returned: " + str(retVal)
@@ -396,7 +396,7 @@ class DeviceManagerSUT(DeviceManager):
       if (self.debug >= 3): print "Push File Validated!"
       return True
     else:
-      if (self.debug >= 2): print "Automation Error: Push File Failed to Validate!"
+      if (self.debug >= 2): print "Push File Failed to Validate!"
       return False
 
   # external function
@@ -643,7 +643,7 @@ class DeviceManagerSUT(DeviceManager):
     """
 
     def err(error_msg):
-        err_str = 'Remote Device Error: error returned from pull: %s' % error_msg
+        err_str = 'error returned from pull: %s' % error_msg
         print err_str
         self._sock = None
         raise FileError(err_str)
@@ -665,7 +665,7 @@ class DeviceManagerSUT(DeviceManager):
           timer = 0
         timer += select_timeout
         if timer > timeout:
-          err('Remote Device Error: timeout in uread while retrieving file')
+          err('timeout in uread while retrieving file')
           return None
 
         if not data:
@@ -718,12 +718,12 @@ class DeviceManagerSUT(DeviceManager):
 
     filename, sep, filesizestr = metadata.partition(',')
     if sep == '':
-      err('Automation Error: could not find file size in returned metadata')
+      err('could not find file size in returned metadata')
       return None
     try:
         filesize = int(filesizestr)
     except ValueError:
-      err('Automation Error: invalid file size in returned metadata')
+      err('invalid file size in returned metadata')
       return None
 
     if filesize == -1:
@@ -733,16 +733,16 @@ class DeviceManagerSUT(DeviceManager):
         return None
       # prompt should follow
       read_exact(len(prompt), buffer, 'could not find prompt')
-      print "Remote Device Error: DeviceManager: error pulling file '%s': %s" % (remoteFile, error_str)
+      print "DeviceManager: error pulling file '%s': %s" % (remoteFile, error_str)
       return None
 
     # read file data
     total_to_recv = filesize + len(prompt)
-    buffer = read_exact(total_to_recv, buffer, 'Automation Error: could not get all file data')
+    buffer = read_exact(total_to_recv, buffer, 'could not get all file data')
     if buffer == None:
       return None
     if buffer[-len(prompt):] != prompt:
-      err('Automation Error: no prompt found after file data--DeviceManager may be out of sync with agent')
+      err('no prompt found after file data--DeviceManager may be out of sync with agent')
       return buffer
     return buffer[:-len(prompt)]
 
@@ -767,7 +767,7 @@ class DeviceManagerSUT(DeviceManager):
     fhandle.write(retVal)
     fhandle.close()
     if not self.validateFile(remoteFile, localFile):
-      print 'Automation Error: failed to validate file when downloading %s!' % remoteFile
+      print 'failed to validate file when downloading %s!' % remoteFile
       return None
     return retVal
 
@@ -806,7 +806,7 @@ class DeviceManagerSUT(DeviceManager):
         continue
       if is_dir:
         if (self.getDirectory(remotePath, localPath, False) == None):
-          print 'Remote Device Error: failed to get directory "%s"' % remotePath
+          print 'failed to get directory "%s"' % remotePath
           return None
       else:
         # It's sometimes acceptable to have getFile() return None, such as
@@ -1044,7 +1044,7 @@ class DeviceManagerSUT(DeviceManager):
     try:
       data = self.runCmds([{ 'cmd': cmd }])
     except AgentError, err:
-      print "Remote Device Error: Error installing app: %s" % err
+      print "Error installing app: %s" % err
       return "%s" % err
 
     f = re.compile('Failure')
@@ -1265,7 +1265,7 @@ class callbackServer():
       if (self.debug >= 3): print "Shutting down server now"
       self.server.shutdown()
     except:
-      if (self.debug >= 1): print "Automation Error: Unable to shutdown callback server - check for a connection on port: " + str(self.port)
+      if (self.debug >= 1): print "Unable to shutdown callback server - check for a connection on port: " + str(self.port)
 
     #sleep 1 additional step to ensure not only we are online, but all our services are online
     time.sleep(step)
