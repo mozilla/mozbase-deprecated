@@ -18,8 +18,9 @@ class DeviceManagerADB(DeviceManager):
         self.retrylimit = retrylimit
         self.retries = 0
         self._sock = None
+        self.haveRootShell = False
+        self.haveSu = False
         self.useRunAs = False
-        self.haveRoot = False
         self.useDDCopy = False
         self.useZip = False
         self.packageName = None
@@ -55,30 +56,17 @@ class DeviceManagerADB(DeviceManager):
         # set up device root
         self.setupDeviceRoot()
 
-        # Can we use run-as? (currently not required)
+        # Some commands require root to work properly, even with ADB (e.g.
+        # grabbing APKs out of /data). For these cases, we check whether
+        # we're running as root. If that isn't true, check for the
+        # existence of an su binary
+        self._checkForRoot()
+
+        # Can we use run-as? (not required)
         try:
             self.verifyRunAs()
         except DMError:
             pass
-
-        # Can we run things as root? (currently not required)
-        useRunAsTmp = self.useRunAs
-        self.useRunAs = False
-        try:
-            self.verifyRoot()
-        except DMError:
-            try:
-                self.checkCmd(["root"])
-                # The root command does not fail even if ADB cannot get
-                # root rights (e.g. due to production builds), so we have
-                # to check again ourselves that we have root now.
-                self.verifyRoot()
-            except DMError:
-                if useRunAsTmp:
-                    print "restarting as root failed, but run-as available"
-                else:
-                    print "restarting as root failed"
-        self.useRunAs = useRunAsTmp
 
         # can we use zip to speed up some file operations? (currently not
         # required)
@@ -103,10 +91,17 @@ class DeviceManagerADB(DeviceManager):
         # FIXME: this function buffers all output of the command into memory,
         # always. :(
 
+        # If requested to run as root, check that we can actually do that
+        if root and not self.haveRootShell and not self.haveSu:
+            raise DMError("Shell command '%s' requested to run as root but root "
+                          "is not available on this device. Root your device or "
+                          "refactor the test/harness to not require root." %
+                          self._escapedCommandLine(cmd))
+
         # Getting the return code is more complex than you'd think because adb
         # doesn't actually return the return code from a process, so we have to
         # capture the output to get it
-        if root:
+        if root and not self.haveRootShell:
             cmdline = "su -c \"%s\"" % self._escapedCommandLine(cmd)
         else:
             cmdline = self._escapedCommandLine(cmd)
@@ -740,12 +735,12 @@ class DeviceManagerADB(DeviceManager):
         return ret
 
     def runCmd(self, args):
-        # If we are not root but have run-as, and we're trying to execute
-        # a shell command then using run-as is the best we can do
         finalArgs = [self.adbPath]
         if self.deviceSerial:
             finalArgs.extend(['-s', self.deviceSerial])
-        if (not self.haveRoot and self.useRunAs and args[0] == "shell" and args[1] != "run-as"):
+        # use run-as to execute commands as the package we're testing if
+        # possible
+        if not self.haveRootShell and self.useRunAs and args[0] == "shell" and args[1] != "run-as":
             args.insert(1, "run-as")
             args.insert(2, self.packageName)
         finalArgs.extend(args)
@@ -757,15 +752,15 @@ class DeviceManagerADB(DeviceManager):
             args.insert(2, self.packageName)
         return self.runCmd(args)
 
-    # timeout is specified in seconds, and if no timeout is given, 
+    # timeout is specified in seconds, and if no timeout is given,
     # we will run until we hit the default_timeout specified in the __init__
     def checkCmd(self, args, timeout=None):
-        # If we are not root but have run-as, and we're trying to execute
-        # a shell command then using run-as is the best we can do
+        # use run-as to execute commands as the package we're testing if
+        # possible
         finalArgs = [self.adbPath]
         if self.deviceSerial:
             finalArgs.extend(['-s', self.deviceSerial])
-        if (not self.haveRoot and self.useRunAs and args[0] == "shell" and args[1] != "run-as"):
+        if not self.haveRootShell and self.useRunAs and args[0] == "shell" and args[1] != "run-as":
             args.insert(1, "run-as")
             args.insert(2, self.packageName)
         finalArgs.extend(args)
@@ -851,18 +846,6 @@ class DeviceManagerADB(DeviceManager):
         except subprocess.CalledProcessError:
             raise DMError("unable to connect to device: is it plugged in?")
 
-    def verifyRoot(self):
-        # a test to see if we have root privs
-        p = self.runCmd(["shell", "id"])
-        response = p.stdout.readline()
-        response = response.rstrip()
-        response = response.split(' ')
-        if (response[0].find('uid=0') < 0 or response[1].find('gid=0') < 0):
-            print "NOT running as root ", response[0].find('uid=0')
-            raise DMError("not running as root")
-
-        self.haveRoot = True
-
     def isCpAvailable(self):
         # Some Android systems may not have a cp command installed,
         # or it may not be executable by the user.
@@ -908,6 +891,34 @@ class DeviceManagerADB(DeviceManager):
                 self.useRunAs = True
             self.checkCmd(["shell", "rm", devroot + "/tmp/tmpfile"])
             self.checkCmd(["shell", "run-as", self.packageName, "rm", "-r", devroot + "/sanity"])
+
+    def _checkForRoot(self):
+        # Check whether we _are_ root by default (some development boards work
+        # this way, this is also the result of some relatively rare rooting
+        # techniques)
+        proc = self.runCmd(["shell", "id"])
+        data = proc.stdout.read()
+        if data.find('uid=0(root)') >= 0:
+            self.haveRootShell = True
+            # if this returns true, we don't care about su
+            return
+
+        # if root shell is not available, check if 'su' can be used to gain
+        # root
+        proc = self.runCmd(["shell", "su", "-c", "id"])
+
+        # wait for response for maximum of 15 seconds, in case su prompts for a
+        # password or triggers the Android SuperUser prompt
+        start_time = time.time()
+        retcode = None
+        while (time.time() - start_time) <= 15 and retcode is None:
+            retcode = proc.poll()
+        if retcode is None: # still not terminated, kill
+            proc.kill()
+
+        data = proc.stdout.read()
+        if data.find('uid=0(root)') >= 0:
+            self.haveSu = True
 
     def isUnzipAvailable(self):
         data = self.runCmdAs(["shell", "unzip"]).stdout.read()
