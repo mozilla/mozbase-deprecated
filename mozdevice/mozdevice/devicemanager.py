@@ -84,7 +84,7 @@ class DeviceManager:
             name += '/' + part
             if (not self.dirExists(name)):
                 if (self.mkDir(name) == None):
-                    print "failed making directory: " + str(name)
+                    print "Automation Error: failed making directory: " + str(name)
                     return None
     return name
 
@@ -596,11 +596,11 @@ class NetworkTools:
           break
         except:
           if seed > maxportnum:
-            print "Could not find open port after checking 5000 ports"
+            print "Automation Error: Could not find open port after checking 5000 ports"
           raise
         seed += 1
     except:
-      print "Socket error trying to find open port"
+      print "Automation Error: Socket error trying to find open port"
 
     return seed
 
