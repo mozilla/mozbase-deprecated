@@ -690,7 +690,7 @@ class DeviceManagerSUT(DeviceManager):
         """
 
         def err(error_msg):
-            err_str = 'Remote Device Error: error returned from pull: %s' % error_msg
+            err_str = 'DeviceManager: pull unsuccessful: %s' % error_msg
             print err_str
             self._sock = None
             raise FileError(err_str)
@@ -712,7 +712,7 @@ class DeviceManagerSUT(DeviceManager):
                     timer = 0
                 timer += select_timeout
                 if timer > timeout:
-                    err('Remote Device Error: timeout in uread while retrieving file')
+                    err('timeout in uread while retrieving file')
                     return None
 
                 if not data:
@@ -765,12 +765,12 @@ class DeviceManagerSUT(DeviceManager):
 
         filename, sep, filesizestr = metadata.partition(',')
         if sep == '':
-            err('Automation Error: could not find file size in returned metadata')
+            err('could not find file size in returned metadata')
             return None
         try:
             filesize = int(filesizestr)
         except ValueError:
-            err('Automation Error: invalid file size in returned metadata')
+            err('invalid file size in returned metadata')
             return None
 
         if filesize == -1:
@@ -786,11 +786,11 @@ class DeviceManagerSUT(DeviceManager):
 
         # read file data
         total_to_recv = filesize + len(prompt)
-        buf = read_exact(total_to_recv, buf, 'Automation Error: could not get all file data')
+        buf = read_exact(total_to_recv, buf, 'could not get all file data')
         if buf == None:
             return None
         if buf[-len(prompt):] != prompt:
-            err('Automation Error: no prompt found after file data--DeviceManager may be out of sync with agent')
+            err('no prompt found after file data--DeviceManager may be out of sync with agent')
             return buf
         return buf[:-len(prompt)]
 
@@ -817,7 +817,7 @@ class DeviceManagerSUT(DeviceManager):
         fhandle.write(retVal)
         fhandle.close()
         if not self.validateFile(remoteFile, localFile):
-            print 'Automation Error: failed to validate file when downloading %s!' % remoteFile
+            print 'DeviceManager: failed to validate file when downloading %s' % remoteFile
             return None
         return retVal
 
