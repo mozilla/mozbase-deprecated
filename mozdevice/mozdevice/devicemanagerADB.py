@@ -480,18 +480,16 @@ class DeviceManagerADB(DeviceManager):
           success: filecontents, string
           failure: None
         """
-        return self.pullFile(remotefile)
+        return self.pullFile(remoteFile)
 
-    def pullFile(self, remoteFile):
+    def _runPull(self, remoteFile, localFile):
         """
-        Returns contents of remoteFile using the "pull" command.
+        Pulls remoteFile from device to host
 
         returns:
-          success: output of pullfile, string
+          success: path to localFile
           failure: None
         """
-        # TODO: add debug flags and allow for printing stdout
-        localfile = '.tmpfile_dm_adb'
         try:
             # First attempt to pull file regularly
             outerr = self._runCmd(["pull",  remoteFile, localFile]).communicate()
@@ -512,16 +510,33 @@ class DeviceManagerADB(DeviceManager):
                         self._runCmd(["pull",  remoteTmpFile, localFile]).stdout.read()
                         # Clean up temporary file
                         self._checkCmdAs(["shell", "rm", remoteTmpFile])
-
-            f = open(localFile)
-            ret = f.read()
-            f.close()
-            os.remove(localfile)
-            return ret
-        except:
+            return localFile
+        except (OSError, ValueError):
             return None
 
-    def getFile(self, remoteFile, localFile = ''):
+    def pullFile(self, remoteFile):
+        """
+        Returns contents of remoteFile using the "pull" command.
+
+        returns:
+          success: output of pullfile, string
+          failure: None
+        """
+        # TODO: add debug flags and allow for printing stdout
+        localFile = tempfile.mkstemp()[1]
+        localFile = self._runPull(remoteFile, localFile)
+
+        if localFile is None:
+            print 'Automation Error: failed to pull file %s!' % remoteFile
+            return None
+
+        f = open(localFile, 'r')
+        ret = f.read()
+        f.close()
+        os.remove(localFile)
+        return ret
+
+    def getFile(self, remoteFile, localFile = 'temp.txt'):
         """
         Copy file from device (remoteFile) to host (localFile)
 
@@ -529,23 +544,17 @@ class DeviceManagerADB(DeviceManager):
           success: contents of file, string
           failure: None
         """
-        if localFile == '':
-            localFile = os.path.join(self.tempRoot, "temp.txt")
-
         try:
             contents = self.pullFile(remoteFile)
         except:
             return None
 
-        if contents == None:
+        if contents is None:
             return None
 
         fhandle = open(localFile, 'wb')
         fhandle.write(contents)
         fhandle.close()
-        if not self.validateFile(remoteFile, localFile):
-            print 'Automation Error: failed to validate file when downloading %s!' % remoteFile
-            return None
         return contents
 
 
@@ -587,12 +596,16 @@ class DeviceManagerADB(DeviceManager):
         Checks if the remoteFile has the same md5 hash as the localFile
 
         returns:
-          success: True
-          failure: False
+          success: True/False
+          failure: None
         """
-        return self._getRemoteHash(remoteFile) == self._getLocalHash(localFile)
+        md5Remote = self._getRemoteHash(remoteFile)
+        md5Local = self._getLocalHash(localFile)
+        if md5Remote is None or md5Local is None:
+            return None
+        return md5Remote == md5Local
 
-    def _getRemoteHash(self, filename):
+    def _getRemoteHash(self, remoteFile):
         """
         Return the md5 sum of a file on the device
 
@@ -600,8 +613,16 @@ class DeviceManagerADB(DeviceManager):
           success: MD5 hash for given filename
           failure: None
         """
-        data = self._runCmd(["shell", "ls", "-l", filename]).stdout.read()
-        return data.split()[3]
+        localFile = tempfile.mkstemp()[1]
+        localFile = self._runPull(remoteFile, localFile)
+
+        if localFile is None:
+            return None
+
+        md5 = self._getLocalHash(localFile)
+        os.remove(localFile)
+
+        return md5
 
     # setup the device root and cache its value
     def _setupDeviceRoot(self):
@@ -981,7 +1002,7 @@ class DeviceManagerADB(DeviceManager):
         # Check whether we _are_ root by default (some development boards work
         # this way, this is also the result of some relatively rare rooting
         # techniques)
-        proc = self.runCmd(["shell", "id"])
+        proc = self._runCmd(["shell", "id"])
         data = proc.stdout.read()
         if data.find('uid=0(root)') >= 0:
             self.haveRootShell = True
@@ -990,7 +1011,7 @@ class DeviceManagerADB(DeviceManager):
 
         # if root shell is not available, check if 'su' can be used to gain
         # root
-        proc = self.runCmd(["shell", "su", "-c", "id"])
+        proc = self._runCmd(["shell", "su", "-c", "id"])
 
         # wait for response for maximum of 15 seconds, in case su prompts for a
         # password or triggers the Android SuperUser prompt

@@ -308,7 +308,7 @@ class DeviceManager:
         """
 
     @staticmethod
-    def _getLocalHash(self, filename):
+    def _getLocalHash(filename):
         """
         Return the MD5 sum of a file on the host
 
@@ -334,8 +334,6 @@ class DeviceManager:
 
         f.close()
         hexval = mdsum.hexdigest()
-        if (self.debug >= 3):
-            print "local hash returned: '" + hexval + "'"
         return hexval
 
     @abstractmethod
