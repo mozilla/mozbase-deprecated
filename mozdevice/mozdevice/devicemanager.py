@@ -496,18 +496,27 @@ class DeviceManager:
         """
 
     @abstractmethod
+    def uninstallApp(self, appName, installPath=None):
+        """
+        Uninstalls the named application from device and DOES NOT cause a reboot
+        appName - the name of the application (e.g org.mozilla.fennec)
+        installPath - the path to where the application was installed (optional)
+
+        returns:
+          success: None
+          failure: DMError exception thrown
+        """
+
+    @abstractmethod
     def uninstallAppAndReboot(self, appName, installPath=None):
         """
         Uninstalls the named application from device and causes a reboot
         appName - the name of the application (e.g org.mozilla.fennec)
         installPath - the path to where the application was installed (optional)
 
-        Returns True, but it doesn't mean anything other than the command was sent,
-        the reboot happens and we don't know if this succeeds or not
-
         returns:
-          success: True
-          failure: None
+          success: None
+          failure: DMError exception thrown
         """
 
     @abstractmethod

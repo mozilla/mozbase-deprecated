@@ -12,7 +12,7 @@ import posixpath
 import subprocess
 from threading import Thread
 import StringIO
-from devicemanager import DeviceManager, FileError, NetworkTools, _pop_last_line
+from devicemanager import DeviceManager, FileError, DMError, NetworkTools, _pop_last_line
 import errno
 from distutils.version import StrictVersion
 
@@ -1149,18 +1149,40 @@ class DeviceManagerSUT(DeviceManager):
                 return line
         return None
 
+    def uninstallApp(self, appName, installPath=None):
+        """
+        Uninstalls the named application from device and DOES NOT cause a reboot
+        appName - the name of the application (e.g org.mozilla.fennec)
+        installPath - the path to where the application was installed (optional)
+
+        returns:
+          success: None
+          failure: DMError exception thrown
+        """
+        cmd = 'uninstall ' + appName
+        if installPath:
+            cmd += ' ' + installPath
+        try:
+            data = self._runCmds([{ 'cmd': cmd }])
+        except AgentError, err:
+            raise DMError("Remote Device Error: Error uninstalling all %s" % appName)
+
+        status = data.split('\n')[0].strip()
+        if self.debug > 3:
+            print "uninstallApp: '%s'" % status
+        if status == 'Success':
+            return
+        raise DMError("Remote Device Error: uninstall failed for %s" % appName)
+
     def uninstallAppAndReboot(self, appName, installPath=None):
         """
         Uninstalls the named application from device and causes a reboot
         appName - the name of the application (e.g org.mozilla.fennec)
         installPath - the path to where the application was installed (optional)
 
-        Returns True, but it doesn't mean anything other than the command was sent,
-        the reboot happens and we don't know if this succeeds or not
-
         returns:
-          success: True
-          failure: None
+          success: None
+          failure: DMError exception thrown
         """
         cmd = 'uninst ' + appName
         if installPath:
@@ -1168,11 +1190,11 @@ class DeviceManagerSUT(DeviceManager):
         try:
             data = self._runCmds([{ 'cmd': cmd }])
         except AgentError:
-            return None
+            raise DMError("Remote Device Error: uninstall failed for %s" % appName)
 
         if (self.debug > 3):
             print "uninstallAppAndReboot: " + str(data)
-        return True
+        return
 
     def updateApp(self, appBundlePath, processName=None, destPath=None, ipAddr=None, port=30000):
         """

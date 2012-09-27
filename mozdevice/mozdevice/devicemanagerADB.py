@@ -806,6 +806,36 @@ class DeviceManagerADB(DeviceManager):
         print ret
         return ret
 
+    def uninstallApp(self, appName, installPath=None):
+        """
+        Uninstalls the named application from device and DOES NOT cause a reboot
+        appName - the name of the application (e.g org.mozilla.fennec)
+        installPath - ignored, but used for compatibility with SUTAgent
+
+        returns:
+          success: None
+          failure: DMError exception thrown
+        """
+        data = self._runCmd(["uninstall", appName]).stdout.read().strip()
+        status = data.split('\n')[0].strip()
+        if status == 'Success':
+            return
+        raise DMError("uninstall failed for %s" % appName)
+
+    def uninstallAppAndReboot(self, appName, installPath=None):
+        """
+        Uninstalls the named application from device and causes a reboot
+        appName - the name of the application (e.g org.mozilla.fennec)
+        installPath - ignored, but used for compatibility with SUTAgent
+
+        returns:
+          success: None
+          failure: DMError exception thrown
+        """
+        results = self.uninstallApp(appName)
+        self.reboot()
+        return
+
     def _runCmd(self, args):
         """
         Runs a command using adb
@@ -940,8 +970,7 @@ class DeviceManagerADB(DeviceManager):
             if deviceStatus == None:
                 raise DMError("device not found: %s" % self.deviceSerial)
             elif deviceStatus != "device":
-                raise DMError("bad status for device %s: %s" % (self.deviceSerial,
-                                                                                                                deviceStatus))
+                raise DMError("bad status for device %s: %s" % (self.deviceSerial, deviceStatus))
 
         # Check to see if we can connect to device and run a simple command
         try:
