@@ -416,6 +416,14 @@ class DeviceManager:
 
         return 0
 
+    def getIP(self, conn_type='eth0'):
+        """
+        Gets the IP of the device, or None if no connection exists.
+        """
+        match = re.match(r"%s: ip (\S+)" % conn_type, self.shellCheckOutput(['ifconfig', conn_type]))
+        if match:
+            return match.group(1)
+
     @abstractmethod
     def unpackFile(self, file_path, dest_dir=None):
         """
