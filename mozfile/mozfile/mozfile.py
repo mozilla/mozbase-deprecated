@@ -55,7 +55,6 @@ def extract(src, dest=None):
     Takes in a tar or zip file and extracts it to dest
 
     If dest is not specified, extracts to os.path.dirname(src)
-    If delete is set to True, deletes the bundle at path
 
     Returns the list of top level files that were extracted
     """
