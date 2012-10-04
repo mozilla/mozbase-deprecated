@@ -119,7 +119,7 @@ class DeviceManagerSUT(DeviceManager):
                 # couldn't execute it). retry otherwise
                 if err.fatal:
                     raise err
-                if self.debug >= 2:
+                if self.debug >= 4:
                     print err
                 retries += 1
                 # if we lost the connection or failed to establish one, wait a bit
