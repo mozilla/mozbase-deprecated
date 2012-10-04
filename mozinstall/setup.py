@@ -13,7 +13,9 @@ except IOError:
 
 PACKAGE_VERSION = '1.2'
 
-deps = ['mozinfo==0.3.3']
+deps = ['mozinfo==0.3.3',
+        'mozfile'
+       ]
 
 setup(name='mozInstall',
       version=PACKAGE_VERSION,
