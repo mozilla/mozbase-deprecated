@@ -11,9 +11,9 @@ try:
 except IOError:
     description = None
 
-PACKAGE_VERSION = '1.3'
+PACKAGE_VERSION = '1.4'
 
-deps = ['mozinfo==0.3.3',
+deps = ['mozinfo == 0.4',
         'mozfile'
        ]
 
