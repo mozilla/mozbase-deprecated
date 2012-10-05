@@ -133,6 +133,18 @@ def main(args=sys.argv[1:]):
     branch = branch.split('*', 1)[-1].strip()
     if branch != 'master':
         parser.error("versionbump.py must be used on the master branch")
+    # - ensure there are no changes
+    cmd = [options.git_path, 'status', '-s']
+    process = subprocess.Popen(cmd,
+                               stdout=subprocess.PIPE,
+                               stderr=subprocess.PIPE,
+                               cwd=here)
+    stdout, stderr = process.communicate()
+    if stderr or process.returncode:
+        raise CalledProcessError("Error running %s: %d" % (cmd,
+                                                           process.returncode))
+    if stdout.strip():
+        parser.error("%s directory unclean when running git status -s" % here)
 
     # find desired versions
     if not args:
@@ -148,21 +160,6 @@ def main(args=sys.argv[1:]):
                     if package not in dependencies]
     if unrecognized:
         parser.error("Not a package: %s" % ', '.join(unrecognized))
-
-    # ensure there are no changes in the packages we want to version
-    for package in versions:
-        cmd = [options.git_path, 'status', '-s', '--ignored', package]
-        process = subprocess.Popen(cmd,
-                                   stdout=subprocess.PIPE,
-                                   stderr=subprocess.PIPE,
-                                   cwd=here)
-        stdout, stderr = process.communicate()
-        if stderr or process.returncode:
-            raise CalledProcessError("Error running %s: %d" %
-                                     (cmd, process.returncode))
-        if stdout.strip():
-            parser.error("%s directory unclean when running '%s'" %
-                         (os.path.join(here, package), " ".join(cmd)))
 
     # record ancillary packages that need bumping
     # and ensure that if you're bumping versions, you're
