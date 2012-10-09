@@ -151,6 +151,8 @@ class DeviceManager:
           success: pid
           failure: None
         """
+        if not isinstance(appname, basestring):
+            raise TypeError("appname %s is not a string" % appname)
 
         pid = None
 

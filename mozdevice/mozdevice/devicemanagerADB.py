@@ -324,7 +324,7 @@ class DeviceManagerADB(DeviceManager):
         ret = []
         while (proc):
             els = proc.split()
-            ret.append(list([els[1], els[len(els) - 1], els[0]]))
+            ret.append(list([int(els[1]), els[len(els) - 1], int(els[0])]))
             proc =  p.stdout.readline()
         return ret
 

@@ -445,16 +445,16 @@ class DeviceManagerSUT(DeviceManager):
         """
         data = self._runCmds([{ 'cmd': 'ps' }])
 
-        files = []
+        processTuples = []
         for line in data.splitlines():
             if line:
                 pidproc = line.strip().split()
                 if (len(pidproc) == 2):
-                    files += [[pidproc[0], pidproc[1]]]
+                    processTuples += [[pidproc[0], pidproc[1]]]
                 elif (len(pidproc) == 3):
                     #android returns <userID> <procID> <procName>
-                    files += [[pidproc[1], pidproc[2], pidproc[0]]]
-        return files
+                    processTuples += [[int(pidproc[1]), pidproc[2], int(pidproc[0])]]
+        return processTuples
 
     def fireProcess(self, appname, failIfRunning=False):
         """
