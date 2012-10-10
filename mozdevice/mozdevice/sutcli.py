@@ -106,6 +106,9 @@ class SUTCli(object):
         if len(self.args) < 1:
             self.parser.error("must specify command")
 
+        if self.options.verbose:
+            droid.DroidSUT.debug = 4
+
         if not self.options.deviceip:
             if not os.environ.get('TEST_DEVICE'):
                 self.parser.error("Must specify device ip in TEST_DEVICE or "
@@ -129,18 +132,22 @@ class SUTCli(object):
 
     def add_options(self, parser):
         parser.add_option("-r", "--remoteDevice", action="store",
-                          type = "string", dest = "deviceip",
-                          help = "Device IP", default=None)
+                          type="string", dest="deviceip",
+                          help="Device IP", default=None)
         parser.add_option("-p", "--remotePort", action="store",
-                          type = "int", dest = "deviceport",
-                          help = "SUTAgent port (defaults to 20701)",
+                          type="int", dest="deviceport",
+                          help="SUTAgent port (defaults to 20701)",
                           default=20701)
+        parser.add_option("-v", "--verbose", action="store_true",
+                          dest="verbose",
+                          help="Verbose output from DeviceManager",
+                          default = False)
 
     def push(self, src, dest):
         if os.path.isdir(src):
             self.dm.pushDir(src, dest)
         else:
-            dest_is_dir = dest[-1] == '/' or self.dm.isDir(dest)
+            dest_is_dir = dest[-1] == '/' or self.dm.dirExists(dest)
             dest = posixpath.normpath(dest)
             if dest_is_dir:
                 dest = posixpath.join(dest, os.path.basename(src))
@@ -152,17 +159,10 @@ class SUTCli(object):
             return
         if not dest:
             dest = posixpath.basename(src)
-        if self.dm.isDir(src):
-            result = self.dm.getDirectory(src, dest)
-            if result:
-                print '\n'.join([posixpath.join(dest, x) for x in result])
-                return
+        if self.dm.dirExists(src):
+            self.dm.getDirectory(src, dest)
         else:
-            result = self.dm.getFile(src, dest)
-            if result:
-                print dest
-                return
-        print 'Pull failed.'
+            self.dm.getFile(src, dest)
 
     def install(self, apkfile):
         basename = os.path.basename(apkfile)

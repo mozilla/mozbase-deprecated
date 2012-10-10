@@ -234,16 +234,6 @@ class DeviceManager:
         """
 
     @abstractmethod
-    def isDir(self, remotePath):
-        """
-        Checks if remotePath is a directory on the device
-
-        returns:
-          success: True
-          failure: False
-        """
-
-    @abstractmethod
     def validateFile(self, remoteFile, localFile):
         """
         Checks if the remoteFile has the same md5 hash as the localFile
