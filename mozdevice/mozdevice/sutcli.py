@@ -10,6 +10,7 @@ import os
 import posixpath
 import StringIO
 import sys
+import textwrap
 from optparse import OptionParser
 
 from mozdevice import droid
@@ -17,7 +18,6 @@ from mozdevice import droid
 class SUTCli(object):
 
     def __init__(self, args=sys.argv[1:]):
-        usage = "usage: %prog [options] <command> [<args>]\n\ndevice commands:\n"
         self.commands = { 'install': { 'function': self.install,
                                        'min_args': 1,
                                        'max_args': 1,
@@ -89,11 +89,15 @@ class SUTCli(object):
 
                           }
 
-        for (commandname, command) in sorted(self.commands.iteritems()):
-            help_args = command['help_args']
-            usage += "  %s - %s\n" % (" ".join([ commandname,
-                                                 help_args ]).rstrip(),
-                                      command['help'])
+        usage = "usage: %prog [options] <command> [<args>]\n\ndevice commands:\n"
+        usage += "\n".join([textwrap.fill("%s %s - %s" %
+                                          (cmdname, cmd['help_args'],
+                                           cmd['help']),
+                                          initial_indent="  ",
+                                          subsequent_indent="      ")
+                            for (cmdname, cmd) in 
+                            sorted(self.commands.iteritems())])
+
         self.parser = OptionParser(usage)
         self.add_options(self.parser)
 
