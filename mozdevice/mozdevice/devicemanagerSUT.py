@@ -31,6 +31,7 @@ class DeviceManagerSUT(DeviceManager):
         self.port = port
         self.retrylimit = retrylimit
         self._sock = None
+        self._everConnected = False
         self.deviceRoot = deviceRoot
 
         # Initialize device root
@@ -150,7 +151,7 @@ class DeviceManagerSUT(DeviceManager):
 
         if not self._sock:
             try:
-                if self.debug >= 1:
+                if self.debug >= 1 and self._everConnected:
                     print "reconnecting socket"
                 self._sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
             except socket.error, msg:
@@ -164,6 +165,7 @@ class DeviceManagerSUT(DeviceManager):
                 else:
                     raise DMError("Remote Device Error: Timeout in connecting", fatal=True)
                     return False
+                self._everConnected = True
             except socket.error, msg:
                 self._sock.close()
                 self._sock = None
