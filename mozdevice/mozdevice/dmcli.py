@@ -231,7 +231,7 @@ class DMCli(object):
     def processlist(self):
         pslist = self.dm.getProcessList()
         for ps in pslist:
-            print " ".join(ps)
+            print " ".join(str(i) for i in ps)
 
     def listfiles(self, dir):
         filelist = self.dm.listFiles(dir)
