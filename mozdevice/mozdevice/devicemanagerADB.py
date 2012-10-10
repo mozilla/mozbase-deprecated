@@ -499,8 +499,11 @@ class DeviceManagerADB(DeviceManager):
         # if self.deviceRoot is already set, create it if necessary, and use it
         if self.deviceRoot:
             if not self.dirExists(self.deviceRoot):
-                if not self.mkDir(self.deviceRoot):
-                    raise DMError("Unable to create device root %s" % self.deviceRoot)
+                try:
+                    self.mkDir(self.deviceRoot)
+                except:
+                    print "Unable to create device root %s" % self.deviceRoot
+                    raise
             return
 
         # /mnt/sdcard/tests is preferred to /data/local/tests, but this can be
