@@ -147,6 +147,10 @@ class DMCli(object):
         parser.add_option("-d", "--hwid", action="store",
                           type="string", dest="hwid",
                           help="HWID", default=None)
+        parser.add_option("--package-name", action="store",
+                          type = "string", dest="packagename",
+                          help="Packagename (if using DeviceManagerADB)",
+                          default=None)
 
     def getDevice(self, dmtype="adb", hwid=None, host=None, port=None):
         '''
@@ -161,8 +165,8 @@ class DMCli(object):
         if dmtype == "adb":
             if host and not port:
                 port = 5555
-            return mozdevice.DroidADB(packageName=None, host=host,
-                                      port=port)
+            return mozdevice.DroidADB(packageName=self.options.packagename,
+                                      host=host, port=port)
         elif dmtype == "sut":
             if not host:
                 self.parser.error("Must specify host with SUT!")
