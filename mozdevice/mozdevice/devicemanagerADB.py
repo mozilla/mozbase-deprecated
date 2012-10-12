@@ -553,10 +553,9 @@ class DeviceManagerADB(DeviceManager):
         """
         # Cache result to speed up operations depending
         # on the temporary directory.
-        if self.tempDir == None:
+        if not self.tempDir:
             self.tempDir = self.getDeviceRoot() + "/tmp"
-            if (not self.dirExists(self.tempDir)):
-                return self.mkDir(self.tempDir)
+            self.mkDir(self.tempDir)
 
         return self.tempDir
 
