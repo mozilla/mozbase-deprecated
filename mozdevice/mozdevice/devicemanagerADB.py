@@ -160,24 +160,24 @@ class DeviceManagerADB(DeviceManager):
         """
         Copies localname from the host to destname on the device
         """
-        try:
-            if (os.name == "nt"):
-                destname = destname.replace('\\', '/')
-            if (self.useRunAs):
-                remoteTmpFile = self.getTempDir() + "/" + os.path.basename(localname)
-                self._checkCmd(["push", os.path.realpath(localname), remoteTmpFile])
-                if self.useDDCopy:
-                    self._checkCmdAs(["shell", "dd", "if=" + remoteTmpFile, "of=" + destname])
-                else:
-                    self._checkCmdAs(["shell", "cp", remoteTmpFile, destname])
-                self._checkCmd(["shell", "rm", remoteTmpFile])
+        # you might expect us to put the file *in* the directory in this case,
+        # but that would be different behaviour from devicemanagerSUT. Throw
+        # an exception so we have the same behaviour between the two
+        # implementations
+        if self.dirExists(destname):
+            raise DMError("Attempted to push a file (%s) to a directory (%s)!" %
+                          (localname, destname))
+
+        if self.useRunAs:
+            remoteTmpFile = self.getTempDir() + "/" + os.path.basename(localname)
+            self._checkCmd(["push", os.path.realpath(localname), remoteTmpFile])
+            if self.useDDCopy:
+                self.shellCheckOutput(["dd", "if=" + remoteTmpFile, "of=" + destname])
             else:
-                self._checkCmd(["push", os.path.realpath(localname), destname])
-            if (self.dirExists(destname)):
-                destname = destname + "/" + os.path.basename(localname)
-            return True
-        except:
-            raise DMError("Error pushing file to device")
+                self.shellCheckOutput(["cp", remoteTmpFile, destname])
+            self.shellCheckOutput(["rm", remoteTmpFile])
+        else:
+            self._checkCmd(["push", os.path.realpath(localname), destname])
 
     def mkDir(self, name):
         """
