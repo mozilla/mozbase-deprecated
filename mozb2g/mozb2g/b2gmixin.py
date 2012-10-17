@@ -19,9 +19,18 @@ class B2GMixin(object):
     userJS = "/data/local/user.js"
     marionette = None
 
-    def __init__(self, host=None, marionette_port=2828, **kwargs):
-        self.marionetteHost = host
-        self.marionettePort = marionette_port
+    def __init__(self, host=None, marionetteHost=None, marionettePort=2828,
+                 **kwargs):
+
+        # (allowing marionneteHost to be specified seems a bit
+        # counter-intuitive since we normally get it below from the ip
+        # address, however we currently need it to be able to connect
+        # via adb port forwarding and localhost)
+        if marionetteHost:
+            self.marionetteHost = marionetteHost
+        elif host:
+            self.marionetteHost = host
+        self.marionettePort = marionettePort
 
     def cleanup(self):
         if self.profileDir:
