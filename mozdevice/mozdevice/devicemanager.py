@@ -216,13 +216,9 @@ class DeviceManager:
         """
 
     @abstractmethod
-    def getFile(self, remoteFile, localFile = ''):
+    def getFile(self, remoteFile, localFile):
         """
         Copy file from device (remoteFile) to host (localFile)
-
-        returns:
-          success: contents of file, string
-          failure: None
         """
 
     @abstractmethod

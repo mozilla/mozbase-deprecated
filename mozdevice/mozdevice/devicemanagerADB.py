@@ -450,15 +450,11 @@ class DeviceManagerADB(DeviceManager):
         os.remove(localFile)
         return ret
 
-    def getFile(self, remoteFile, localFile = 'temp.txt'):
+    def getFile(self, remoteFile, localFile):
         """
         Copy file from device (remoteFile) to host (localFile).
         """
-        contents = self.pullFile(remoteFile)
-
-        fhandle = open(localFile, 'wb')
-        fhandle.write(contents)
-        fhandle.close()
+        self._runPull(remoteFile, localFile)
 
     def getDirectory(self, remoteDir, localDir, checkDir=True):
         """
