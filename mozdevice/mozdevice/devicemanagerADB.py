@@ -396,7 +396,7 @@ class DeviceManagerADB(DeviceManager):
                 args = ["shell", "kill"]
                 if forceKill:
                     args.append("-9")
-                args.append(pid)
+                args.append(str(pid))
                 p = self._runCmdAs(args)
                 p.communicate()
                 if p.returncode != 0:
