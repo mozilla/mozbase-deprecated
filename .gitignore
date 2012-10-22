@@ -13,3 +13,4 @@ dist
 *.so.0
 proclaunch
 .idea
+docs/_build

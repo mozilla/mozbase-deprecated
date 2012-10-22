@@ -2,12 +2,6 @@
 # License, v. 2.0. If a copy of the MPL was not distributed with this
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-"""
-mozfile.py:
-Cointains file functions for mozbase:
-https://bugzilla.mozilla.org/show_bug.cgi?id=774916
-"""
-
 import os
 import tarfile
 import zipfile
@@ -89,9 +83,11 @@ def extract(src, dest=None):
 
 
 def rmtree(dir):
-    """This is a replacement for shutil.rmtree that works better under
-    windows. Thanks to Bear at the OSAF for the code."""
+    """Removes the specified directory tree
 
+    This is a replacement for shutil.rmtree that works better under
+    windows."""
+    # (Thanks to Bear at the OSAF for the code.)
     if not os.path.exists(dir):
         return
     if os.path.islink(dir):
