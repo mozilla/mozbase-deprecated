@@ -23,6 +23,7 @@ class DeviceManagerADB(DeviceManager):
         self.useRunAs = False
         self.useDDCopy = False
         self.useZip = False
+        self.logcatNeedsRoot = False
         self.packageName = None
         self.tempDir = None
         self.deviceRoot = deviceRoot
@@ -607,35 +608,6 @@ class DeviceManagerADB(DeviceManager):
         if (not timestr or not timestr.isdigit()):
             raise DMError("Unable to get current time using date (got: '%s')" % timestr)
         return str(int(timestr)*1000)
-
-    def recordLogcat(self):
-        """
-        Clears the logcat file making it easier to view specific events
-        """
-        # this does not require root privileges with ADB
-        try:
-            self.shellCheckOutput(['/system/bin/logcat', '-c'])
-        except DMError, e:
-            print "DeviceManager: Error recording logcat '%s'" % e.msg
-            # to preserve compat with parent method, just ignore exceptions
-            pass
-
-    def getLogcat(self):
-        """
-        Returns the contents of the logcat file as a string
-
-        returns:
-          success: contents of logcat, string
-          failure: None
-        """
-        # this does not require root privileges with ADB
-        try:
-            output = self.shellCheckOutput(["/system/bin/logcat", "-d", "dalvikvm:S", "ConnectivityService:S", "WifiMonitor:S", "WifiStateTracker:S", "wpa_supplicant:S", "NetworkStateTracker:S"])
-            return output.split('\r')
-        except DMError, e:
-            # to preserve compat with parent method, just ignore exceptions
-            print "DeviceManager: Error recording logcat '%s'" % e.msg
-            pass
 
     def getInfo(self, directive=None):
         """
