@@ -14,7 +14,7 @@ try:
 except (OSError, IOError):
     description = ''
 
-deps = ['mozdevice', 'marionette_client']
+deps = ['mozdevice >= 0.12', 'marionette_client >= 0.5.2']
 
 setup(name='mozb2g',
       version=PACKAGE_VERSION,
