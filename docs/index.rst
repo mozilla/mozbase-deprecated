@@ -17,6 +17,7 @@ Contents:
 
    overview
    mozfile
+   mozprofile
 
 Indices and tables
 ==================
