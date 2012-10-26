@@ -16,8 +16,11 @@ Contents:
    :maxdepth: 2
 
    overview
+   mozcrash
    mozfile
    mozprofile
+   mozlog
+   manifestdestiny
 
 Indices and tables
 ==================

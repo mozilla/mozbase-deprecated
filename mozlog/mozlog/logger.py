@@ -25,24 +25,29 @@ addLevelName(PASS, 'TEST-PASS')
 addLevelName(KNOWN_FAIL, 'TEST-KNOWN-FAIL')
 addLevelName(FAIL, 'TEST-UNEXPECTED-FAIL')
 
-class _MozLogger(_LoggerClass):
+class MozLogger(_LoggerClass):
     """
-    MozLogger class which adds three convenience log levels
+    MozLogger class which adds some convenience log levels
     related to automated testing in Mozilla
     """
     def testStart(self, message, *args, **kwargs):
+        """Logs a test start message"""
         self.log(START, message, *args, **kwargs)
 
     def testEnd(self, message, *args, **kwargs):
+        """Logs a test end message"""
         self.log(END, message, *args, **kwargs)
 
     def testPass(self, message, *args, **kwargs):
+        """Logs a test pass message"""
         self.log(PASS, message, *args, **kwargs)
 
     def testFail(self, message, *args, **kwargs):
+        """Logs a test fail message"""
         self.log(FAIL, message, *args, **kwargs)
 
     def testKnownFail(self, message, *args, **kwargs):
+        """Logs a test known fail message"""
         self.log(KNOWN_FAIL, message, *args, **kwargs)
 
 class _MozFormatter(Formatter):
@@ -79,12 +84,12 @@ def getLogger(name, logfile=None):
     Returns the logger with the specified name.
     If the logger doesn't exist, it is created.
 
-    name       - The name of the logger to retrieve
-    [filePath] - If specified, the logger will log to the specified filePath
-                 Otherwise, the logger logs to stdout
-                 This parameter only has an effect if the logger doesn't exist
+    :param name: The name of the logger to retrieve
+    :param logfile: If specified, the logger will log to the specified file. 
+                    Otherwise, the logger logs to stdout.
+                    This parameter only has an effect if the logger doesn't already exist.
     """
-    setLoggerClass(_MozLogger)
+    setLoggerClass(MozLogger)
 
     if name in Logger.manager.loggerDict:
         return getSysLogger(name)
