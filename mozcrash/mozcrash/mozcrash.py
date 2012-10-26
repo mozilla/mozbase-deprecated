@@ -41,21 +41,26 @@ def check_for_crashes(dump_directory, symbols_path,
                       dump_save_path=None,
                       test_name=None):
     """
-    Print a stack trace for minidumps left behind by a crashing program.
+    Print a stack trace for minidump files left behind by a crashing program.
 
-    Arguments:
-    dump_directory: The directory in which to look for minidumps.
-    symbols_path: The path to symbols to use for dump processing.
-                  This can either be a path to a directory
-                  containing Breakpad-format symbols, or a URL
-                  to a zip file containing a set of symbols.
-    stackwalk_binary: The path to the minidump_stackwalk binary.
-                      If not set, the environment variable
-                      MINIDUMP_STACKWALK will be checked.
-    dump_save_path: A directory in which to copy minidump files
-                    for safekeeping. If not set, the environment
-                    variable MINIDUMP_SAVE_PATH will be checked.
-    test_name: The test name to be used in log output.
+    `dump_directory` will be searched for minidump files. Any minidump files found will
+    have `stackwalk_binary` executed on them, with `symbols_path` passed as an extra
+    argument.
+
+    `stackwalk_binary` should be a path to the minidump_stackwalk binary.
+    If `stackwalk_binary` is not set, the MINIDUMP_STACKWALK environment variable
+    will be checked and its value used if it is not empty.
+
+    `symbols_path` should be a path to a directory containing symbols to use for
+    dump processing. This can either be a path to a directory containing Breakpad-format
+    symbols, or a URL to a zip file containing a set of symbols.
+                  
+    If `dump_save_path` is set, it should be a path to a directory in which to copy minidump
+    files for safekeeping after a stack trace has been printed. If not set, the environment
+    variable MINIDUMP_SAVE_PATH will be checked and its value used if it is not empty.
+                    
+    If `test_name` is set it will be used as the test name in log output. If not set the
+    filename of the calling function will be used.
 
     Returns True if any minidumps were found, False otherwise.
     """
