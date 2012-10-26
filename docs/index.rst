@@ -19,6 +19,7 @@ Contents:
    mozcrash
    mozfile
    mozlog
+   manifestdestiny
 
 Indices and tables
 ==================

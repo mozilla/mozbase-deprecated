@@ -20,6 +20,7 @@ import sys, os
 sys.path.insert(0, os.path.abspath('../mozfile'))
 sys.path.insert(0, os.path.abspath('../mozlog'))
 sys.path.insert(0, os.path.abspath('../mozcrash'))
+sys.path.insert(0, os.path.abspath('../manifestdestiny'))
 
 # -- General configuration -----------------------------------------------------
 
