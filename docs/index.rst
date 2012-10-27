@@ -22,19 +22,24 @@ reftest_, Peptest_ and Eideticker_.
 
 .. _Eideticker: https://github.com/mozilla/eideticker/
 
-Contents:
+In the course of writing automated tests at Mozilla, we found that
+the same tasks needed to be performed occurred over and over, no
+matter what the specific nature of what we were testing. We figured
+that consolidating this code into a set of libraries would save us a
+good deal of time, and so we spent some effort factoring out the best
+of breed automation code into mozbase.
+
+The documentation for mozbase is organized by category, then by
+module. Figure out what you want to do, and dive in!
 
 .. toctree::
    :maxdepth: 2
 
-   overview
-   mozcrash
-   mozfile
-   mozhttpd
-   mozprofile
-   mozinfo
-   mozlog
    manifestdestiny
+   mozinfo
+   setuprunning
+   mozhttpd
+   loggingreporting
 
 Indices and tables
 ==================
