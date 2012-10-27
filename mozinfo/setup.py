@@ -24,7 +24,7 @@ except ImportError:
 
 setup(name='mozinfo',
       version=PACKAGE_VERSION,
-      description="file for interface to transform introspected system information to a format pallatable to Mozilla",
+      description="Library to get system information for use in Mozilla testing",
       long_description=description,
       classifiers=[], # Get strings from http://pypi.python.org/pypi?%3Aaction=list_classifiers
       keywords='mozilla',

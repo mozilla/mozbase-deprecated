@@ -18,7 +18,7 @@ PACKAGE_VERSION = '0.5.6'
 
 setup(name=PACKAGE_NAME,
       version=PACKAGE_VERSION,
-      description="Universal manifests for Mozilla test harnesses",
+      description="Library to create and manage test manifests",
       long_description=description,
       classifiers=[], # Get strings from http://pypi.python.org/pypi?%3Aaction=list_classifiers
       keywords='mozilla manifests',

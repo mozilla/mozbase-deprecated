@@ -1,5 +1,5 @@
-:mod:`mozinfo` --- Interface to system information
-==================================================
+:mod:`mozinfo` --- Get system information
+=========================================
 
 .. automodule:: mozinfo
    :members:

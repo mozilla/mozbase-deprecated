@@ -1,5 +1,5 @@
-mozlog
-======
+:mod:`mozlog` --- Easy, configurable and uniform logging
+========================================================
 
 .. automodule:: mozlog
     :members: getLogger

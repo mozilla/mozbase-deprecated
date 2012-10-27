@@ -1,5 +1,5 @@
-manifestdestiny
-===============
+:mod:`manifestdestiny` --- Create and manage test manifests
+===========================================================
 
 manifestdestiny lets you easily create and use test manifests, to
 control which tests are run under what circumstances.

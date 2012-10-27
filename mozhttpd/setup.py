@@ -17,7 +17,7 @@ deps = []
 
 setup(name='mozhttpd',
       version=PACKAGE_VERSION,
-      description="basic python webserver, tested with talos",
+      description="Python webserver intended for use with Mozilla testing",
       long_description=description,
       classifiers=[], # Get strings from http://pypi.python.org/pypi?%3Aaction=list_classifiers
       keywords='mozilla',

@@ -1,5 +1,5 @@
-mozprofile
-==========
+:mod:`mozprofile` --- Library to create and modify Mozilla application profiles
+===============================================================================
 
 Mozprofile_ is a python tool for creating and managing profiles for Mozilla's
 applications (Firefox, Thunderbird, etc.). In addition to creating profiles,
@@ -7,7 +7,7 @@ mozprofile can install addons_ and set preferences_ Mozprofile can be utilized
 from the command line or as an API.
 
 Addons
---------------------
+------
 
 .. automodule:: mozprofile.addons
    :members:
@@ -40,7 +40,7 @@ To run mozprofile from the command line enter:
 ``mozprofile --help`` for a list of options.
 
 Permissions
---------------------
+-----------
 
 .. automodule:: mozprofile.permissions
    :members:
@@ -49,7 +49,7 @@ mozprofile also takes care of adding permissions to the profile.
 See here_.
 
 Preferences
---------------------
+-----------
 
 .. automodule:: mozprofile.prefs
    :members:

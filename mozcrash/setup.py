@@ -20,7 +20,7 @@ deps = ['']
 
 setup(name='mozcrash',
       version=PACKAGE_VERSION,
-      description="Package for printing stack traces from minidumps left behind by crashed processes.",
+      description="Library for printing stack traces from minidumps left behind by crashed processes",
       long_description=description,
       classifiers=[], # Get strings from http://pypi.python.org/pypi?%3Aaction=list_classifiers
       keywords='mozilla',

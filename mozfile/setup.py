@@ -17,7 +17,7 @@ except (OSError, IOError):
 
 setup(name='mozfile',
       version=PACKAGE_VERSION,
-      description="common file utilities for Mozilla python usage",
+      description="Library of file utilities for use in Mozilla testing",
       long_description=description,
       classifiers=[], # Get strings from http://pypi.python.org/pypi?%3Aaction=list_classifiers
       keywords='mozilla',

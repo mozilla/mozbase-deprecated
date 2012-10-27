@@ -32,7 +32,7 @@ except (OSError, IOError):
 
 setup(name='mozprofile',
       version=PACKAGE_VERSION,
-      description="Handling of Mozilla Gecko based application profiles",
+      description="Library to create and modify Mozilla application profiles",
       long_description=description,
       classifiers=['Environment :: Console',
                    'Intended Audience :: Developers',

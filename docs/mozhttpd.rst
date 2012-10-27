@@ -1,7 +1,5 @@
-mozhttpd
-========
-
-
+:mod:`mozhttpd` --- Simple webserver
+====================================
 
 Mozhttpd is a simple http webserver written in python.
 
