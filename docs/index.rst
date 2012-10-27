@@ -30,7 +30,7 @@ good deal of time, and so we spent some effort factoring out the best
 of breed automation code into mozbase.
 
 The documentation for mozbase is organized by category, then by
-module. Figure out what you want to do, and dive in!
+module. Figure out what you want to do then dive in!
 
 .. toctree::
    :maxdepth: 2
