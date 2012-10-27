@@ -1,5 +1,5 @@
-:mod:`mozprofile` --- Library to create and modify Mozilla application profiles
-===============================================================================
+:mod:`mozprofile` --- Create and modify Mozilla application profiles
+====================================================================
 
 Mozprofile_ is a python tool for creating and managing profiles for Mozilla's
 applications (Firefox, Thunderbird, etc.). In addition to creating profiles,

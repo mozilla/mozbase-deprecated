@@ -7,9 +7,20 @@ mozbase
 =======
 
 Mozbase (normally written as `mozbase` except at the beginning of a
-sentence) is a set of easy to use python modules for managing the common
-operations that we do in all our test harnesses, such as Talos,
-Mochitest, Reftest, and Eideticker.
+sentence) is a set of easy to use python libraries designed to be used
+in the creation of automated testing software. It is used at least to some
+degree by all of Mozilla's test harnesses including Talos_, mochitest_,
+reftest_, Peptest_ and Eideticker_.
+
+.. _Talos: http://hg.mozilla.org/build/
+
+.. _mochitest: https://developer.mozilla.org/en-US/docs/Mochitest
+
+.. _reftest: https://developer.mozilla.org/en-US/docs/Creating_reftest-based_unit_tests
+
+.. _Peptest: https://github.com/mozilla/peptest/
+
+.. _Eideticker: https://github.com/mozilla/eideticker/
 
 Contents:
 
