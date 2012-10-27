@@ -40,6 +40,8 @@ module. Figure out what you want to do then dive in!
    setuprunning
    mozhttpd
    loggingreporting
+   mozb2g
+   mozfile
 
 Indices and tables
 ==================
