@@ -216,8 +216,12 @@ def main(args=sys.argv[1:]):
             print package
         parser.exit()
 
+    # set up the packages for development
+    for package in unrolled:
+        call([sys.executable, 'setup.py', 'develop', '--no-deps'],
+             cwd=os.path.join(here, reverse_mapping[package]))
+
     # install non-mozbase dependencies
-    # (currently none on modern python)
     # these need to be installed separately and the --no-deps flag
     # subsequently used due to a bug in setuptools; see
     # https://bugzilla.mozilla.org/show_bug.cgi?id=759836
@@ -227,10 +231,6 @@ def main(args=sys.argv[1:]):
         # easy_install should be available since we rely on setuptools
         call(['easy_install', version])
 
-    # set up the packages for development
-    for package in unrolled:
-        call([sys.executable, 'setup.py', 'develop', '--no-deps'],
-             cwd=os.path.join(here, reverse_mapping[package]))
 
 if __name__ == '__main__':
     main()
