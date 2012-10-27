@@ -3,10 +3,11 @@
    You can adapt this file completely to your liking, but it should at least
    contain the root `toctree` directive.
 
-Welcome to MozBase's documentation!
-===================================
+mozbase
+=======
 
-MozBase is a set of easy to use python modules for managing the common
+Mozbase (normally written as `mozbase` except at the beginning of a
+sentence) is a set of easy to use python modules for managing the common
 operations that we do in all our test harnesses, such as Talos,
 Mochitest, Reftest, and Eideticker.
 
