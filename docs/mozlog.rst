@@ -1,4 +1,4 @@
-Mozlog
+mozlog
 ======
 
 .. automodule:: mozlog

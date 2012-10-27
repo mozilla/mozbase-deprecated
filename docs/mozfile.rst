@@ -1,4 +1,4 @@
-MozFile
+mozfile
 =======
 
 mozfile is a convenience library for taking care of some common file-related

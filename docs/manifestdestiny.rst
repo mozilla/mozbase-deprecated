@@ -26,7 +26,7 @@ reserved keys for ManifestDestiny and any consuming APIs.  You can add
 additional key, value metadata to each test.
 
 Why have test manifests?
-========================
+------------------------
 
 It is desirable to have a unified format for test manifests for testing
 [mozilla-central](http://hg.mozilla.org/mozilla-central), etc.
@@ -77,7 +77,7 @@ advantages:
   (sub)manifests as appropriate to your needs.
 
 Manifest Format
-===============
+---------------
 
 Manifests are .ini file with the section names denoting the path
 relative to the manifest:
@@ -119,7 +119,7 @@ Manifests are included relative to the directory of the manifest with
 the `[include:]` directive unless they are absolute paths.
 
 Data
-====
+---=
 
 Manifest Destiny gives tests as a list of dictionaries (in python
 terms).
@@ -185,7 +185,7 @@ Included files will inherit the top-level variables but may override
 in their own `[DEFAULT]` section.
 
 ManifestDestiny Architecture
-============================
+---------------------------=
 
 There is a two- or three-layered approach to the ManifestDestiny
 architecture, depending on your needs:
@@ -235,14 +235,14 @@ pass `**dict(os='linux')` as `**tags`, if a test contains a line
 is up to the harness to pass in tags appropriate to its usage.
 
 Creating Manifests
-==================
+------------------
 
 ManifestDestiny comes with a console script, `manifestparser create`, that
 may be used to create a seed manifest structure from a directory of
 files.  Run `manifestparser help create` for usage information.
 
 Copying Manifests
-=================
+-----------------
 
 To copy tests and manifests from a source:
 
@@ -251,7 +251,7 @@ To copy tests and manifests from a source:
     manifestparser [options] copy from_manifest to_directory -tag1 -tag2 --key1=value1 key2=value2 ...
 
 Updating Tests
-==============
+--------------
 
 To update the tests associated with with a manifest from a source
 directory:
@@ -261,7 +261,7 @@ directory:
     manifestparser [options] update manifest from_directory -tag1 -tag2 --key1=value1 --key2=value2 ...
 
 Usage example
-=============
+------------=
 
 Here is an example of how to create manifests for a directory tree and
 update the tests listed in the manifests from an external source.
@@ -351,7 +351,7 @@ To update from a directory of tests in `~/mozmill/src/mozmill-tests/firefox/` ru
     manifestparser update manifest.ini ~/mozmill/src/mozmill-tests/firefox/
 
 Tests
-=====
+-----
 
 ManifestDestiny includes a suite of tests:
 
@@ -361,7 +361,7 @@ https://github.com/mozilla/mozbase/tree/master/manifestdestiny/tests
 how to use the API.  Tests are run via `python test.py`.
 
 Bugs
-====
+----
 
 Please file any bugs or feature requests at
 
@@ -370,7 +370,7 @@ https://bugzilla.mozilla.org/enter_bug.cgi?product=Testing&component=ManifestPar
 Or contact jhammel @mozilla.org or in #ateam on irc.mozilla.org
 
 CLI
-===
+---
 
 Run `manifestparser help` for usage information.
 
@@ -400,7 +400,7 @@ directory:
     manifestparser [options] update manifest from_directory -tag1 -tag2 --key1=value1 --key2=value2 ...
 
 Design Considerations
-=====================
+---------------------
 
 Contrary to some opinion, manifestparser.py and the associated .ini
 format were not magically plucked from the sky but were descended upon
@@ -442,7 +442,7 @@ through several design considerations.
 
 
 Developing ManifestDestiny
-==========================
+--------------------------
 
 ManifestDestiny is developed and maintained by Mozilla's
 `Automation and Testing Team`_.
@@ -453,7 +453,7 @@ The project page is located at:
 https://wiki.mozilla.org/Auto-tools/Projects/ManifestDestiny .
 
 Historical Reference
-====================
+--------------------
 
 Date-ordered list of links about how manifests came to be where they are today::
 
