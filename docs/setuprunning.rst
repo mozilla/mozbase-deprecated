@@ -9,5 +9,6 @@ correctly handling the case where the system crashes.
 .. toctree::
    :maxdepth: 2
 
+   mozfile
    mozprofile
    mozcrash
