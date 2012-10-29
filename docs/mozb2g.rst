@@ -1,5 +1,5 @@
-MozB2G
-=======
+:mod:`mozb2g`
+======
 
 Mozb2g provides DeviceADB and DeviceSUT utility classes which can be used for testing b2g devices.
 
