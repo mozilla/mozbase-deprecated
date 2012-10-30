@@ -6,31 +6,37 @@
 mozbase
 =======
 
-Mozbase (normally written as `mozbase` except at the beginning of a
-sentence) is a set of easy to use python libraries designed to be used
-in the creation of automated testing software. It is used at least to some
-degree by all of Mozilla's test harnesses including Talos_, mochitest_,
-reftest_, Peptest_ and Eideticker_.
+Mozbase is a set of easy-to-use Python packages forming a supplemental standard
+library for Mozilla. It provides consistency and reduces redundancy in
+automation and other system-level software. All of Mozilla's test harnesses use
+mozbase to some degree, including Talos_, mochitest_, reftest_, Autophone_, and
+Eideticker_.
 
-.. _Talos: http://hg.mozilla.org/build/
+.. _Talos: https://wiki.mozilla.org/Talos
 
 .. _mochitest: https://developer.mozilla.org/en-US/docs/Mochitest
 
 .. _reftest: https://developer.mozilla.org/en-US/docs/Creating_reftest-based_unit_tests
 
-.. _Peptest: https://github.com/mozilla/peptest/
+.. _Autophone: https://wiki.mozilla.org/Auto-tools/Projects/AutoPhone
 
-.. _Eideticker: https://github.com/mozilla/eideticker/
+.. _Eideticker: https://wiki.mozilla.org/Project_Eideticker
 
 In the course of writing automated tests at Mozilla, we found that
-the same tasks needed to be performed occurred over and over, no
-matter what the specific nature of what we were testing. We figured
-that consolidating this code into a set of libraries would save us a
-good deal of time, and so we spent some effort factoring out the best
-of breed automation code into mozbase.
+the same tasks came up over and over, regardless of the specific nature of
+what we were testing. We figured that consolidating this code into a set of
+libraries would save us a good deal of time, and so we spent some effort
+factoring out the best-of-breed automation code into something we named
+"mozbase" (usually written all in lower case except at the beginning of a
+sentence).
 
-The documentation for mozbase is organized by category, then by
-module. Figure out what you want to do then dive in!
+This is the main documentation for users of mozbase. There is also a
+project_ wiki page with notes on development practices and administration.
+
+.. _project: https://wiki.mozilla.org/Auto-tools/Projects/MozBase
+
+The documentation is organized by category, then by module. Figure out what you
+want to do then dive in!
 
 .. toctree::
    :maxdepth: 2
