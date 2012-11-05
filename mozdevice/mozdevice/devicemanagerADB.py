@@ -28,6 +28,7 @@ class DeviceManagerADB(DeviceManager):
         self.tempDir = None
         self.deviceRoot = deviceRoot
         self.default_timeout = 300
+        self.pollingInterval = 0.01
 
         # the path to adb, or 'adb' to assume that it's on the PATH
         self.adbPath = adbPath
@@ -132,7 +133,7 @@ class DeviceManagerADB(DeviceManager):
         start_time = time.time()
         ret_code = proc.poll()
         while ((time.time() - start_time) <= timeout) and ret_code == None:
-            time.sleep(1)
+            time.sleep(self.pollingInterval)
             ret_code = proc.poll()
         if ret_code == None:
             proc.kill()
@@ -723,7 +724,7 @@ class DeviceManagerADB(DeviceManager):
         start_time = time.time()
         ret_code = proc.poll()
         while ((time.time() - start_time) <= timeout) and ret_code == None:
-            time.sleep(1)
+            time.sleep(self.pollingInterval)
             ret_code = proc.poll()
         if ret_code == None:
             proc.kill()
