@@ -79,7 +79,7 @@ def main(args=sys.argv[1:]):
     info = {}
     dependencies = {}
     directories = {}
-    for package in setup_development.all_packages:
+    for package in setup_development.mozbase_packages:
         directory = os.path.join(here, package)
         info[directory] = setup_development.info(directory)
         name, _dependencies = setup_development.get_dependencies(directory)
