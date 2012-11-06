@@ -450,11 +450,20 @@ class DeviceManagerSUT(DeviceManager):
         for line in data.splitlines():
             if line:
                 pidproc = line.strip().split()
-                if (len(pidproc) == 2):
-                    processTuples += [[pidproc[0], pidproc[1]]]
-                elif (len(pidproc) == 3):
-                    #android returns <userID> <procID> <procName>
-                    processTuples += [[int(pidproc[1]), pidproc[2], int(pidproc[0])]]
+                try:
+                    if (len(pidproc) == 2):
+                        processTuples += [[pidproc[0], pidproc[1]]]
+                    elif (len(pidproc) == 3):
+                        # android returns <userID> <procID> <procName>
+                        processTuples += [[int(pidproc[1]), pidproc[2], int(pidproc[0])]]
+                    else:
+                        # unexpected format
+                        raise ValueError
+                except ValueError:
+                    print "ERROR: Unable to parse process list (bug 805969)"
+                    print "Line: %s\nFull output of process list:\n%s" % (line, data)
+                    raise DMError("Invalid process line: %s" % line)
+
         return processTuples
 
     def fireProcess(self, appname, failIfRunning=False):
