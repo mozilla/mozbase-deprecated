@@ -362,13 +362,15 @@ class DeviceManager:
 
         return 0
 
-    def getIP(self, conn_type='eth0'):
+    def getIP(self, interfaces=['eth0', 'wlan0']):
         """
         Gets the IP of the device, or None if no connection exists.
         """
-        match = re.match(r"%s: ip (\S+)" % conn_type, self.shellCheckOutput(['ifconfig', conn_type]))
-        if match:
-            return match.group(1)
+        for interface in interfaces:
+            match = re.match(r"%s: ip (\S+)" % interface,
+                             self.shellCheckOutput(['ifconfig', interface]))
+            if match:
+                return match.group(1)
 
     @abstractmethod
     def unpackFile(self, file_path, dest_dir=None):

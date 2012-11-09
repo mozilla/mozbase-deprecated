@@ -124,21 +124,29 @@ user_pref("devtools.debugger.force-local", false);
         self.restartB2G()
         self.setupMarionette()
 
-    def setupDHCP(self, conn_type='eth0'):
+    def setupDHCP(self, interfaces=['eth0', 'wlan0']):
         """Sets up networking.
 
-        :param conn_type: Network connection type. Defaults to eth0.
+        :param interfaces: Network connection types to try. Defaults to eth0 and wlan0.
         """
+        all_interfaces = [line.split()[0] for line in \
+                          self.shellCheckOutput(['netcfg']).splitlines()[1:]]
+        interfaces_to_try = filter(lambda i: i in interfaces, all_interfaces)
+
         tries = 5
+        print "Setting up DHCP..."
         while tries > 0:
             print "attempts left: %d" % tries
             try:
-                self.shellCheckOutput(['netcfg', conn_type, 'dhcp'], timeout=10)
-                if self.getIP():
-                    return
+                for interface in interfaces_to_try:
+                    self.shellCheckOutput(['netcfg', interface, 'dhcp'],
+                                          timeout=10)
+                    if self.getIP(interfaces=[interface]):
+                        return
             except DMError:
                 pass
-            tries = tries - 1
+            time.sleep(1)
+            tries -= 1
         raise DMError("Could not set up network connection")
 
     def restoreProfile(self):
