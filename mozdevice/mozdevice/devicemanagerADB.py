@@ -6,6 +6,7 @@ import subprocess
 from devicemanager import DeviceManager, DMError, _pop_last_line
 import re
 import os
+import shutil
 import tempfile
 import time
 
@@ -194,8 +195,8 @@ class DeviceManagerADB(DeviceManager):
         """
         # adb "push" accepts a directory as an argument, but if the directory
         # contains symbolic links, the links are pushed, rather than the linked
-        # files; we either zip/unzip or push file-by-file to get around this
-        # limitation
+        # files; we either zip/unzip or re-copy the directory into a temporary
+        # one to get around this limitation
         if not self.dirExists(remoteDir):
             self.mkDirs(remoteDir+"/x")
         if self._useZip:
@@ -214,21 +215,12 @@ class DeviceManagerADB(DeviceManager):
                 self._useZip = False
                 self.pushDir(localDir, remoteDir)
         else:
-            for root, dirs, files in os.walk(localDir, followlinks=True):
-                relRoot = os.path.relpath(root, localDir)
-                for f in files:
-                    localFile = os.path.join(root, f)
-                    remoteFile = remoteDir + "/"
-                    if relRoot != ".":
-                        remoteFile = remoteFile + relRoot + "/"
-                    remoteFile = remoteFile + f
-                    self.pushFile(localFile, remoteFile)
-                for d in dirs:
-                    targetDir = remoteDir + "/"
-                    if relRoot != ".":
-                        targetDir = targetDir + relRoot + "/"
-                    targetDir = targetDir + d
-                    self.mkDir(targetDir)
+            tmpDir = tempfile.mkdtemp()
+            # copytree's target dir must not already exist, so create a subdir
+            tmpDirTarget = os.path.join(tmpDir, "tmp")
+            shutil.copytree(localDir, tmpDirTarget)
+            self._checkCmd(["push", tmpDirTarget, remoteDir])
+            shutil.rmtree(tmpDir)
 
     def dirExists(self, remotePath):
         """
