@@ -16,15 +16,13 @@ import sys, os
 # If extensions (or modules to document with autodoc) are in another directory,
 # add these directories to sys.path here. If the directory is relative to the
 # documentation root, use os.path.abspath to make it absolute, like shown here.
-#sys.path.insert(0, os.path.abspath('.'))
-sys.path.insert(0, os.path.abspath('../mozfile'))
-sys.path.insert(0, os.path.abspath('../manifestdestiny'))
-sys.path.insert(0, os.path.abspath('../mozprofile'))
-sys.path.insert(0, os.path.abspath('../mozhttpd'))
-sys.path.insert(0, os.path.abspath('../mozlog'))
-sys.path.insert(0, os.path.abspath('../mozcrash'))
-sys.path.insert(0, os.path.abspath('../mozinfo'))
-sys.path.insert(0, os.path.abspath('../mozb2g'))
+here = os.path.dirname(os.path.abspath(__file__))
+parent = os.path.dirname(here))
+for item in os.listdir(parent):
+    path = os.path.join(parent, item)
+    if (not os.path.isdir(path)) or (not os.path.exists(os.path.join(path, 'setup.py'))):
+        continue
+    sys.path.insert(0, path)
 
 # -- General configuration -----------------------------------------------------
 
