@@ -17,6 +17,14 @@ import sys, os
 # add these directories to sys.path here. If the directory is relative to the
 # documentation root, use os.path.abspath to make it absolute, like shown here.
 #sys.path.insert(0, os.path.abspath('.'))
+sys.path.insert(0, os.path.abspath('../mozfile'))
+sys.path.insert(0, os.path.abspath('../manifestdestiny'))
+sys.path.insert(0, os.path.abspath('../mozprofile'))
+sys.path.insert(0, os.path.abspath('../mozhttpd'))
+sys.path.insert(0, os.path.abspath('../mozlog'))
+sys.path.insert(0, os.path.abspath('../mozcrash'))
+sys.path.insert(0, os.path.abspath('../mozinfo'))
+sys.path.insert(0, os.path.abspath('../mozb2g'))
 
 # -- General configuration -----------------------------------------------------
 
