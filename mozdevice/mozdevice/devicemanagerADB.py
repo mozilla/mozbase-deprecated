@@ -670,7 +670,8 @@ class DeviceManagerADB(DeviceManager):
             finalArgs.extend(['-s', self._deviceSerial])
         # use run-as to execute commands as the package we're testing if
         # possible
-        if not self._haveRootShell and self._useRunAs and args[0] == "shell" and args[1] != "run-as":
+        if not self._haveRootShell and self._useRunAs and \
+                args[0] == "shell" and args[1] not in [ "run-as", "am" ]:
             args.insert(1, "run-as")
             args.insert(2, self._packageName)
         finalArgs.extend(args)
@@ -702,7 +703,8 @@ class DeviceManagerADB(DeviceManager):
         finalArgs = [self._adbPath]
         if self._deviceSerial:
             finalArgs.extend(['-s', self._deviceSerial])
-        if not self._haveRootShell and self._useRunAs and args[0] == "shell" and args[1] != "run-as":
+        if not self._haveRootShell and self._useRunAs and \
+                args[0] == "shell" and args[1] not in [ "run-as", "am" ]:
             args.insert(1, "run-as")
             args.insert(2, self._packageName)
         finalArgs.extend(args)
