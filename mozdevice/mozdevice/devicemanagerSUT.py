@@ -18,11 +18,11 @@ from distutils.version import StrictVersion
 
 class DeviceManagerSUT(DeviceManager):
     debug = 2
-    _base_prompt = '$>'
-    _base_prompt_re = '\$\>'
-    _prompt_sep = '\x00'
-    _prompt_regex = '.*(' + _base_prompt_re + _prompt_sep + ')'
-    _agentErrorRE = re.compile('^##AGENT-WARNING##\ ?(.*)')
+    base_prompt = '$>'
+    base_prompt_re = '\$\>'
+    prompt_sep = '\x00'
+    prompt_regex = '.*(' + base_prompt_re + prompt_sep + ')'
+    agentErrorRE = re.compile('^##AGENT-WARNING##\ ?(.*)')
     default_timeout = 300
 
     def __init__(self, host, port = 20701, retrylimit = 5, deviceRoot = None, **kwargs):
@@ -61,7 +61,7 @@ class DeviceManagerSUT(DeviceManager):
         """
         take a data blob and strip instances of the prompt '$>\x00'
         """
-        promptre = re.compile(self._prompt_regex + '.*')
+        promptre = re.compile(self.prompt_regex + '.*')
         retVal = []
         lines = data.split('\n')
         for line in lines:
@@ -69,10 +69,10 @@ class DeviceManagerSUT(DeviceManager):
             try:
                 while (promptre.match(line)):
                     foundPrompt = True
-                    pieces = line.split(self._prompt_sep)
+                    pieces = line.split(self.prompt_sep)
                     index = pieces.index('$>')
                     pieces.pop(index)
-                    line = self._prompt_sep.join(pieces)
+                    line = self.prompt_sep.join(pieces)
             except(ValueError):
                 pass
 
@@ -141,7 +141,7 @@ class DeviceManagerSUT(DeviceManager):
         return outputfile.read()
 
     def _doCmds(self, cmdlist, outputfile, timeout):
-        promptre = re.compile(self._prompt_regex + '$')
+        promptre = re.compile(self.prompt_regex + '$')
         shouldCloseSocket = False
 
         if not timeout:
@@ -242,7 +242,7 @@ class DeviceManagerSUT(DeviceManager):
                     # If something goes wrong in the agent it will send back a string that
                     # starts with '##AGENT-WARNING##'
                     if not commandFailed:
-                        errorMatch = self._agentErrorRE.match(data)
+                        errorMatch = self.agentErrorRE.match(data)
                         if errorMatch:
                             # We still need to consume the prompt, so raise an error after
                             # draining the rest of the buffer.
@@ -605,7 +605,7 @@ class DeviceManagerSUT(DeviceManager):
                 buf += data
             return buf
 
-        prompt = self._base_prompt + self._prompt_sep
+        prompt = self.base_prompt + self.prompt_sep
         buf = ''
 
         # expected return value:
