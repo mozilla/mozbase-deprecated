@@ -6,6 +6,7 @@
 Command-line client to control a device
 """
 
+import errno
 import os
 import posixpath
 import StringIO
@@ -16,7 +17,7 @@ from optparse import OptionParser
 
 class DMCli(object):
 
-    def __init__(self, args=sys.argv[1:]):
+    def __init__(self):
         self.commands = { 'install': { 'function': self.install,
                                        'min_args': 1,
                                        'max_args': 1,
@@ -73,6 +74,18 @@ class DMCli(object):
                                     'help_args': '<remote>',
                                     'help': 'remove file from device'
                                 },
+                          'isdir': { 'function': self.isdir,
+                                     'min_args': 1,
+                                     'max_args': 1,
+                                     'help_args': '<remote>',
+                                     'help': 'print if remote file is a directory'
+                                },
+                          'mkdir': { 'function': lambda d: self.dm.mkDir(d),
+                                     'min_args': 1,
+                                     'max_args': 1,
+                                     'help_args': '<remote>',
+                                     'help': 'makes a directory on device'
+                                },
                           'rmdir': { 'function': lambda d: self.dm.removeDir(d),
                                     'min_args': 1,
                                     'max_args': 1,
@@ -100,6 +113,8 @@ class DMCli(object):
         self.parser = OptionParser(usage)
         self.add_options(self.parser)
 
+
+    def run(self, args=sys.argv[1:]):
         (self.options, self.args) = self.parser.parse_args(args)
 
         if len(self.args) < 1:
@@ -124,7 +139,11 @@ class DMCli(object):
                                  hwid=self.options.hwid,
                                  host=self.options.host,
                                  port=self.options.port)
-        command['function'](*command_args)
+        ret = command['function'](*command_args)
+        if ret is None:
+            ret = 0
+
+        sys.exit(ret)
 
     def add_options(self, parser):
         parser.add_option("-v", "--verbose", action="store_true",
@@ -242,9 +261,18 @@ class DMCli(object):
         for file in filelist:
             print file
 
+    def isdir(self, file):
+        if self.dm.dirExists(file):
+            print "TRUE"
+            return 0
+
+        print "FALSE"
+        return errno.ENOTDIR
+
 def cli(args=sys.argv[1:]):
     # process the command line
-    cli = DMCli(args)
+    cli = DMCli()
+    cli.run(args)
 
 if __name__ == '__main__':
     cli()
