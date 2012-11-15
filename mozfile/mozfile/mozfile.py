@@ -104,8 +104,9 @@ def rmtree(dir):
     # So force dir to be unicode.
     try:
         dir = unicode(dir, "utf-8")
-    except:
-        print("rmtree: decoding from UTF-8 failed")
+    except UnicodeDecodeError:
+        if os.environ.get('DEBUG') == '1':
+            print("rmtree: decoding from UTF-8 failed for directory: %s" %s)
 
     for name in os.listdir(dir):
         full_name = os.path.join(dir, name)
