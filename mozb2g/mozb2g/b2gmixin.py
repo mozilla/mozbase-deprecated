@@ -62,7 +62,7 @@ class B2GMixin(object):
             time.sleep(1)
         raise DMError("Could not communicate with Marionette port")
 
-    def setupMarionette(self):
+    def setupMarionette(self, scriptTimeout=60000):
         """
         Starts a marionette session.
         If no host was given at init, the ip of the device will be retrieved
@@ -76,6 +76,8 @@ class B2GMixin(object):
         if not self.marionette.session:
             self.waitForPort(30)
             self.marionette.start_session()
+
+        self.marionette.set_script_timeout(scriptTimeout)
 
     def restartB2G(self):
         """
