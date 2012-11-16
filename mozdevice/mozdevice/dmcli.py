@@ -62,6 +62,12 @@ class DMCli(object):
                                     'help_args': '',
                                     'help': 'get information on running processes on device'
                                 },
+                          'logcat' : { 'function': self.logcat,
+                                       'min_args': None,
+                                       'max_args': 0,
+                                       'help_args': '',
+                                       'help': 'get logcat from device'
+                                },
                           'ls': { 'function': self.listfiles,
                                   'min_args': 1,
                                   'max_args': 1,
@@ -250,6 +256,9 @@ class DMCli(object):
                     print "%s: %s" % (infokey.upper(), line)
             else:
                 print "%s" % "\n".join(infoitem)
+
+    def logcat(self):
+        print ''.join(self.dm.getLogcat())
 
     def processlist(self):
         pslist = self.dm.getProcessList()
