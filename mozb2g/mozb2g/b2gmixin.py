@@ -99,11 +99,12 @@ class B2GMixin(object):
 
         :param prefs: String of user_prefs to add to the profile. Defaults to a standard b2g testing profile.
         """
+        # currently we have no custom prefs to set (when bug 800138 is fixed,
+        # we will probably want to enable marionette on an external ip by
+        # default)
         if not prefs:
-            prefs = """
-user_pref("power.screen.timeout", 999999);
-user_pref("devtools.debugger.force-local", false);
-            """
+            prefs = ""
+
         #remove previous user.js if there is one
         if not self.profileDir:
             self.profileDir = tempfile.mkdtemp()
@@ -112,7 +113,7 @@ user_pref("devtools.debugger.force-local", false);
             os.remove(our_userJS)
         #copy profile
         try:
-            output = self.getFile(self.userJS, our_userJS)
+            self.getFile(self.userJS, our_userJS)
         except subprocess.CalledProcessError:
             pass
         #if we successfully copied the profile, make a backup of the file
@@ -120,6 +121,7 @@ user_pref("devtools.debugger.force-local", false);
             self.shellCheckOutput(['dd', 'if=%s' % self.userJS, 'of=%s.orig' % self.userJS])
         with open(our_userJS, 'a') as user_file:
             user_file.write("%s" % prefs)
+
         self.pushFile(our_userJS, self.userJS)
         self.restartB2G()
         self.setupMarionette()
@@ -161,6 +163,37 @@ user_pref("devtools.debugger.force-local", false);
             self.shellCheckOutput(['dd', 'if=%s.orig' % self.userJS, 'of=%s' % self.userJS])
         shutil.rmtree(self.profileDir)
         self.profileDir = None
+
+    def unlock(self):
+        """
+        Unlocks the device, ensuring it will never go back to the lockscreen
+        """
+        if not self.marionette or not self.marionette.session:
+            self.setupMarionette()
+
+        success = self.marionette.execute_async_script("""
+let setlock = window.wrappedJSObject.SettingsListener.getSettingsLock();
+let obj = {'screen.timeout': 0};
+setlock.set(obj);
+waitFor(
+function() {
+window.wrappedJSObject.LockScreen.unlock();
+waitFor(
+function() {
+finish(window.wrappedJSObject.LockScreen.locked);
+},
+function() {
+return !window.wrappedJSObject.LockScreen.locked;
+}
+);
+},
+function() {
+return !!window.wrappedJSObject.LockScreen;
+}
+);
+""")
+        if not success:
+            raise DMError("Unable to unlock device")
 
     def getAppInfo(self):
         """
