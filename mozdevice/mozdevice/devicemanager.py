@@ -62,7 +62,7 @@ class DeviceManager:
         output = str(buf.getvalue()[0:-1]).rstrip()
         buf.close()
         if retval != 0:
-            raise DMError("Non-zero return code for command: %s (output: '%s', retval: '%i')" % (cmd, output, retval))
+            raise DMError("Non-zero return code for command: %s (output: '%s', retval: '%s')" % (cmd, output, retval))
         return output
 
     @abstractmethod
