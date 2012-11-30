@@ -82,14 +82,16 @@ class DeviceManager:
         Make directory structure on the device
         WARNING: does not create last part of the path
         """
-        parts = filename.split('/')
-        name = ""
-        for part in parts:
-            if (part == parts[-1]):
-                break
-            if (part != ""):
-                name += '/' + part
-                self.mkDir(name) # mkDir will check previous existence
+        dirParts = filename.rsplit('/', 1)
+        if not self.dirExists(dirParts[0]):
+            parts = filename.split('/')
+            name = ""
+            for part in parts:
+                if part == parts[-1]:
+                    break
+                if part != "":
+                    name += '/' + part
+                    self.mkDir(name) # mkDir will check previous existence
 
     @abstractmethod
     def pushDir(self, localDir, remoteDir):
