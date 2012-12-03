@@ -18,6 +18,8 @@ from optparse import OptionParser
 class DMCli(object):
 
     def __init__(self):
+        # a value of None for 'max_args' means there is no limit to the number
+        # of arguments.  'min_args' should always have an integer value >= 0.
         self.commands = { 'install': { 'function': self.install,
                                        'min_args': 1,
                                        'max_args': 1,
@@ -49,7 +51,7 @@ class DMCli(object):
                                      'help_args': '<command>',
                                      'help': 'run shell command on device' },
                           'info': { 'function': self.getinfo,
-                                    'min_args': None,
+                                    'min_args': 0,
                                     'max_args': 1,
                                     'help_args': '[os|id|uptime|systime|screen|memory|processes]',
                                     'help': 'get information on a specified '
@@ -57,13 +59,13 @@ class DMCli(object):
                                     'given, print all available information)'
                                     },
                           'ps': { 'function': self.processlist,
-                                    'min_args': None,
+                                    'min_args': 0,
                                     'max_args': 0,
                                     'help_args': '',
                                     'help': 'get information on running processes on device'
                                 },
                           'logcat' : { 'function': self.logcat,
-                                       'min_args': None,
+                                       'min_args': 0,
                                        'max_args': 0,
                                        'help_args': '',
                                        'help': 'get logcat from device'
@@ -137,8 +139,9 @@ class DMCli(object):
                               " ".join(self.commands.keys()))
 
         command = self.commands[command_name]
-        if command['min_args'] and len(command_args) < command['min_args'] or \
-                command['max_args'] and len(command_args) > command['max_args']:
+        if (len(command_args) < command['min_args'] or
+            (command['max_args'] is not None and len(command_args) > 
+             command['max_args'])):
             self.parser.error("Wrong number of arguments")
 
         self.dm = self.getDevice(dmtype=self.options.dmtype,
