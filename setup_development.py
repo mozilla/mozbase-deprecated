@@ -15,9 +15,9 @@ See https://wiki.mozilla.org/Auto-tools/Projects/MozBase
 
 import pkg_resources
 import os
+import subprocess
 import sys
 from optparse import OptionParser
-
 from subprocess import PIPE
 try:
     from subprocess import check_call as call
@@ -47,7 +47,11 @@ def info(directory):
     assert os.path.exists(os.path.join(directory, 'setup.py'))
 
     # setup the egg info
-    call([sys.executable, 'setup.py', 'egg_info'], cwd=directory, stdout=PIPE)
+    try:
+        call([sys.executable, 'setup.py', 'egg_info'], cwd=directory, stdout=PIPE)
+    except subprocess.CalledProcessError:
+        print "Error running setup.py in %s" % directory
+        raise
 
     # get the .egg-info directory
     egg_info = [entry for entry in os.listdir(directory)

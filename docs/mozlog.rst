@@ -1,6 +1,10 @@
 :mod:`mozlog` --- Easy, configurable and uniform logging
 ========================================================
 
+Mozlog is a python package intended to simplify and standardize logs
+in the Mozilla universe. It wraps around python's logging module and
+adds some additional functionality.
+
 .. automodule:: mozlog
     :members: getLogger
 
