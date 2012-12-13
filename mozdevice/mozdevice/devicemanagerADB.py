@@ -265,18 +265,12 @@ class DeviceManagerADB(DeviceManager):
         if self.fileExists(filename):
             self._runCmd(["shell", "rm", filename])
 
-    def _removeSingleDir(self, remoteDir):
-        """
-        Deletes a single empty directory
-        """
-        return self._runCmd(["shell", "rmdir", remoteDir]).stdout.read()
-
     def removeDir(self, remoteDir):
         """
         Does a recursive delete of directory on the device: rm -Rf remoteDir
         """
         if (self.dirExists(remoteDir)):
-            self._runCmd(["shell", "rm", "-r", remoteDir])
+            self._runCmd(["shell", "rm", "-r", remoteDir]).wait()
         else:
             self.removeFile(remoteDir.strip())
 
