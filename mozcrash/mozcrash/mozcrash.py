@@ -33,8 +33,12 @@ def extractall(zip, path = None):
             path = os.path.split(filename)[0]
             if not os.path.isdir(path):
                 os.makedirs(path)
-        with open(filename, "wb") as dest:
-            dest.write(zip.read(name))
+
+        try:
+            f = open(filename, "wb")
+            f.write(zip.read(name))
+        finally:
+            f.close()
 
 def check_for_crashes(dump_directory, symbols_path,
                       stackwalk_binary=None,
