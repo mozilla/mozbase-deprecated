@@ -87,7 +87,7 @@ class DeviceManager:
             parts = filename.split('/')
             name = ""
             for part in parts:
-                if part == parts[-1]:
+                if part is parts[-1]:
                     break
                 if part != "":
                     name += '/' + part
