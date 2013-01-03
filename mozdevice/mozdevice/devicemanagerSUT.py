@@ -160,17 +160,23 @@ class DeviceManagerSUT(DeviceManager):
                 raise DMError("Automation Error: unable to create socket: "+str(msg))
 
             try:
+                self._sock.settimeout(float(timeout))
                 self._sock.connect((self.host, int(self.port)))
-                if select.select([self._sock], [], [], timeout)[0]:
-                    self._sock.recv(1024)
-                else:
-                    raise DMError("Remote Device Error: Timeout in connecting", fatal=True)
-                    return False
                 self._everConnected = True
+            except socket.error, msg:
+                self._sock = None
+                raise DMError("Remote Device Error: Unable to connect socket: "+str(msg))
+
+            # consume prompt
+            try:
+                self._sock.recv(1024)
             except socket.error, msg:
                 self._sock.close()
                 self._sock = None
-                raise DMError("Remote Device Error: Unable to connect socket: "+str(msg))
+                raise DMError("Remote Device Error: Did not get prompt after connecting: " + str(msg), fatal=True)
+
+            # future recv() timeouts are handled by select() calls
+            self._sock.settimeout(None)
 
         for cmd in cmdlist:
             cmdline = '%s\r\n' % cmd['cmd']
