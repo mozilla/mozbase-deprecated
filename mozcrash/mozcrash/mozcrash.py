@@ -145,7 +145,7 @@ def check_for_crashes(dump_directory, symbols_path,
                     stackwalk_output.append("MINIDUMP_STACKWALK binary not found: %s" % stackwalk_binary)
             if not top_frame:
                 top_frame = "Unknown top frame"
-            log.error("PROCESS-CRASH | %s | application crashed [%s]", test_name, top_frame)
+            print "PROCESS-CRASH | %s | application crashed [%s]" % (test_name, top_frame)
             print '\n'.join(stackwalk_output)
             if dump_save_path is None:
                 dump_save_path = os.environ.get('MINIDUMP_SAVE_PATH', None)
