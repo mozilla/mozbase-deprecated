@@ -476,7 +476,7 @@ class DeviceManagerSUT(DeviceManager):
 
         return processTuples
 
-    def fireProcess(self, appname, failIfRunning=False):
+    def fireProcess(self, appname, failIfRunning=False, maxWaitTime=30):
         """
         Starts a process
 
@@ -494,11 +494,22 @@ class DeviceManagerSUT(DeviceManager):
             print "WARNING: process %s appears to be running already\n" % appname
             if (failIfRunning):
                 raise DMError("Automation Error: Process is already running")
+
         self._runCmds([{ 'cmd': 'exec ' + appname }])
 
         # The 'exec' command may wait for the process to start and end, so checking
         # for the process here may result in process = None.
-        pid = self.processExist(appname)
+        # The normal case is to launch the process and return right away
+        # There is one case with robotium (am instrument) where exec returns at the end
+        pid = None
+        waited = 0
+        while pid is None and waited < maxWaitTime:
+            pid = self.processExist(appname)
+            if pid:
+                break
+            time.sleep(1)
+            waited += 1
+
         if (self.debug >= 4):
             print "got pid: %s for process: %s" % (pid, appname)
         return pid
