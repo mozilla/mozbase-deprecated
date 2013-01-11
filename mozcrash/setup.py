@@ -7,7 +7,7 @@ from setuptools import setup
 PACKAGE_VERSION = '0.3.1'
 
 # dependencies
-deps = ['mozfile']
+deps = ['mozfile >= 0.3']
 
 setup(name='mozcrash',
       version=PACKAGE_VERSION,
