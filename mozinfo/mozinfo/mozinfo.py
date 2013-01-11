@@ -134,12 +134,7 @@ def main(args=None):
         try:
             from json import loads
         except ImportError:
-            try:
-                from simplejson import loads
-            except ImportError:
-                def loads(string):
-                    """*really* simple json; will not work with unicode"""
-                    return eval(string, {'true': True, 'false': False, 'null': None})
+            from simplejson import loads
         for arg in args:
             if _os.path.exists(arg):
                 string = file(arg).read()
