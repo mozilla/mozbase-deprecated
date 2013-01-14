@@ -39,7 +39,9 @@ class DeviceManagerSUT(DeviceManager):
 
         # Get version
         verstring = self._runCmds([{ 'cmd': 'ver' }])
-        self.agentVersion = re.sub('SUTAgentAndroid Version ', '', verstring)
+        ver_re = re.match('(\S+) Version (\S+)', verstring)
+        self.agentProductName = ver_re.group(1)
+        self.agentVersion = ver_re.group(2)
 
     def _cmdNeedsResponse(self, cmd):
         """ Not all commands need a response from the agent:
@@ -299,7 +301,12 @@ class DeviceManagerSUT(DeviceManager):
         if env:
             cmdline = '%s %s' % (self._formatEnvString(env), cmdline)
 
-        haveExecSu = (StrictVersion(self.agentVersion) >= StrictVersion('1.13'))
+        # execcwd/execcwdsu currently unsupported in Negatus; see bug 824127.
+        if cwd and self.agentProductName == 'SUTAgentNegatus':
+            raise DMError("Negatus does not support execcwd/execcwdsu")
+
+        haveExecSu = (self.agentProductName == 'SUTAgentNegatus' or
+                      StrictVersion(self.agentVersion) >= StrictVersion('1.13'))
 
         # Depending on agent version we send one of the following commands here:
         # * exec (run as normal user)
