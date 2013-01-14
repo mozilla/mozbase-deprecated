@@ -2,19 +2,18 @@
 # License, v. 2.0. If a copy of the MPL was not distributed with this
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
+import re
 import socket
 from time import strptime
-import re
 
 from dmunit import DeviceManagerTestCase
-
 
 class DataChannelTestCase(DeviceManagerTestCase):
 
     runs_on_test_device = False
 
     def runTest(self):
-        """ This tests the heartbeat and the data channel
+        """This tests the heartbeat and the data channel.
         """
         ip = self.dm.host
         port = 20700
@@ -29,7 +28,7 @@ class DataChannelTestCase(DeviceManagerTestCase):
         # Let's listen
         numbeats = 0
         capturedHeader = False
-        while(numbeats < 3):
+        while numbeats < 3:
             data = self._datasock.recv(1024)
             print data
             self.assertNotEqual(len(data), 0)
@@ -39,7 +38,6 @@ class DataChannelTestCase(DeviceManagerTestCase):
                 m = re.match(r"(.*?) trace output", data)
                 self.assertNotEqual(m, None,
                     'trace output line does not match. The line: ' + str(data))
-                lastHeartbeatTime = strptime(m.group(1), "%Y%m%d-%H:%M:%S")
                 capturedHeader = True
 
             # Check for standard heartbeat messsage
@@ -52,5 +50,4 @@ class DataChannelTestCase(DeviceManagerTestCase):
             # Ensure it matches our format
             mHeartbeatTime = m.group(1)
             mHeartbeatTime = strptime(mHeartbeatTime, "%Y%m%d-%H:%M:%S")
-            mDeviceID = m.group(2)
             numbeats = numbeats + 1

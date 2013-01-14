@@ -12,9 +12,12 @@ import dmunit
 import genfiles
 
 
-def main(ip, port, scripts, directory, isTestDevice):
+def main(ip, port, scripts, directory, isTestDevice, verbose):
     dmunit.ip = ip
     dmunit.port = port
+    if verbose:
+        from mozdevice.devicemanagerSUT import DeviceManagerSUT
+        DeviceManagerSUT.debug = 4
 
     suite = unittest.TestSuite()
 
@@ -79,7 +82,10 @@ if  __name__ == "__main__":
                       help="Specifies that the device is a local test agent",
                       default=False)
 
+    parser.add_option("-v", "--verbose", action="store_true", dest="verbose",
+                      help="Verbose DeviceManager output", default=False)
+
     (options, args) = parser.parse_args()
 
-    main(options.ip, options.port, options.scripts,
-         options.dir, options.isTestDevice)
+    main(options.ip, options.port, options.scripts, options.dir,
+         options.isTestDevice, options.verbose)
