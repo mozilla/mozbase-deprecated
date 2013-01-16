@@ -46,7 +46,10 @@ def check_for_crashes(dump_directory, symbols_path,
 
     Returns True if any minidumps were found, False otherwise.
     """
-    log = mozlog.getLogger('mozcrash')
+    dumps = glob.glob(os.path.join(dump_directory, '*.dmp'))
+    if not dumps:
+        return False
+
     if stackwalk_binary is None:
         stackwalk_binary = os.environ.get('MINIDUMP_STACKWALK', None)
 
@@ -57,11 +60,7 @@ def check_for_crashes(dump_directory, symbols_path,
         except:
             test_name = "unknown"
 
-    # Check preconditions
-    dumps = glob.glob(os.path.join(dump_directory, '*.dmp'))
-    if len(dumps) == 0:
-        return False
-
+    log = mozlog.getLogger('mozcrash')
     remove_symbols = False
     # If our symbols are at a remote URL, download them now
     # We want to download URLs like http://... but not Windows paths like c:\...
