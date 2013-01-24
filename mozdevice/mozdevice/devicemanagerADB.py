@@ -493,13 +493,6 @@ class DeviceManagerADB(DeviceManager):
                     raise
             return
 
-        # /mnt/sdcard/tests is preferred to /data/local/tests, but this can be
-        # over-ridden by creating /data/local/tests
-        testRoot = "/data/local/tests"
-        if (self.dirExists(testRoot)):
-            self.deviceRoot = testRoot
-            return
-
         paths = [('/mnt/sdcard', 'tests'),
                  ('/data/local', 'tests')]
         for (basePath, subPath) in paths:
