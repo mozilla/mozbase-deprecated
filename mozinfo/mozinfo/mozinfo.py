@@ -45,7 +45,10 @@ if system in ["Microsoft", "Windows"]:
         service_pack = os.sys.getwindowsversion()[4]
         info['service_pack'] = service_pack
 elif system == "Linux":
-    (distro, version, codename) = platform.dist()
+    if hasattr(platform, "linux_distribution"):
+        (distro, version, codename) = platform.linux_distribution()
+    else:
+        (distro, version, codename) = platform.dist()
     version = "%s %s" % (distro, version)
     if not processor:
         processor = machine
