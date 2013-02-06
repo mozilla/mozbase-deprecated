@@ -1,41 +1,34 @@
 #!/usr/bin/env python
 
+# This Source Code Form is subject to the terms of the Mozilla Public
+# License, v. 2.0. If a copy of the MPL was not distributed with this file,
+# You can obtain one at http://mozilla.org/MPL/2.0/.
+
 import os
 import shutil
-import sys
 import tempfile
 import unittest
-from mozprofile.cli import cli
+from mozprofile.cli import MozProfileCLI
 from mozprofile.prefs import Preferences
 from mozprofile.profile import Profile
-from StringIO import StringIO
 
 class PreferencesTest(unittest.TestCase):
     """test mozprofile preferences"""
 
     def run_command(self, *args):
         """
-        invokes mozprofile command line programmatically
+        invokes mozprofile command line via the CLI factory
+        - args : command line arguments (equivalent of sys.argv[1:])
         """
 
-        # The CLI entry point prints the profile path to created
-        # profiles to stdout.  In order to get this, monkey-patch sys.stdout
-        stdout = sys.stdout
-        buffer = StringIO()
-        sys.stdout = buffer
+        # instantiate the factory
+        cli = MozProfileCLI(list(args))
 
-        try:
-            # call the cli function
-            cli(list(args))
-
-            # read stdout
-            output = buffer.getvalue().strip()
-        finally:
-            # restore stdout
-            sys.stdout = stdout
+        # create the profile
+        profile = cli.profile()
 
         # return path to profile
-        return output
+        return profile.profile
 
     def compare_generated(self, _prefs, commandline):
         """
