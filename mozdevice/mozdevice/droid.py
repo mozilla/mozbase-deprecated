@@ -9,6 +9,7 @@ from Zeroconf import Zeroconf, ServiceBrowser
 from devicemanager import ZeroconfListener, NetworkTools
 from devicemanagerADB import DeviceManagerADB
 from devicemanagerSUT import DeviceManagerSUT
+from devicemanager import DMError
 
 class DroidMixin(object):
     """Mixin to extend DeviceManager with Android-specific functionality"""
@@ -17,13 +18,11 @@ class DroidMixin(object):
                           extras=None):
         """
         Launches an Android application
-        returns:
-        success: True
-        failure: False
         """
         # only one instance of an application may be running at once
         if self.processExist(appName):
-            return False
+            raise DMError("Only one instance of an application may be running "
+                          "at once")
 
         acmd = [ "am", "start", "-W", "-n", "%s/%s" % (appName, activityName)]
 
@@ -45,12 +44,13 @@ class DroidMixin(object):
 
         # shell output not that interesting and debugging logs should already
         # show what's going on here... so just create an empty memory buffer
-        # and ignore
+        # and ignore (except on error)
         shellOutput = StringIO.StringIO()
         if self.shell(acmd, shellOutput) == 0:
-            return True
+            return
 
-        return False
+        shellOutput.seek(0)
+        raise DMError("Unable to launch application (shell output: '%s')" % shellOutput.read())
 
     def launchFennec(self, appName, intent="android.intent.action.VIEW",
                                       mozEnv=None, extraArgs=None, url=None):
@@ -60,9 +60,6 @@ class DroidMixin(object):
         WARNING: FIXME: This would go better in mozrunner. Please do not
         use this method if you are not comfortable with it going away sometime
         in the near future
-        returns:
-        success: True
-        failure: False
         """
         extras = {}
 
