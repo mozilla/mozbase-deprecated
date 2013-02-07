@@ -3,6 +3,7 @@
 # You can obtain one at http://mozilla.org/MPL/2.0/.
 
 import StringIO
+import re
 import threading
 
 from Zeroconf import Zeroconf, ServiceBrowser
@@ -14,6 +15,9 @@ from devicemanager import DMError
 class DroidMixin(object):
     """Mixin to extend DeviceManager with Android-specific functionality"""
 
+    def _getExtraAmStartArgs(self):
+        return []
+
     def launchApplication(self, appName, activityName, intent, url=None,
                           extras=None):
         """
@@ -24,7 +28,8 @@ class DroidMixin(object):
             raise DMError("Only one instance of an application may be running "
                           "at once")
 
-        acmd = [ "am", "start", "-W", "-n", "%s/%s" % (appName, activityName)]
+        acmd = [ "am", "start" ] + self._getExtraAmStartArgs() + \
+            ["-W", "-n", "%s/%s" % (appName, activityName)]
 
         if intent:
             acmd.extend(["-a", intent])
@@ -74,14 +79,33 @@ class DroidMixin(object):
         if extraArgs:
             extras['args'] = " ".join(extraArgs)
 
-        return self.launchApplication(appName, ".App", intent, url=url,
-                                                                    extras=extras)
+        self.launchApplication(appName, ".App", intent, url=url, extras=extras)
 
 class DroidADB(DeviceManagerADB, DroidMixin):
     pass
 
 class DroidSUT(DeviceManagerSUT, DroidMixin):
-    pass
+
+    def _getExtraAmStartArgs(self):
+        # versions of android after jellybean may run as a different process
+        # than the one that started the app. we need to get back the original
+        # user serial number back for this case
+        if not hasattr(self, 'userSerial'):
+            infoDict = self.getInfo(directive="sutuserinfo")
+            if infoDict.get('sutuserinfo') and \
+                    len(infoDict['sutuserinfo']) > 0:
+               userSerialString = infoDict['sutuserinfo'][0]
+               print "serial string: %s" % userSerialString
+               m = re.match('User Serial:([0-9]+)', userSerialString)
+               if m:
+                   self.userSerial = m.group(1)
+               else:
+                   self.userSerial = None
+
+        if self.userSerial is not None:
+            return [ "--user", self.userSerial ]
+
+        return []
 
 def DroidConnectByHWID(hwid, timeout=30, **kwargs):
     """Try to connect to the given device by waiting for it to show up using mDNS with the given timeout."""

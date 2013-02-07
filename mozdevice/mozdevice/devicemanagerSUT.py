@@ -882,7 +882,7 @@ class DeviceManagerSUT(DeviceManager):
         collapseSpaces = re.compile('  +')
 
         directives = ['os','id','uptime','uptimemillis','systime','screen',
-                                    'rotation','memory','process','disk','power']
+                      'rotation','memory','process','disk','power','sutuserinfo']
         if (directive in directives):
             directives = [directive]
 
