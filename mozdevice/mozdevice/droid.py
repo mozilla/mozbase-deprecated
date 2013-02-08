@@ -87,15 +87,16 @@ class DroidADB(DeviceManagerADB, DroidMixin):
 class DroidSUT(DeviceManagerSUT, DroidMixin):
 
     def _getExtraAmStartArgs(self):
-        # versions of android after jellybean may run as a different process
-        # than the one that started the app. we need to get back the original
-        # user serial number back for this case
+        # in versions of android in jellybean and beyond, the agent may run as
+        # a different process than the one that started the app. In this case,
+        # we need to get back the original user serial number and then pass
+        # that to the 'am start' command line
         if not hasattr(self, 'userSerial'):
             infoDict = self.getInfo(directive="sutuserinfo")
             if infoDict.get('sutuserinfo') and \
                     len(infoDict['sutuserinfo']) > 0:
                userSerialString = infoDict['sutuserinfo'][0]
-               print "serial string: %s" % userSerialString
+               # user serial always an integer, see: http://developer.android.com/reference/android/os/UserManager.html#getSerialNumberForUser%28android.os.UserHandle%29
                m = re.match('User Serial:([0-9]+)', userSerialString)
                if m:
                    self.userSerial = m.group(1)
