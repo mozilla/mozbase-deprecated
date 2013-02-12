@@ -13,7 +13,7 @@ from mozprofile.prefs import Preferences
 from mozprofile.profile import Profile
 
 class PreferencesTest(unittest.TestCase):
-    """test mozprofile preferences"""
+    """test mozprofile preference handling"""
 
     def run_command(self, *args):
         """
@@ -216,6 +216,30 @@ user_pref("webgl.force-enabled", true);
 
         commandline = ["--preferences", name]
         self.compare_generated(_prefs, commandline)
+
+    def test_prefs_write(self):
+        """test that the Preferences.write() method correctly serializes preferences"""
+
+        _prefs = {'browser.startup.homepage': "http://planet.mozilla.org",
+                  'zoom.minPercent': 30,
+                  'zoom.maxPercent': 300}
+
+        # make a Preferences manager with the testing preferences
+        preferences = Preferences(_prefs)
+
+        # write them to a temporary location
+        path = None
+        try:
+            with tempfile.NamedTemporaryFile(suffix='.js', delete=False) as f:
+                path = f.name
+                preferences.write(f, _prefs)
+
+            # read them back and ensure we get what we put in
+            self.assertEqual(dict(Preferences.read_prefs(path)), _prefs)
+
+        finally:
+            # cleanup
+            os.remove(path)
 
 
 if __name__ == '__main__':

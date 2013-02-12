@@ -13,9 +13,9 @@ from permissions import Permissions
 from shutil import rmtree
 
 try:
-    import simplejson
+    import json
 except ImportError:
-    import json as simplejson
+    import simplejson as json
 
 class Profile(object):
     """Handles all operations regarding profile. Created new profiles, installs extensions,
@@ -129,7 +129,7 @@ class Profile(object):
 
             # write the preferences
             f.write('\n%s\n' % self.delimeters[0])
-            _prefs = [(simplejson.dumps(k), simplejson.dumps(v) )
+            _prefs = [(json.dumps(k), json.dumps(v) )
                       for k, v in preferences]
             for _pref in _prefs:
                 f.write('user_pref(%s, %s);\n' % _pref)

@@ -190,7 +190,7 @@ class Preferences(object):
         return retval
 
     @classmethod
-    def write(_file, prefs, pref_string='user_pref("%s", %s);'):
+    def write(cls, _file, prefs, pref_string='user_pref("%s", %s);'):
         """write preferences to a file"""
 
         if isinstance(_file, basestring):
@@ -207,7 +207,7 @@ class Preferences(object):
             elif value is False:
                 print >> f, pref_string % (key, 'false')
             elif isinstance(value, basestring):
-                print >> f, pref_string % (key, repr(string(value)))
+                print >> f, pref_string % (key, repr(str(value)))
             else:
                 print >> f, pref_string % (key, value) # should be numeric!
 
