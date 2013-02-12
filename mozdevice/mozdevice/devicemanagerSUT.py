@@ -561,8 +561,20 @@ class DeviceManagerSUT(DeviceManager):
         """
         if forceKill:
             print "WARNING: killProcess(): forceKill parameter unsupported on SUT"
-        if self.processExist(appname):
-            self._runCmds([{ 'cmd': 'kill ' + appname }])
+        retries = 0
+        while retries < self.retryLimit:
+            try:
+                if self.processExist(appname):
+                    self._runCmds([{ 'cmd': 'kill ' + appname }])
+                return
+            except DMError, err:
+                retries +=1
+                print ("WARNING: try %d of %d failed to kill %s" %
+                       (retries, self.retryLimit, appname))
+                if self.debug >= 4:
+                    print err
+                if retries >= self.retryLimit:
+                    raise err
 
     def getTempDir(self):
         """
