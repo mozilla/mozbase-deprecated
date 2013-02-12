@@ -214,7 +214,7 @@ user_pref("webgl.force-enabled", true);
         os.write(fd, json)
         os.close(fd)
 
-        commandline = ["mozprofile", "--preferences", name]
+        commandline = ["--preferences", name]
         self.compare_generated(_prefs, commandline)
 
 
