@@ -13,11 +13,14 @@ from mozdevice.devicemanager import DMError
 
 USAGE = '%s <host>'
 INI_PATH = '/data/data/com.mozilla.SUTAgentAndroid/files/SUTAgent.ini'
-SCHEMA = { 'Registration Server': (('IPAddr', None),
-                                   ('PORT', '28001'),
-                                   ('HARDWARE', None),
-                                   ('POOL', None)) }
-
+SCHEMA = {'Registration Server': (('IPAddr', ''),
+                                  ('PORT', '28001'),
+                                  ('HARDWARE', ''),
+                                  ('POOL', '')),
+          'Network Settings': (('SSID', ''),
+                               ('AUTH', ''),
+                               ('ENCR', ''),
+                               ('EAP', ''))}
 
 def get_cfg(d):
     cfg = ConfigParser.RawConfigParser()
@@ -52,9 +55,9 @@ def set_opt(cfg, s, o, dflt):
         curval = ''
     if curval:
         dflt = curval
-    if dflt:
-        prompt += ' [%s]' % dflt
     prompt += ': '
+    if dflt:
+        prompt += '[%s] ' % dflt
     newval = raw_input(prompt)
     if not newval:
         newval = dflt
@@ -62,6 +65,32 @@ def set_opt(cfg, s, o, dflt):
         return False
     cfg.set(s, o, newval)
     return True
+
+
+def bool_query(prompt, dflt):
+    while True:
+        i = raw_input('%s [%s] ' % (prompt, 'y' if dflt else 'n')).lower()
+        if not i or i[0] in ('y', 'n'):
+            break
+        print 'Enter y or n.'
+    return (not i and dflt) or (i and i[0] == 'y')
+
+
+def edit_sect(cfg, sect, opts):
+    changed_vals = False
+    if bool_query('Edit section %s?' % sect, False):
+        if not cfg.has_section(sect):
+            cfg.add_section(sect)
+        print '%s settings:' % sect
+        for opt, dflt in opts:
+            changed_vals |= set_opt(cfg, sect, opt, dflt)
+        print
+    else:
+        if cfg.has_section(sect) and bool_query('Delete section %s?' % sect,
+                                                False):
+            cfg.remove_section(sect)
+            changed_vals = True
+    return changed_vals
 
 
 def main():
@@ -80,12 +109,7 @@ def main():
         print 'Empty or missing ini file.'
     changed_vals = False
     for sect, opts in SCHEMA.iteritems():
-        if not cfg.has_section(sect):
-            cfg.add_section(sect)
-        print '%s settings:' % sect
-        for opt, dflt in opts:
-            changed_vals |= set_opt(cfg, sect, opt, dflt)
-        print
+        changed_vals |= edit_sect(cfg, sect, opts)
     if changed_vals:
         put_cfg(d, cfg)
     else:
