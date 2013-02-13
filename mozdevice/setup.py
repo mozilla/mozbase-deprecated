@@ -26,5 +26,6 @@ setup(name='mozdevice',
       # -*- Entry points: -*-
       [console_scripts]
       dm = mozdevice.dmcli:cli
+      sutini = mozdevice.sutini:main
       """,
       )
