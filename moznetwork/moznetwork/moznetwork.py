@@ -63,6 +63,8 @@ def get_ip():
     if ip is None:
         raise NetworkError('Unable to obtain network address')
 
+    return ip
+
 
 def get_lan_ip():
     """Deprecated. Please use get_ip() instead."""
