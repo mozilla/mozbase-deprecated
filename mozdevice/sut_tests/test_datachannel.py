@@ -6,7 +6,7 @@ import re
 import socket
 from time import strptime
 
-from dmunit import DeviceManagerTestCase
+from dmunit import DeviceManagerTestCase, heartbeat_port
 
 class DataChannelTestCase(DeviceManagerTestCase):
 
@@ -16,13 +16,12 @@ class DataChannelTestCase(DeviceManagerTestCase):
         """This tests the heartbeat and the data channel.
         """
         ip = self.dm.host
-        port = 20700
 
         # Let's connect
         self._datasock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         # Assume 60 seconds between heartbeats
         self._datasock.settimeout(float(60 * 2))
-        self._datasock.connect((ip, port))
+        self._datasock.connect((ip, heartbeat_port))
         self._connected = True
 
         # Let's listen

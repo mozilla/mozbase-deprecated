@@ -9,6 +9,7 @@ import unittest
 
 ip = ''
 port = 0
+heartbeat_port = 0
 
 
 class DeviceManagerTestCase(unittest.TestCase):

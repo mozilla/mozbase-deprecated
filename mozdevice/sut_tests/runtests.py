@@ -12,9 +12,10 @@ import dmunit
 import genfiles
 
 
-def main(ip, port, scripts, directory, isTestDevice, verbose):
+def main(ip, port, heartbeat_port, scripts, directory, isTestDevice, verbose):
     dmunit.ip = ip
     dmunit.port = port
+    dmunit.heartbeat_port = heartbeat_port
     if verbose:
         from mozdevice.devicemanagerSUT import DeviceManagerSUT
         DeviceManagerSUT.debug = 4
@@ -70,6 +71,10 @@ if  __name__ == "__main__":
                       "what's provided in $TEST_DEVICE or 20701",
                       default=(env_port or default_port))
 
+    parser.add_option("--heartbeat", action="store", type="int",
+                      dest="heartbeat_port", help="Port for heartbeat/data "
+                      "channel, defaults to 20700", default=20700)
+
     parser.add_option("--script", action="append", type="string",
                       dest="scripts", help="Name of test script to run, "
                       "can be specified multiple times", default=[])
@@ -87,5 +92,5 @@ if  __name__ == "__main__":
 
     (options, args) = parser.parse_args()
 
-    main(options.ip, options.port, options.scripts, options.dir,
-         options.isTestDevice, options.verbose)
+    main(options.ip, options.port, options.heartbeat_port, options.scripts,
+         options.dir, options.isTestDevice, options.verbose)
