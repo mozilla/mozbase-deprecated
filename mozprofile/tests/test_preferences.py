@@ -12,6 +12,8 @@ from mozprofile.cli import MozProfileCLI
 from mozprofile.prefs import Preferences
 from mozprofile.profile import Profile
 
+here = os.path.dirname(os.path.abspath(__file__))
+
 class PreferencesTest(unittest.TestCase):
     """test mozprofile preference handling"""
 
@@ -240,6 +242,16 @@ user_pref("webgl.force-enabled", true);
         finally:
             # cleanup
             os.remove(path)
+
+    def test_read_prefs_with_comments(self):
+        """test reading preferences from a prefs.js file that contains comments"""
+
+        _prefs = {'browser.startup.homepage': 'http://planet.mozilla.org',
+                  'zoom.minPercent': 30,
+                  'zoom.maxPercent': 300,
+                  'webgl.verbose': 'false'}
+        path = os.path.join(here, 'files', 'prefs_with_comments.js')
+        self.assertEqual(dict(Preferences.read_prefs(path)), _prefs)
 
 
 if __name__ == '__main__':

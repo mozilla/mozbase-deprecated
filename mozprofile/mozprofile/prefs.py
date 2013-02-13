@@ -8,7 +8,9 @@ user preferences
 
 import os
 import re
+import tokenize
 from ConfigParser import SafeConfigParser as ConfigParser
+from StringIO import StringIO
 
 try:
     import json
@@ -156,17 +158,26 @@ class Preferences(object):
 
         comment = re.compile('/\*([^*]|[\r\n]|(\*+([^*/]|[\r\n])))*\*+/', re.MULTILINE)
 
-        token = '##//' # magical token
+        marker = '##//' # magical marker
         lines = [i.strip() for i in file(path).readlines() if i.strip()]
         _lines = []
         for line in lines:
-            if line.startswith('#'):
+            if line.startswith(('#', '//')):
                 continue
             if '//' in line:
-                line = line.replace('//', token)
+                line = line.replace('//', marker)
             _lines.append(line)
         string = '\n'.join(_lines)
         string = re.sub(comment, '', string)
+
+        # skip trailing comments
+        processed_tokens = []
+        f_obj = StringIO(string)
+        for token in tokenize.generate_tokens(f_obj.readline):
+            if token[0] == tokenize.COMMENT:
+                continue
+            processed_tokens.append(token[:2]) # [:2] gets around http://bugs.python.org/issue9974
+        string = tokenize.untokenize(processed_tokens)
 
         retval = []
         def pref(a, b):
@@ -182,10 +193,10 @@ class Preferences(object):
                 print line
                 raise
 
-        # de-magic the token
+        # de-magic the marker
         for index, (key, value) in enumerate(retval):
-            if isinstance(value, basestring) and token in value:
-                retval[index] = (key, value.replace(token, '//'))
+            if isinstance(value, basestring) and marker in value:
+                retval[index] = (key, value.replace(marker, '//'))
 
         return retval
 
