@@ -60,25 +60,25 @@ def check_for_crashes(dump_directory, symbols_path,
         except:
             test_name = "unknown"
 
-    log = mozlog.getLogger('mozcrash')
-    remove_symbols = False
-    # If our symbols are at a remote URL, download them now
-    # We want to download URLs like http://... but not Windows paths like c:\...
-    if symbols_path and is_url(symbols_path):
-        log.info("Downloading symbols from: %s", symbols_path)
-        remove_symbols = True
-        # Get the symbols and write them to a temporary zipfile
-        data = urllib2.urlopen(symbols_path)
-        symbols_file = tempfile.TemporaryFile()
-        symbols_file.write(data.read())
-        # extract symbols to a temporary directory (which we'll delete after
-        # processing all crashes)
-        symbols_path = tempfile.mkdtemp()
-        zfile = zipfile.ZipFile(symbols_file, 'r')
-        extract_zip(zfile, symbols_path)
-        zfile.close()
-
     try:
+        log = mozlog.getLogger('mozcrash')
+        remove_symbols = False
+        # If our symbols are at a remote URL, download them now
+        # We want to download URLs like http://... but not Windows paths like c:\...
+        if symbols_path and is_url(symbols_path):
+            log.info("Downloading symbols from: %s", symbols_path)
+            remove_symbols = True
+            # Get the symbols and write them to a temporary zipfile
+            data = urllib2.urlopen(symbols_path)
+            symbols_file = tempfile.TemporaryFile()
+            symbols_file.write(data.read())
+            # extract symbols to a temporary directory (which we'll delete after
+            # processing all crashes)
+            symbols_path = tempfile.mkdtemp()
+            zfile = zipfile.ZipFile(symbols_file, 'r')
+            extract_zip(zfile, symbols_path)
+            zfile.close()
+
         for d in dumps:
             stackwalk_output = []
             stackwalk_output.append("Crash dump filename: " + d)
