@@ -301,7 +301,7 @@ class DeviceManagerADB(DeviceManager):
         Lists the running processes on the device
 
         returns:
-          success: array of process tuples
+          success: array of process tuples (pid, name, user)
           failure: []
         """
         p = self._runCmd(["shell", "ps"])
@@ -311,7 +311,11 @@ class DeviceManagerADB(DeviceManager):
         ret = []
         while (proc):
             els = proc.split()
-            ret.append(list([int(els[1]), els[len(els) - 1], els[0]]))
+            # we need to figure out if this is "user pid name" or "pid user vsz stat command"
+            if els[1].isdigit():
+                ret.append(list([int(els[1]), els[len(els) - 1], els[0]]))
+            else:
+                ret.append(list([int(els[0]), els[len(els) - 1], els[1]]))
             proc =  p.stdout.readline()
         return ret
 
