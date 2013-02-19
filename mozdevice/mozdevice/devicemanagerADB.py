@@ -15,7 +15,6 @@ class DeviceManagerADB(DeviceManager):
     _haveRootShell = False
     _haveSu = False
     _useRunAs = False
-    _useDDCopy = False
     _useZip = False
     _logcatNeedsRoot = False
     _pollingInterval = 0.01
@@ -181,10 +180,7 @@ class DeviceManagerADB(DeviceManager):
             remoteTmpFile = self.getTempDir() + "/" + os.path.basename(localname)
             self._checkCmd(["push", os.path.realpath(localname), remoteTmpFile],
                     retryLimit=retryLimit)
-            if self._useDDCopy:
-                self.shellCheckOutput(["dd", "if=" + remoteTmpFile, "of=" + destname])
-            else:
-                self.shellCheckOutput(["cp", remoteTmpFile, destname])
+            self.shellCheckOutput(["dd", "if=" + remoteTmpFile, "of=" + destname])
             self.shellCheckOutput(["rm", remoteTmpFile])
         else:
             self._checkCmd(["push", os.path.realpath(localname), destname],
@@ -806,24 +802,6 @@ class DeviceManagerADB(DeviceManager):
         if ret:
             raise DMError("unable to connect to device")
 
-    def _isCpAvailable(self):
-        """
-        Checks to see if cp command is installed
-        """
-        # Some Android systems may not have a cp command installed,
-        # or it may not be executable by the user.
-        data = self._runCmd(["shell", "cp"]).stdout.read()
-        if (re.search('Usage', data)):
-            return True
-        else:
-            data = self._runCmd(["shell", "dd", "-"]).stdout.read()
-            if (re.search('unknown operand', data)):
-                # 'cp' not found, but 'dd' was found as a replacement
-                self._useDDCopy = True
-                return True
-            print "unable to execute 'cp' on device; consider installing busybox from Android Market"
-            return False
-
     def _verifyRunAs(self):
         # If a valid package name is available, and certain other
         # conditions are met, devicemanagerADB can execute file operations
@@ -834,7 +812,7 @@ class DeviceManagerADB(DeviceManager):
         # file copy via run-as.
         self._useRunAs = False
         devroot = self.getDeviceRoot()
-        if (self._packageName and self._isCpAvailable() and devroot):
+        if self._packageName and devroot:
             tmpDir = self.getTempDir()
 
             # The problem here is that run-as doesn't cause a non-zero exit code
@@ -845,10 +823,7 @@ class DeviceManagerADB(DeviceManager):
 
             tmpfile = tempfile.NamedTemporaryFile()
             self._checkCmd(["push", tmpfile.name, tmpDir + "/tmpfile"])
-            if self._useDDCopy:
-                self._checkCmd(["shell", "run-as", self._packageName, "dd", "if=" + tmpDir + "/tmpfile", "of=" + devroot + "/sanity/tmpfile"])
-            else:
-                self._checkCmd(["shell", "run-as", self._packageName, "cp", tmpDir + "/tmpfile", devroot + "/sanity"])
+            self._checkCmd(["shell", "run-as", self._packageName, "dd", "if=" + tmpDir + "/tmpfile", "of=" + devroot + "/sanity/tmpfile"])
             if (self.fileExists(devroot + "/sanity/tmpfile")):
                 print "will execute commands via run-as " + self._packageName
                 self._useRunAs = True
