@@ -7,10 +7,11 @@ __all__ = ['Profile', 'FirefoxProfile', 'ThunderbirdProfile']
 import os
 import time
 import tempfile
+import types
 import uuid
 from addons import AddonManager
 from permissions import Permissions
-from shutil import rmtree
+from shutil import copytree, rmtree
 
 try:
     import json
@@ -21,7 +22,7 @@ class Profile(object):
     """Handles all operations regarding profile. Created new profiles, installs extensions,
     sets preferences and handles cleanup."""
 
-    def __init__(self, profile=None, addons=None, addon_manifests=None,  
+    def __init__(self, profile=None, addons=None, addon_manifests=None,
                  preferences=None, locations=None, proxy=None, restore=True):
         """
         :param profile: Path to the profile
@@ -101,6 +102,30 @@ class Profile(object):
                       preferences=self._preferences,
                       locations=self._locations,
                       proxy = self._proxy)
+
+    @classmethod
+    def clone(cls, path_from, path_to=None, **kwargs):
+        """Instantiate a temporary profile via cloning
+        - path: path of the basis to clone
+        - kwargs: arguments to the profile constructor
+        """
+        if not path_to:
+            tempdir = tempfile.mkdtemp() # need an unused temp dir name
+            rmtree(tempdir) # copytree requires that dest does not exist
+            path_to = tempdir
+        copytree(path_from, path_to)
+
+        def cleanup_clone(fn):
+            """Deletes a cloned profile when restore is True"""
+            def wrapped(self):
+                fn(self)
+                if self.restore and os.path.exists(self.profile):
+                        rmtree(self.profile, onerror=self._cleanup_error)
+            return wrapped
+
+        c = cls(path_to, **kwargs)
+        c.__del__ = c.cleanup = types.MethodType(cleanup_clone(cls.cleanup), c)
+        return c
 
     def create_new_profile(self):
         """Create a new clean profile in tmp which is a simple empty folder"""
