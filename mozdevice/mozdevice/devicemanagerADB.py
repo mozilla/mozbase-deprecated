@@ -719,7 +719,7 @@ class DeviceManagerADB(DeviceManager):
         timeout = int(timeout)
         retries = 0
         while retries < retryLimit:
-            proc = subprocess.Popen(finalArgs)
+            proc = subprocess.Popen(finalArgs, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
             start_time = time.time()
             ret_code = proc.poll()
             while ((time.time() - start_time) <= timeout) and ret_code == None:
@@ -815,7 +815,7 @@ class DeviceManagerADB(DeviceManager):
         else:
             data = self._runCmd(["shell", "dd", "-"]).stdout.read()
             if (re.search('unknown operand', data)):
-                print "'cp' not found, but 'dd' was found as a replacement"
+                # 'cp' not found, but 'dd' was found as a replacement
                 self._useDDCopy = True
                 return True
             print "unable to execute 'cp' on device; consider installing busybox from Android Market"
