@@ -35,7 +35,6 @@ class AddonManager(object):
 
         # backup dir for already existing addons
         self.backup_dir = None
-        self.backups = {}
 
     def install_addons(self, addons=None, manifests=None):
         """
@@ -105,7 +104,7 @@ class AddonManager(object):
         Returns a dictionary of details about the addon.
 
         :param addon_path: path to the addon directory
-        
+
         Returns::
 
             {'id':      u'rainbow@colors.org', # id of the addon
@@ -222,14 +221,12 @@ class AddonManager(object):
                 # save existing xpi file to restore later
                 if os.path.exists(addon_path + '.xpi'):
                     self.backup_dir = self.backup_dir or tempfile.mkdtemp()
-                    self.backups[addon_id] = (addon_id + '.xpi', 'file')
                     shutil.copy(addon_path + '.xpi', self.backup_dir)
                 shutil.copy(xpifile, addon_path + '.xpi')
             else:
                 # save existing dir to restore later
                 if os.path.exists(addon_path):
                     self.backup_dir = self.backup_dir or tempfile.mkdtemp()
-                    self.backups[addon_id] = (addon_id, 'dir')
                     dir_util.copy_tree(addon_path, self.backup_dir, preserve_symlinks=1)
                 dir_util.copy_tree(addon, addon_path, preserve_symlinks=1)
                 self._addon_dirs.append(addon_path)
@@ -248,16 +245,13 @@ class AddonManager(object):
             if os.path.isdir(addon):
                 dir_util.remove_tree(addon)
         # restore backups
-        if self.backup_dir:
+        if self.backup_dir and os.path.isdir(self.backup_dir):
             extensions_path = os.path.join(self.profile, 'extensions', 'staged')
-            for addon, data in self.backups.iteritems():
-                backup_path = os.path.join(self.backup_dir, data[0])
-                backup_type = data[1]
+            for backup in os.listdir(self.backup_dir):
+                backup_path = os.path.join(self.backup_dir, backup)
                 addon_path = os.path.join(extensions_path, addon)
-                if backup_type == 'dir':
-                    dir_util.copy_tree(backup_path, addon_path, preserve_symlinks=1)
-                else:
-                    shutil.copy(backup_path, addon_path + '.xpi')
-            shutil.rmtree(self.backup_dir, ignore_errors=True)
+                shutil.move(backup_path, addon_path)
+            if not os.listdir(self.backup_dir):
+                shutil.rmtree(self.backup_dir, ignore_errors=True)
 
     __del__ = clean_addons
