@@ -12,7 +12,8 @@ from mozdevice.droid import DroidSUT
 from mozdevice.devicemanager import DMError
 
 USAGE = '%s <host>'
-INI_PATH = '/data/data/com.mozilla.SUTAgentAndroid/files/SUTAgent.ini'
+INI_PATH_JAVA = '/data/data/com.mozilla.SUTAgentAndroid/files/SUTAgent.ini'
+INI_PATH_NEGATUS = '/data/local/SUTAgent.ini'
 SCHEMA = {'Registration Server': (('IPAddr', ''),
                                   ('PORT', '28001'),
                                   ('HARDWARE', ''),
@@ -22,23 +23,23 @@ SCHEMA = {'Registration Server': (('IPAddr', ''),
                                ('ENCR', ''),
                                ('EAP', ''))}
 
-def get_cfg(d):
+def get_cfg(d, ini_path):
     cfg = ConfigParser.RawConfigParser()
     try:
-        cfg.readfp(StringIO.StringIO(d.catFile(INI_PATH)), 'SUTAgent.ini')
+        cfg.readfp(StringIO.StringIO(d.catFile(ini_path)), 'SUTAgent.ini')
     except DMError:
         # assume this is due to a missing file...
         pass
     return cfg
 
 
-def put_cfg(d, cfg):
+def put_cfg(d, cfg, ini_path):
     print 'Writing modified SUTAgent.ini...'
     t = tempfile.NamedTemporaryFile(delete=False)
     cfg.write(t)
     t.close()
     try:
-        d.pushFile(t.name, INI_PATH)
+        d.pushFile(t.name, ini_path)
     except DMError, e:
         print e
     else:
@@ -104,14 +105,18 @@ def main():
     except DMError, e:
         print e
         sys.exit(1)
-    cfg = get_cfg(d)
+    # check if using Negatus and change path accordingly
+    ini_path = INI_PATH_JAVA
+    if 'Negatus' in d.agentProductName:
+        ini_path = INI_PATH_NEGATUS
+    cfg = get_cfg(d, ini_path)
     if not cfg.sections():
         print 'Empty or missing ini file.'
     changed_vals = False
     for sect, opts in SCHEMA.iteritems():
         changed_vals |= edit_sect(cfg, sect, opts)
     if changed_vals:
-        put_cfg(d, cfg)
+        put_cfg(d, cfg, ini_path)
     else:
         print 'No changes.'
 
