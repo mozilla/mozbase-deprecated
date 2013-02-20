@@ -275,6 +275,9 @@ class FirefoxProfile(Profile):
                    'extensions.update.notifyUser' : False,
                    # Suppress automatic safe mode after crashes
                    'toolkit.startup.max_resumed_crashes' : -1,
+                   # Don't report telemetry information
+                   'toolkit.telemetry.enabled' : False,
+                   'toolkit.telemetry.enabledPreRelease' : False,
                    # Enable test mode to run multiple tests in parallel
                    'focusmanager.testmode' : True,
                    }
