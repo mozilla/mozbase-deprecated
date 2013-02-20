@@ -23,7 +23,7 @@ class DeviceManagerADB(DeviceManager):
     _tempDir = None
     default_timeout = 300
 
-    def __init__(self, host=None, port=20701, retryLimit=5, packageName='fennec',
+    def __init__(self, host=None, port=5555, retryLimit=5, packageName='fennec',
                  adbPath='adb', deviceSerial=None, deviceRoot=None, **kwargs):
         self.host = host
         self.port = port
