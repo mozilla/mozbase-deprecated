@@ -359,7 +359,7 @@ class DeviceManagerSUT(DeviceManager):
             raise DMError("DeviceManager: Error reading file to push")
 
         if (self.debug >= 3):
-            print "push returned: %s" % hash
+            print "push returned: %s" % remoteHash
 
         localHash = self._getLocalHash(localname)
 
