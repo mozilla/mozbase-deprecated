@@ -798,10 +798,13 @@ class DeviceManagerADB(DeviceManager):
                 raise DMError("bad status for device %s: %s" % (self._deviceSerial, deviceStatus))
 
         # Check to see if we can connect to device and run a simple command
+        ret = None
         try:
-            self._checkCmd(["shell", "echo"])
+            ret = self._checkCmd(["shell", "echo"])
         except subprocess.CalledProcessError:
             raise DMError("unable to connect to device: is it plugged in?")
+        if ret:
+            raise DMError("unable to connect to device")
 
     def _isCpAvailable(self):
         """
