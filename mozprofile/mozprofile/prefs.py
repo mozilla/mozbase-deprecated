@@ -6,6 +6,8 @@
 user preferences
 """
 
+__all__ = ('PreferencesReadError', 'Preferences')
+
 import os
 import re
 import tokenize

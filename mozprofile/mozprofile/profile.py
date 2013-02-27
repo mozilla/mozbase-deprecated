@@ -12,6 +12,7 @@ import uuid
 from addons import AddonManager
 from permissions import Permissions
 from shutil import copytree, rmtree
+from webapps import WebappCollection
 
 try:
     import json
@@ -22,12 +23,13 @@ class Profile(object):
     """Handles all operations regarding profile. Created new profiles, installs extensions,
     sets preferences and handles cleanup."""
 
-    def __init__(self, profile=None, addons=None, addon_manifests=None,
+    def __init__(self, profile=None, addons=None, addon_manifests=None, apps=None,
                  preferences=None, locations=None, proxy=None, restore=True):
         """
         :param profile: Path to the profile
         :param addons: String of one or list of addons to install
         :param addon_manifests: Manifest for addons, see http://ahal.ca/blog/2011/bulk-installing-fx-addons/
+        :param apps: Dictionary or class of webapps to install
         :param preferences: Dictionary or class of preferences
         :param locations: locations to proxy
         :param proxy: setup a proxy - dict of server-loc,server-port,ssl-port
@@ -82,6 +84,10 @@ class Profile(object):
         # handle addon installation
         self.addon_manager = AddonManager(self.profile)
         self.addon_manager.install_addons(addons, addon_manifests)
+
+        # handle webapps
+        self.webapps = WebappCollection(profile=self.profile, apps=apps)
+        self.webapps.update_manifests()
 
     def exists(self):
         """returns whether the profile exists or not"""
@@ -245,6 +251,7 @@ class Profile(object):
                 self.clean_preferences()
                 self.addon_manager.clean_addons()
                 self.permissions.clean_db()
+                self.webapps.clean()
 
     __del__ = cleanup
 
