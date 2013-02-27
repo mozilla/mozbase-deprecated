@@ -13,7 +13,6 @@ If no arguments are given, install all packages.
 See https://wiki.mozilla.org/Auto-tools/Projects/MozBase
 """
 
-import pkg_resources
 import os
 import subprocess
 import sys
