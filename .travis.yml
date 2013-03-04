@@ -1,0 +1,13 @@
+language: python
+python:
+  - "2.7"
+install: python setup_development.py
+script: python test.py
+notifications:
+  # irc notifications not working with irc.mozilla.org, see: https://github.com/travis-ci/travis-ci/issues/436
+  # (leaving it configured in case this is fixed at some point)
+  irc:
+    - "irc.mozilla.org#ateam"
+  email:
+    recipients:
+      - auto-tools@mozilla.com
