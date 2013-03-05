@@ -4,10 +4,11 @@
 
 from setuptools import setup
 
-PACKAGE_VERSION = '0.4'
+PACKAGE_VERSION = '0.5'
 
 # dependencies
-deps = ['mozfile >= 0.3']
+deps = ['mozfile >= 0.3',
+        'mozlog']
 
 setup(name='mozcrash',
       version=PACKAGE_VERSION,
