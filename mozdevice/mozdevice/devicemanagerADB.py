@@ -767,7 +767,7 @@ class DeviceManagerADB(DeviceManager):
         """
         if self._adbPath != 'adb':
             if not os.access(self._adbPath, os.X_OK):
-                raise DMError("invalid adb path, or adb not executable: %s", self._adbPath)
+                raise DMError("invalid adb path, or adb not executable: %s" % self._adbPath)
 
         try:
             self._checkCmd(["version"])
