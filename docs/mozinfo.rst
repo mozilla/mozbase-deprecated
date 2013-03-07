@@ -26,7 +26,7 @@ service pack in use is available on the windows platform.
 
 
 API Usage
----------
+`````````
 
 mozinfo is a python package.  Downloading the software and running
 ``python setup.py develop`` will allow you to do ``import mozinfo``
@@ -56,7 +56,7 @@ contain these values.  mozinfo also exports:
 
 
 Command Line Usage
-------------------
+``````````````````
 
 mozinfo comes with a command line program, ``mozinfo`` which may be used to
 diagnose one's current system.
