@@ -353,14 +353,6 @@ class DeviceManagerADB(DeviceManager):
                     raise DMError("Error killing process "
                                   "'%s': %s" % (appname, p.stdout.read()))
 
-    def catFile(self, remoteFile):
-        """
-        Returns the contents of remoteFile
-
-        DEPRECATED: Use pullFile in new code
-        """
-        return self.pullFile(remoteFile)
-
     def _runPull(self, remoteFile, localFile):
         """
         Pulls remoteFile from device to host

@@ -540,14 +540,6 @@ class DeviceManagerSUT(DeviceManager):
     def getTempDir(self):
         return self._runCmds([{ 'cmd': 'tmpd' }]).strip()
 
-    def catFile(self, remoteFile):
-        """
-        Returns the contents of remoteFile
-
-        DEPRECATED: Use pullFile in new code.
-        """
-        return self._runCmds([{ 'cmd': 'cat ' + remoteFile }])
-
     def pullFile(self, remoteFile):
         # The "pull" command is different from other commands in that DeviceManager
         # has to read a certain number of bytes instead of just reading to the
