@@ -46,7 +46,7 @@ want to do then dive in!
    setuprunning
    mozhttpd
    loggingreporting
-   devices
+   devicemanagement
 
 Indices and tables
 ==================

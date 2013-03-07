@@ -22,6 +22,12 @@ class DroidMixin(object):
                           extras=None):
         """
         Launches an Android application
+
+        :param appName: Name of application (e.g. `com.android.chrome`)
+        :param activityName: Name of activity to launch (e.g. `.Main`)
+        :param intent: Intent to launch application with
+        :param url: URL to open
+        :param extras: Dictionary of extra arguments to launch application with
         """
         # only one instance of an application may be running at once
         if self.processExist(appName):
@@ -58,13 +64,16 @@ class DroidMixin(object):
         raise DMError("Unable to launch application (shell output: '%s')" % shellOutput.read())
 
     def launchFennec(self, appName, intent="android.intent.action.VIEW",
-                                      mozEnv=None, extraArgs=None, url=None):
+                     mozEnv=None, extraArgs=None, url=None):
         """
         Convenience method to launch Fennec on Android with various debugging
         arguments
-        WARNING: FIXME: This would go better in mozrunner. Please do not
-        use this method if you are not comfortable with it going away sometime
-        in the near future
+
+        :param appName: Name of fennec application (e.g. `org.mozilla.fennec`)
+        :param intent: Intent to launch application with
+        :param mozEnv: Mozilla specific environment to pass into application
+        :param extraArgs: Extra arguments to be parsed by fennec
+        :param url: URL to open
         """
         extras = {}
 
