@@ -92,7 +92,7 @@ class DeviceManager(object):
         # Right now this is just clearing the logcat so we can only see what happens after this call.
         self.shellCheckOutput(['/system/bin/logcat', '-c'], root=self._logcatNeedsRoot)
 
-    def getLogcat(self, filterSpecs=["dalvikvm:S", "ConnectivityService:S",
+    def getLogcat(self, filterSpecs=["dalvikvm:I", "ConnectivityService:S",
                                       "WifiMonitor:S", "WifiStateTracker:S",
                                       "wpa_supplicant:S", "NetworkStateTracker:S"],
                   format="time",
