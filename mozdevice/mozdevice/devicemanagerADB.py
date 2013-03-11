@@ -395,7 +395,7 @@ class DeviceManagerADB(DeviceManager):
         self._runPull(remoteFile, localFile)
 
     def getDirectory(self, remoteDir, localDir, checkDir=True):
-        self._runCmd(["pull", remoteDir, localDir])
+        self._runCmd(["pull", remoteDir, localDir]).wait()
 
     def validateFile(self, remoteFile, localFile):
         md5Remote = self._getRemoteHash(remoteFile)
