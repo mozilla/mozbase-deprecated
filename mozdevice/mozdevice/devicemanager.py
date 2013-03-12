@@ -63,6 +63,7 @@ class DeviceManager(object):
           - `process` - list of running processes (same as ps)
           - `disk` - total, free, available bytes on disk
           - `power` - power status (charge, battery temp)
+          - `temperature` - device temperature
 
          If `directive` is `None`, will return all available information
         """
