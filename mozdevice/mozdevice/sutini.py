@@ -26,7 +26,7 @@ SCHEMA = {'Registration Server': (('IPAddr', ''),
 def get_cfg(d, ini_path):
     cfg = ConfigParser.RawConfigParser()
     try:
-        cfg.readfp(StringIO.StringIO(d.catFile(ini_path)), 'SUTAgent.ini')
+        cfg.readfp(StringIO.StringIO(d.pullFile(ini_path)), 'SUTAgent.ini')
     except DMError:
         # assume this is due to a missing file...
         pass
