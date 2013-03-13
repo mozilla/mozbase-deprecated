@@ -4,7 +4,7 @@
 
 from setuptools import setup
 
-PACKAGE_VERSION = '0.19'
+PACKAGE_VERSION = '0.20'
 
 deps = ['mozprocess == 0.8']
 
