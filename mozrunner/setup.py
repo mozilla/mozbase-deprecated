@@ -10,9 +10,9 @@ PACKAGE_VERSION = '5.14'
 
 desc = """Reliable start/stop/configuration of Mozilla Applications (Firefox, Thunderbird, etc.)"""
 
-deps = ['mozinfo == 0.4',
-        'mozprocess == 0.8',
-        'mozprofile == 0.4',
+deps = ['mozinfo >= 0.4',
+        'mozprocess >= 0.8',
+        'mozprofile >= 0.4',
        ]
 
 # we only support python 2 right now
@@ -33,7 +33,7 @@ setup(name=PACKAGE_NAME,
       keywords='mozilla',
       author='Mozilla Automation and Tools team',
       author_email='tools@lists.mozilla.org',
-      url='https://wiki.mozilla.org/Auto-tools/Projects/MozBase',
+      url='https://wiki.mozilla.org/Auto-tools/Projects/Mozbase',
       license='MPL 2.0',
       packages=['mozrunner'],
       zip_safe=False,

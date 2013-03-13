@@ -6,8 +6,6 @@ from setuptools import setup
 
 PACKAGE_VERSION = '0.20'
 
-deps = ['mozprocess == 0.8']
-
 setup(name='mozdevice',
       version=PACKAGE_VERSION,
       description="Mozilla-authored device management",
@@ -16,12 +14,12 @@ setup(name='mozdevice',
       keywords='',
       author='Mozilla Automation and Testing Team',
       author_email='tools@lists.mozilla.org',
-      url='https://wiki.mozilla.org/Auto-tools/Projects/MozBase',
+      url='https://wiki.mozilla.org/Auto-tools/Projects/Mozbase',
       license='MPL',
       packages=['mozdevice'],
       include_package_data=True,
       zip_safe=False,
-      install_requires=deps,
+      install_requires=[],
       entry_points="""
       # -*- Entry points: -*-
       [console_scripts]
