@@ -21,6 +21,11 @@ except ImportError:
     from pysqlite2 import dbapi2 as sqlite3
 import urlparse
 
+# http://hg.mozilla.org/mozilla-central/file/b871dfb2186f/build/automation.py.in#l28
+_DEFAULT_PORTS = { 'http': '8888',
+                   'https': '4443',
+                   'ws': '9988',
+                   'wss': '4443' }
 
 class LocationError(Exception):
     """Signifies an improperly formed location."""
@@ -58,7 +63,7 @@ class BadPortLocationError(LocationError):
 
     def __init__(self, given_port):
         LocationError.__init__(self, "bad value for port: %s" % given_port)
-        
+
 
 class LocationsSyntaxError(Exception):
     """Signifies a syntax error on a particular line in server-locations.txt."""
@@ -182,11 +187,7 @@ class ServerLocations(object):
                 host, port = netloc.rsplit(':', 1)
             except ValueError:
                 host = netloc
-                default_ports = {'http': '80',
-                                 'https': '443',
-                                 'ws': '443',
-                                 'wss': '443'}
-                port = default_ports.get(scheme, '80')
+                port = _DEFAULT_PORTS.get(scheme, '80')
 
             try:
                 location = Location(scheme, host, port, options)
@@ -260,7 +261,7 @@ class Permissions(object):
         permDB.commit()
         cursor.close()
 
-    def network_prefs(self, proxy=False):
+    def network_prefs(self, proxy=None):
         """
         take known locations and generate preferences to handle permissions and proxy
         returns a tuple of prefs, user_prefs
@@ -277,30 +278,33 @@ class Permissions(object):
             prefs.append(("capability.principal.codebase.p%s.subjectName" % i, ""))
 
         if proxy:
-            user_prefs = self.pac_prefs()
+            user_prefs = self.pac_prefs(proxy)
         else:
             user_prefs = []
 
         return prefs, user_prefs
 
-    def pac_prefs(self):
+    def pac_prefs(self, user_proxy=None):
         """
         return preferences for Proxy Auto Config. originally taken from
         http://mxr.mozilla.org/mozilla-central/source/build/automation.py.in
         """
-
-        prefs = []
+        user_proxy = user_proxy or {}
+        proxy = _DEFAULT_PORTS
 
         # We need to proxy every server but the primary one.
         origins = ["'%s'" % l.url()
                    for l in self._locations]
-
         origins = ", ".join(origins)
+        proxy["origins"] = origins
 
         for l in self._locations:
             if "primary" in l.options:
-                webServer = l.host
-                port = l.port
+                proxy["remote"] = l.host
+                proxy[l.scheme] = l.port
+
+        # overwrite defaults with user specified proxy
+        proxy.update(user_proxy)
 
         # TODO: this should live in a template!
         # TODO: So changing the 5th line of the regex below from (\\\\\\\\d+)
@@ -335,14 +339,15 @@ function FindProxyForURL(url, host)
   var origin = matches[1] + '://' + matches[2] + ':' + matches[3];
   if (origins.indexOf(origin) < 0)
     return 'DIRECT';
-  if (isHttp || isHttps || isWebSocket || isWebSocketSSL)
-    return 'PROXY %(remote)s:%(port)s';
+  if (isHttp) return 'PROXY %(remote)s:%(http)s';
+  if (isHttps) return 'PROXY %(remote)s:%(https)s';
+  if (isWebSocket) return 'PROXY %(remote)s:%(ws)s';
+  if (isWebSocketSSL) return 'PROXY %(remote)s:%(wss)s';
   return 'DIRECT';
-}""" % { "origins": origins,
-         "remote":  webServer,
-         "port": port }
+}""" % proxy
         pacURL = "".join(pacURL.splitlines())
 
+        prefs = []
         prefs.append(("network.proxy.type", 2))
         prefs.append(("network.proxy.autoconfig_url", pacURL))
 
