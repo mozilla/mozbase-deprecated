@@ -9,9 +9,8 @@ import struct
 if os.name != 'nt':
     import fcntl
 
-
 class NetworkError(Exception):
-    """Unable to obtain interface or IP"""
+    """Exception thrown when unable to obtain interface or IP."""
 
 
 def _get_interface_list():
@@ -40,8 +39,10 @@ def _get_interface_list():
 
 
 def get_ip():
-    """Provides an available network interface address. A
-       NetworkError exception is raised in case of failure."""
+    """Provides an available network interface address, for example
+       "192.168.1.3".
+
+       A `NetworkError` exception is raised in case of failure."""
     try:
         try:
             ip = socket.gethostbyname(socket.gethostname())

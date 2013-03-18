@@ -42,7 +42,7 @@ want to do then dive in!
    :maxdepth: 2
 
    manifestdestiny
-   mozinfo
+   gettinginfo
    setuprunning
    mozhttpd
    loggingreporting

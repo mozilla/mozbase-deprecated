@@ -1,12 +1,5 @@
-Getting information on the system under test
-============================================
-
-It's often necessary to get some information about the system we're
-testing, for example to turn on or off some platform specific
-behaviour.
-
 :mod:`mozinfo` --- Get system information
------------------------------------------
+=========================================
 
 Throughout `mozmill <https://developer.mozilla.org/en/Mozmill>`_
 and other Mozilla python code, checking the underlying
@@ -26,7 +19,7 @@ service pack in use is available on the windows platform.
 
 
 API Usage
-`````````
+---------
 
 mozinfo is a python package.  Downloading the software and running
 ``python setup.py develop`` will allow you to do ``import mozinfo``
@@ -56,7 +49,7 @@ contain these values.  mozinfo also exports:
 
 
 Command Line Usage
-``````````````````
+------------------
 
 mozinfo comes with a command line program, ``mozinfo`` which may be used to
 diagnose one's current system.
