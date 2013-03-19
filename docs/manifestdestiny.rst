@@ -1,11 +1,11 @@
-Managing lists of tests to run (and when to run them)
-=====================================================
+Managing lists of tests
+=======================
 
 We don't always want to run all tests, all the time. Sometimes a test
 may be broken, in other cases we only want to run a test on a specific
 platform or build of Mozilla. To handle these cases (and more), we
 created a python library to create and use test "manifests", which
-codify all this information.
+codify this information.
 
 :mod:`manifestdestiny` --- Create and manage test manifests
 -----------------------------------------------------------
@@ -450,18 +450,6 @@ through several design considerations.
   which is also a working python package deployed to PyPI for easy
   installation.
 
-
-Developing ManifestDestiny
-``````````````````````````
-
-ManifestDestiny is developed and maintained by Mozilla's
-`Automation and Testing Team`_.
-
-.. _Automation and Testing Team: https://wiki.mozilla.org/Auto-tools
-
-The project page is located at:
-https://wiki.mozilla.org/Auto-tools/Projects/ManifestDestiny .
-
 Historical Reference
 ````````````````````
 
@@ -475,5 +463,4 @@ Date-ordered list of links about how manifests came to be where they are today::
 * https://bugzilla.mozilla.org/show_bug.cgi?id=585106
 * http://elvis314.wordpress.com/2011/05/20/converting-xpcshell-from-listing-directories-to-a-manifest/
 * https://bugzilla.mozilla.org/show_bug.cgi?id=616999
-* https://wiki.mozilla.org/Auto-tools/Projects/ManifestDestiny
 * https://developer.mozilla.org/en/Writing_xpcshell-based_unit_tests#Adding_your_tests_to_the_xpcshell_manifest
