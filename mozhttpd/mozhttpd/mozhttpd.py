@@ -173,11 +173,13 @@ class MozHttpd(object):
     Very basic HTTP server class. Takes a docroot (path on the filesystem)
     and a set of urlhandler dictionaries of the form:
 
-    {
-      'method': HTTP method (string): GET, POST, or DEL,
-      'path': PATH_INFO (regular expression string),
-      'function': function of form fn(arg1, arg2, arg3, ..., request)
-    }
+    ::
+
+      {
+        'method': HTTP method (string): GET, POST, or DEL,
+        'path': PATH_INFO (regular expression string),
+        'function': function of form fn(arg1, arg2, arg3, ..., request)
+      }
 
     and serves HTTP. For each request, MozHttpd will either return a file
     off the docroot, or dispatch to a handler function (if both path and
@@ -223,9 +225,11 @@ class MozHttpd(object):
 
     def start(self, block=False):
         """
-        Start the server.  If block is True, the call will not return.
-        If block is False, the server will be started on a separate thread that
-        can be terminated by a call to .stop()
+        Starts the server.
+
+        If `block` is True, the call will not return. If `block` is False, the
+        server will be started on a separate thread that can be terminated by
+        a call to stop().
         """
         self.httpd = EasyServer((self.host, self.port), self.handler_class)
         if block:
@@ -236,6 +240,11 @@ class MozHttpd(object):
             self.server.start()
 
     def stop(self):
+        """
+        Stops the server.
+
+        If the server is not running, this method has no effect.
+        """
         if self.httpd:
             ### FIXME: There is no shutdown() method in Python 2.4...
             try:
