@@ -289,7 +289,6 @@ class Permissions(object):
         return preferences for Proxy Auto Config. originally taken from
         http://mxr.mozilla.org/mozilla-central/source/build/automation.py.in
         """
-        user_proxy = user_proxy or {}
         proxy = _DEFAULT_PORTS
 
         # We need to proxy every server but the primary one.
@@ -304,7 +303,8 @@ class Permissions(object):
                 proxy[l.scheme] = l.port
 
         # overwrite defaults with user specified proxy
-        proxy.update(user_proxy)
+        if isinstance(user_proxy, dict):
+            proxy.update(user_proxy)
 
         # TODO: this should live in a template!
         # TODO: So changing the 5th line of the regex below from (\\\\\\\\d+)
