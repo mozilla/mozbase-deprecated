@@ -117,6 +117,36 @@ class DMCli(object):
                                       'help_args': '',
                                       'help': 'SUTAgent\'s product name and version (SUT only)'
                                    },
+                          'clearlogcat': { 'function': lambda : self.dm.recordLogcat(),
+                                      'min_args': 0,
+                                      'max_args': 0,
+                                      'help_args': '',
+                                      'help': 'clear the logcat'
+                                   },
+                          'reboot': { 'function': lambda : self.dm.reboot(),
+                                      'min_args': 0,
+                                      'max_args': 0,
+                                      'help_args': '',
+                                      'help': 'reboot the device'
+                                   },
+                          'isfile': { 'function': self.isfile,
+                                      'min_args': 1,
+                                      'max_args': 1,
+                                      'help_args': '<path>',
+                                      'help': 'check whether a file exists on the device'
+                                   },
+                          'launchfennec': { 'function': self.launchfennec,
+                                      'min_args': 1,
+                                      'max_args': 4,
+                                      'help_args': '<appName> [intent] [mozEnv] [extraArgs] [url]',
+                                      'help': 'launch fennec'
+                                   },
+                          'getip': { 'function': self.getip,
+                                      'min_args': 0,
+                                      'max_args': None,
+                                      'help_args': '[interfaces]',
+                                      'help': 'get the ip address of the device'
+                                   }, 
 
                           }
 
@@ -298,6 +328,22 @@ class DMCli(object):
                                      self.dm.agentVersion)
         else:
             print 'Must use SUT transport to get SUT version.'
+
+    def isfile(self, path):
+        if self.dm.fileExists(path):
+            print "TRUE"
+            return 0
+        print "FALSE"
+        return errno.ENOENT
+
+    def launchfennec(self, appName, *args):
+        self.dm.launchFennec(appName, *args)
+
+    def getip(self, *args):
+        if args:
+            print(self.dm.getIP(list(args)))
+        else:
+            print(self.dm.getIP()) 
 
 def cli(args=sys.argv[1:]):
     # process the command line
