@@ -19,7 +19,7 @@ setup(name='mozdevice',
       packages=['mozdevice'],
       include_package_data=True,
       zip_safe=False,
-      install_requires=[],
+      install_requires=['mozlog'],
       entry_points="""
       # -*- Entry points: -*-
       [console_scripts]

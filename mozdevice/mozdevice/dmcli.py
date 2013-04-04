@@ -13,6 +13,7 @@ import StringIO
 import sys
 import textwrap
 import mozdevice
+import mozlog
 from optparse import OptionParser
 
 class DMCli(object):
@@ -225,23 +226,26 @@ class DMCli(object):
         '''
         Returns a device with the specified parameters
         '''
+        debugLevel = mozlog.ERROR
         if self.options.verbose:
-            mozdevice.DroidSUT.debug = 4
+            debugLevel = mozlog.DEBUG
 
         if hwid:
-            return mozdevice.DroidConnectByHWID(hwid)
+            return mozdevice.DroidConnectByHWID(hwid, debugLevel=debugLevel)
 
         if dmtype == "adb":
             if host and not port:
                 port = 5555
             return mozdevice.DroidADB(packageName=self.options.packagename,
-                                      host=host, port=port)
+                                      host=host, port=port,
+                                      debugLevel=debugLevel)
         elif dmtype == "sut":
             if not host:
                 self.parser.error("Must specify host with SUT!")
             if not port:
                 port = 20701
-            return mozdevice.DroidSUT(host=host, port=port)
+            return mozdevice.DroidSUT(host=host, port=port,
+                                      debugLevel=debugLevel)
         else:
             self.parser.error("Unknown device manager type: %s" % type)
 

@@ -3,6 +3,7 @@
 # You can obtain one at http://mozilla.org/MPL/2.0/.
 
 import hashlib
+import mozlog
 import socket
 import os
 import re
@@ -45,6 +46,10 @@ class DeviceManager(object):
     """
 
     _logcatNeedsRoot = True
+
+    def __init__(self, debugLevel=mozlog.ERROR):
+        self.logger = mozlog.getLogger("DeviceManager")
+        self.logger.setLevel(debugLevel)
 
     @abstractmethod
     def getInfo(self, directive=None):
@@ -178,8 +183,7 @@ class DeviceManager(object):
         Returns True if remoteDirname on device is same as localDirname on host.
         """
 
-        if (self.debug >= 2):
-            print "validating directory: " + localDirname + " to " + remoteDirname
+        self.logger.info("validating directory: %s to %s" % (localDirname, remoteDirname))
         for root, dirs, files in os.walk(localDirname):
             parts = root.split(localDirname)
             for f in files:
@@ -566,11 +570,11 @@ class NetworkTools:
                     break
                 except:
                     if seed > maxportnum:
-                        print "Automation Error: Could not find open port after checking 5000 ports"
+                        self.logger.error("Automation Error: Could not find open port after checking 5000 ports")
                         raise
                 seed += 1
         except:
-            print "Automation Error: Socket error trying to find open port"
+            self.logger.error("Automation Error: Socket error trying to find open port")
 
         return seed
 
@@ -629,7 +633,7 @@ class ZeroconfListener(object):
             return
 
         ip = m.group(1).replace("_", ".")
-        
+
         if self.hwid == hwid:
             self.ip = ip
             self.evt.set()
