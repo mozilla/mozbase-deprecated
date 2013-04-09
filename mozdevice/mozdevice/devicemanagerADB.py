@@ -31,8 +31,8 @@ class DeviceManagerADB(DeviceManager):
 
     def __init__(self, host=None, port=5555, retryLimit=5, packageName='fennec',
                  adbPath='adb', deviceSerial=None, deviceRoot=None,
-                 debugLevel=mozlog.ERROR, **kwargs):
-        DeviceManager.__init__(self, debugLevel)
+                 logLevel=mozlog.ERROR, **kwargs):
+        DeviceManager.__init__(self, logLevel)
         self.host = host
         self.port = port
         self.retryLimit = retryLimit
@@ -209,7 +209,7 @@ class DeviceManagerADB(DeviceManager):
                 if re.search("unzip: exiting", data) or re.search("Operation not permitted", data):
                     raise Exception("unzip failed, or permissions error")
             except:
-                self.logger.info("zip/unzip failure: falling back to normal push")
+                self._logger.info("zip/unzip failure: falling back to normal push")
                 self._useZip = False
                 self.pushDir(localDir, remoteDir, retryLimit=retryLimit)
         else:
@@ -338,7 +338,7 @@ class DeviceManagerADB(DeviceManager):
         if uri != "":
             acmd.append("-d")
             acmd.append(''.join(['\'',uri, '\'']));
-        self.logger.info(acmd)
+        self._logger.info(acmd)
         self._checkCmd(acmd)
         return outputFile
 
@@ -432,7 +432,7 @@ class DeviceManagerADB(DeviceManager):
                 try:
                     self.mkDir(self.deviceRoot)
                 except:
-                    self.logger.error("Unable to create device root %s" % self.deviceRoot)
+                    self._logger.error("Unable to create device root %s" % self.deviceRoot)
                     raise
             return
 
@@ -515,7 +515,7 @@ class DeviceManagerADB(DeviceManager):
             ret["process"] = self._runCmd(["shell", "ps"]).stdout.read()
         if (directive == "systime" or directive == "all"):
             ret["systime"] = self._runCmd(["shell", "date"]).stdout.read()
-        self.logger.info(ret)
+        self._logger.info(ret)
         return ret
 
     def uninstallApp(self, appName, installPath=None):
@@ -622,12 +622,12 @@ class DeviceManagerADB(DeviceManager):
                     self.chmodDir(remoteEntry)
                 else:
                     self._checkCmdAs(["shell", "chmod", mask, remoteEntry])
-                    self.logger.info("chmod %s" % remoteEntry)
+                    self._logger.info("chmod %s" % remoteEntry)
             self._checkCmdAs(["shell", "chmod", mask, remoteDir])
-            self.logger.info("chmod %s" % remoteDir)
+            self._logger.info("chmod %s" % remoteDir)
         else:
             self._checkCmdAs(["shell", "chmod", mask, remoteDir.strip()])
-            self.logger.info("chmod %s" % remoteDir.strip())
+            self._logger.info("chmod %s" % remoteDir.strip())
 
     def _verifyADB(self):
         """
@@ -693,7 +693,7 @@ class DeviceManagerADB(DeviceManager):
             self._checkCmd(["push", tmpfile.name, tmpDir + "/tmpfile"])
             self._checkCmd(["shell", "run-as", self._packageName, "dd", "if=" + tmpDir + "/tmpfile", "of=" + devroot + "/sanity/tmpfile"])
             if (self.fileExists(devroot + "/sanity/tmpfile")):
-                self.logger.info("will execute commands via run-as %s" % self._packageName)
+                self._logger.info("will execute commands via run-as %s" % self._packageName)
                 self._useRunAs = True
             self._checkCmd(["shell", "rm", devroot + "/tmp/tmpfile"])
             self._checkCmd(["shell", "run-as", self._packageName, "rm", "-r", devroot + "/sanity"])
@@ -746,7 +746,7 @@ class DeviceManagerADB(DeviceManager):
         # optimization for large directories.
         self._useZip = False
         if (self._isUnzipAvailable() and self._isLocalZipAvailable()):
-            self.logger.info("will use zip to push directories")
+            self._logger.info("will use zip to push directories")
             self._useZip = True
         else:
             raise DMError("zip not available")

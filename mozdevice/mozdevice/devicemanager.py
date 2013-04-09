@@ -47,9 +47,34 @@ class DeviceManager(object):
 
     _logcatNeedsRoot = True
 
-    def __init__(self, debugLevel=mozlog.ERROR):
-        self.logger = mozlog.getLogger("DeviceManager")
-        self.logger.setLevel(debugLevel)
+    def __init__(self, logLevel=mozlog.ERROR):
+        self._logger = mozlog.getLogger("DeviceManager")
+        self._logLevel = logLevel
+        self._logger.setLevel(logLevel)
+
+    @property
+    def logLevel(self):
+        return self._logLevel
+
+    @logLevel.setter
+    def logLevel_setter(self, newLogLevel):
+        self._logLevel = newLogLevel
+        self._logger.setLevel(self._logLevel)
+
+    @property
+    def debug(self):
+        self._logger.warn("dm.debug is deprecated. Use logLevel.")
+        levels = {mozlog.DEBUG: 5, mozlog.INFO: 3, mozlog.WARNING: 2,
+                  mozlog.ERROR: 1, mozlog.CRITICAL: 0}
+        return levels[self.logLevel]
+
+    @debug.setter
+    def debug_setter(self, newDebug):
+        self._logger.warn("dm.debug is deprecated. Use logLevel.")
+        newDebug = 5 if newDebug > 5 else newDebug # truncate >=5 to 5
+        levels = {5: mozlog.DEBUG, 3: mozlog.INFO, 2: mozlog.WARNING,
+                  1: mozlog.ERROR, 0: mozlog.CRITICAL}
+        self.logLevel = levels[newDebug]
 
     @abstractmethod
     def getInfo(self, directive=None):
@@ -183,7 +208,7 @@ class DeviceManager(object):
         Returns True if remoteDirname on device is same as localDirname on host.
         """
 
-        self.logger.info("validating directory: %s to %s" % (localDirname, remoteDirname))
+        self._logger.info("validating directory: %s to %s" % (localDirname, remoteDirname))
         for root, dirs, files in os.walk(localDirname):
             parts = root.split(localDirname)
             for f in files:
@@ -570,11 +595,11 @@ class NetworkTools:
                     break
                 except:
                     if seed > maxportnum:
-                        self.logger.error("Automation Error: Could not find open port after checking 5000 ports")
+                        self._logger.error("Automation Error: Could not find open port after checking 5000 ports")
                         raise
                 seed += 1
         except:
-            self.logger.error("Automation Error: Socket error trying to find open port")
+            self._logger.error("Automation Error: Socket error trying to find open port")
 
         return seed
 

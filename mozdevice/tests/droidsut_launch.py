@@ -14,7 +14,7 @@ class LaunchTest(unittest.TestCase):
                                          "org.mozilla.fennec/.App -a "
                                          "android.intent.action.VIEW",
                                          "OK\nreturn code [0]")])
-        d = mozdevice.DroidSUT("127.0.0.1", port=a.port, debugLevel=mozlog.DEBUG)
+        d = mozdevice.DroidSUT("127.0.0.1", port=a.port, logLevel=mozlog.DEBUG)
         d.launchFennec("org.mozilla.fennec")
         a.wait()
 
@@ -27,7 +27,7 @@ class LaunchTest(unittest.TestCase):
                                          "org.mozilla.fennec/.App -a "
                                          "android.intent.action.VIEW",
                                          "OK\nreturn code [0]")])
-        d = mozdevice.DroidSUT("127.0.0.1", port=a.port, debugLevel=mozlog.DEBUG)
+        d = mozdevice.DroidSUT("127.0.0.1", port=a.port, logLevel=mozlog.DEBUG)
         d.launchFennec("org.mozilla.fennec")
         a.wait()
 

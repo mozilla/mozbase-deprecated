@@ -23,7 +23,7 @@ class PullTest(unittest.TestCase):
                                             ("isdir /mnt/sdcard", "TRUE")])
 
             d = mozdevice.DroidSUT("127.0.0.1", port=a.port,
-                                   debugLevel=mozlog.DEBUG)
+                                   logLevel=mozlog.DEBUG)
             pulledData = d.pullFile("/mnt/sdcard/cheeseburgers")
             self.assertEqual(pulledData, cheeseburgers)
             d.dirExists('/mnt/sdcard')
@@ -37,7 +37,7 @@ class PullTest(unittest.TestCase):
                                          "%s,15\n%s" % (remoteName,
                                                         "cheeseburgh"))])
         d = mozdevice.DroidSUT("127.0.0.1", port=a.port,
-                               debugLevel=mozlog.DEBUG)
+                               logLevel=mozlog.DEBUG)
         exceptionThrown = False
         try:
             d.pullFile("/mnt/sdcard/cheeseburgers")
