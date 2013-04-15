@@ -64,12 +64,12 @@ def extract(src, dest=None):
     """
 
     assert os.path.exists(src), "'%s' does not exist" % src
-    assert not os.path.isfile(dest), "dest cannot be a file"
 
     if dest is None:
         dest = os.path.dirname(src)
     elif not os.path.isdir(dest):
         os.makedirs(dest)
+    assert not os.path.isfile(dest), "dest cannot be a file"
 
     if zipfile.is_zipfile(src):
         namelist = extract_zip(src, dest)
