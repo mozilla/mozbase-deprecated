@@ -234,8 +234,6 @@ class Permissions(object):
         permDB = sqlite3.connect(os.path.join(self._profileDir, "permissions.sqlite"))
         cursor = permDB.cursor();
 
-        cursor.execute("PRAGMA user_version=3;")
-
         # SQL copied from
         # http://mxr.mozilla.org/mozilla-central/source/extensions/cookie/nsPermissionManager.cpp
         cursor.execute("""CREATE TABLE IF NOT EXISTS moz_hosts (
@@ -244,9 +242,7 @@ class Permissions(object):
            type TEXT,
            permission INTEGER,
            expireType INTEGER,
-           expireTime INTEGER,
-           appId INTEGER,
-           isInBrowserElement INTEGER)""")
+           expireTime INTEGER)""")
 
         for location in locations:
             # set the permissions
@@ -257,9 +253,21 @@ class Permissions(object):
                     permission_type = 1
                 else:
                     permission_type = 2
-                cursor.execute("INSERT INTO moz_hosts values(?, ?, ?, ?, 0, 0, 0, 0)",
+
+                rows = cursor.execute("PRAGMA table_info(moz_hosts)")
+                count = len(rows.fetchall())
+
+                # if the db contains 8 columns, we're using user_version 3
+                if count == 8:
+                    statement = "INSERT INTO moz_hosts values(?, ?, ?, ?, 0, 0, 0, 0)"
+                    cursor.execute("PRAGMA user_version=3;")
+                else:
+                    statement = "INSERT INTO moz_hosts values(?, ?, ?, ?, 0, 0)"
+                    cursor.execute("PRAGMA user_version=2;")
+
+                cursor.execute(statement,
                                (self._num_permissions, location.host, perm,
-                                permission_type))
+                               permission_type))
 
         # Commit and close
         permDB.commit()
