@@ -19,7 +19,7 @@ class DroidMixin(object):
         return []
 
     def launchApplication(self, appName, activityName, intent, url=None,
-                          extras=None):
+                          extras=None, failIfRunning=True):
         """
         Launches an Android application
 
@@ -28,9 +28,14 @@ class DroidMixin(object):
         :param intent: Intent to launch application with
         :param url: URL to open
         :param extras: Dictionary of extra arguments to launch application with
+        :param failIfRunning: Raise an exception if instance of application is already running
         """
-        # only one instance of an application may be running at once
-        if self.processExist(appName):
+
+        # If failIfRunning is True, we throw an exception here. Only one
+        # instance of an application can be running at once on Android,
+        # starting a new instance may not be what we want depending on what
+        # we want to do
+        if failIfRunning and self.processExist(appName):
             raise DMError("Only one instance of an application may be running "
                           "at once")
 
@@ -64,7 +69,7 @@ class DroidMixin(object):
         raise DMError("Unable to launch application (shell output: '%s')" % shellOutput.read())
 
     def launchFennec(self, appName, intent="android.intent.action.VIEW",
-                     mozEnv=None, extraArgs=None, url=None):
+                     mozEnv=None, extraArgs=None, url=None, failIfRunning=True):
         """
         Convenience method to launch Fennec on Android with various debugging
         arguments
@@ -74,6 +79,7 @@ class DroidMixin(object):
         :param mozEnv: Mozilla specific environment to pass into application
         :param extraArgs: Extra arguments to be parsed by fennec
         :param url: URL to open
+        :param failIfRunning: Raise an exception if instance of application is already running
         """
         extras = {}
 
@@ -88,7 +94,8 @@ class DroidMixin(object):
         if extraArgs:
             extras['args'] = " ".join(extraArgs)
 
-        self.launchApplication(appName, ".App", intent, url=url, extras=extras)
+        self.launchApplication(appName, ".App", intent, url=url, extras=extras,
+                               failIfRunning=failIfRunning)
 
 class DroidADB(DeviceManagerADB, DroidMixin):
     pass
