@@ -50,6 +50,8 @@ def extract_zip(src, dest):
             _dest = open(filename, 'wb')
             _dest.write(bundle.read(name))
             _dest.close()
+        mode = bundle.getinfo(name).external_attr >> 16 & 0x1FF
+        os.chmod(filename, mode)
     bundle.close()
     return namelist
 
