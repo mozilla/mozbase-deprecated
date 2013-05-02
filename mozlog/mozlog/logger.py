@@ -91,7 +91,7 @@ def getLogger(name, logfile=None):
     If the logger doesn't exist, it is created.
 
     :param name: The name of the logger to retrieve
-    :param logfile: If specified, the logger will log to the specified file. 
+    :param logfile: If specified, the logger will log to the specified file.
                     Otherwise, the logger logs to stdout.
                     This parameter only has an effect if the logger doesn't already exist.
     """
@@ -109,5 +109,6 @@ def getLogger(name, logfile=None):
         handler = StreamHandler()
     handler.setFormatter(_MozFormatter())
     logger.addHandler(handler)
+    logger.propagate = False
     return logger
 
