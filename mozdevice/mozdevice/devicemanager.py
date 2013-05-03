@@ -385,8 +385,6 @@ class DeviceManager(object):
         if not isinstance(processName, basestring):
             raise TypeError("Process name %s is not a string" % processName)
 
-        pid = None
-
         #filter out extra spaces
         parts = filter(lambda x: x != '', processName.split(' '))
         processName = ' '.join(parts)
@@ -401,17 +399,10 @@ class DeviceManager(object):
         parts = pieces[0].split('/')
         app = parts[-1]
 
-        procList = self.getProcessList()
-        if (procList == []):
-            return None
-
-        for proc in procList:
+        for proc in self.getProcessList():
             procName = proc[1].split('/')[-1]
-            if (procName == app):
-                pid = proc[0]
-                break
-        return pid
-
+            if procName == app:
+                return proc[0]
 
     @abstractmethod
     def killProcess(self, processName, forceKill=False):
