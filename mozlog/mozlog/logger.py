@@ -65,12 +65,11 @@ class _MozFormatter(Formatter):
     level_length = 0
     max_level_length = len('TEST-START')
 
-    def __init__(self, datefmt=None):
+    def __init__(self):
         """
-        Formatter.__init__ has a fmt parameter that won't have
+        Formatter.__init__ has fmt and datefmt parameters that won't have
         any affect on a MozFormatter instance. Bypass it to avoid confusion.
         """
-        self.datefmt = datefmt
 
     def format(self, record):
         record.message = record.getMessage()
@@ -83,8 +82,7 @@ class _MozFormatter(Formatter):
         else:
             pad = self.level_length - len(record.levelname) + 1
         sep = '|'.rjust(pad)
-        fmt = self.formatTime(record, datefmt=self.datefmt) + \
-            ' %(name)s %(levelname)s ' + sep + ' %(message)s'
+        fmt = '%(name)s %(levelname)s ' + sep + ' %(message)s'
         return fmt % record.__dict__
 
 def getLogger(name, logfile=None):
