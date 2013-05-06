@@ -102,21 +102,21 @@ class DroidMixin(object):
 
 class DroidADB(DeviceManagerADB, DroidMixin):
 
-     def getTopActivity(self):
-         package = None
-         data = self.shellCheckOutput(["dumpsys", "window", "input"])
-         # "dumpsys window input" produces many lines of input. The top/foreground
-         # activity is indicated by something like:
-         #   mFocusedApp=AppWindowToken{483e6db0 token=HistoryRecord{484dcad8 com.mozilla.SUTAgentAndroid/.SUTAgentAndroid}}
-         # Extract this line, ending in the forward slash:
-         m = re.search('mFocusedApp(.+)/', data)
-         if m:
-              line = m.group(0)
-              # Extract package name: string of non-whitespace ending in forward slash
-              m = re.search('(\S+)/$', line)
-              if m:
-                  package = m.group(1)
-         return package
+    def getTopActivity(self):
+        package = None
+        data = self.shellCheckOutput(["dumpsys", "window", "input"])
+        # "dumpsys window input" produces many lines of input. The top/foreground
+        # activity is indicated by something like:
+        #   mFocusedApp=AppWindowToken{483e6db0 token=HistoryRecord{484dcad8 com.mozilla.SUTAgentAndroid/.SUTAgentAndroid}}
+        # Extract this line, ending in the forward slash:
+        m = re.search('mFocusedApp(.+)/', data)
+        if m:
+            line = m.group(0)
+            # Extract package name: string of non-whitespace ending in forward slash
+            m = re.search('(\S+)/$', line)
+            if m:
+                package = m.group(1)
+        return package
 
 class DroidSUT(DeviceManagerSUT, DroidMixin):
 
