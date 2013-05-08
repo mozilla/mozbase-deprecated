@@ -50,7 +50,9 @@ class DMCli(object):
                                               { 'name': 'remote_file', 'nargs': '?' } ],
                                     'help': 'copy file/dir from device' },
                           'shell': { 'function': self.shell,
-                                    'args': [ { 'name': 'command', 'nargs': argparse.REMAINDER } ],
+                                    'args': [ { 'name': 'command', 'nargs': argparse.REMAINDER },
+                                              { 'name': '--root', 'action': 'store_true',
+                                                'help': 'Run command as root' }],
                                     'help': 'run shell command on device' },
                           'info': { 'function': self.getinfo,
                                     'args': [ { 'name': 'directive', 'nargs': '?' } ],
@@ -242,9 +244,9 @@ class DMCli(object):
         for name in args.process_name:
             self.dm.killProcess(name)
 
-    def shell(self, args, root=False):
+    def shell(self, args):
         buf = StringIO.StringIO()
-        self.dm.shell(args.command, buf, root=root)
+        self.dm.shell(args.command, buf, root=args.root)
         print str(buf.getvalue()[0:-1]).rstrip()
 
     def getinfo(self, args):
