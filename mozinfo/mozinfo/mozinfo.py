@@ -13,6 +13,13 @@ import platform
 import re
 import sys
 
+try:
+    import json
+except ImportError:
+    import simplejson as json
+
+import mozfile
+
 # keep a copy of the os module since updating globals overrides this
 _os = os
 
@@ -101,7 +108,15 @@ def sanitize(info):
 
 # method for updating information
 def update(new_info):
-    """update the info"""
+    """Update the info.
+    new_info can either be a dict or a path/url
+    to a json file containing a dict."""
+
+    if isinstance(new_info, basestring):
+        f = mozfile.load(new_info)
+        new_info = json.loads(f.read())
+        f.close()
+
     info.update(new_info)
     sanitize(info)
     globals().update(info)
@@ -134,16 +149,12 @@ def main(args=None):
 
     # args are JSON blobs to override info
     if args:
-        try:
-            from json import loads
-        except ImportError:
-            from simplejson import loads
         for arg in args:
             if _os.path.exists(arg):
                 string = file(arg).read()
             else:
                 string = arg
-            update(loads(string))
+            update(json.loads(string))
 
     # print out choices if requested
     flag = False

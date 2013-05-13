@@ -7,7 +7,7 @@ from setuptools import setup
 PACKAGE_VERSION = '0.4'
 
 # dependencies
-deps = []
+deps = ['mozfile >= 0.6']
 try:
     import json
 except ImportError:
