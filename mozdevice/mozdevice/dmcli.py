@@ -109,7 +109,8 @@ class DMCli(object):
                                                         'default': 'android.intent.action.VIEW' },
                                                       { 'name': '--url', 'action': 'store' },
                                                       { 'name': '--extra-args', 'action': 'store' },
-                                                      { 'name': '--mozenv', 'action': 'store' },
+                                                      { 'name': '--mozenv', 'action': 'store',
+                                                        'help': 'Gecko environment variables to set in "KEY1=VAL1 KEY2=VAL2" format' },
                                                       { 'name': '--no-fail-if-running',
                                                         'action': 'store_true',
                                                         'help': 'Don\'t fail if application is already running' }
@@ -316,8 +317,15 @@ class DMCli(object):
         return errno.ENOENT
 
     def launchfennec(self, args):
+        mozEnv = None
+        if args.mozenv:
+            mozEnv = {}
+            keyvals = args.mozenv.split()
+            for keyval in keyvals:
+                (key, _, val) = keyval.partition("=")
+                mozEnv[key] = val
         self.dm.launchFennec(args.appname, intent=args.intent,
-                             mozEnv=args.mozenv,
+                             mozEnv=mozEnv,
                              extraArgs=args.extra_args, url=args.url,
                              failIfRunning=(not args.no_fail_if_running))
 
