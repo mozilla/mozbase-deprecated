@@ -171,6 +171,8 @@ class DeviceManagerADB(DeviceManager):
         if self.dirExists(destname):
             raise DMError("Attempted to push a file (%s) to a directory (%s)!" %
                           (localname, destname))
+        if not os.access(localname, os.F_OK):
+            raise DMError("File not found: %s" % localname)
 
         if self._useRunAs:
             remoteTmpFile = self.getTempDir() + "/" + os.path.basename(localname)
