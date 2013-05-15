@@ -169,17 +169,21 @@ class NamedTemporaryFile(object):
     see https://bugzilla.mozilla.org/show_bug.cgi?id=821362
     """
     def __init__(self, mode='w+b', bufsize=-1, suffix='', prefix='tmp',
-        dir=None):
+                 dir=None, delete=True):
 
         fd, path = tempfile.mkstemp(suffix, prefix, dir, 't' in mode)
         os.close(fd)
 
         self.file = open(path, mode)
         self._path = path
+        self._delete = delete
         self._unlinked = False
 
     def __getattr__(self, k):
         return getattr(self.__dict__['file'], k)
+
+    def __iter__(self):
+        return self.__dict__['file']
 
     def __enter__(self):
         self.file.__enter__()
@@ -187,15 +191,17 @@ class NamedTemporaryFile(object):
 
     def __exit__(self, exc, value, tb):
         self.file.__exit__(exc, value, tb)
-        os.unlink(self.__dict__['_path'])
-        self._unlinked = True
+        if self.__dict__['_delete']:
+            os.unlink(self.__dict__['_path'])
+            self._unlinked = True
 
     def __del__(self):
         if self.__dict__['_unlinked']:
             return
-
         self.file.__exit__(None, None, None)
-        os.unlink(self.__dict__['_path'])
+        if self.__dict__['_delete']:
+            os.unlink(self.__dict__['_path'])
+
 
 ### utilities dealing with URLs
 
