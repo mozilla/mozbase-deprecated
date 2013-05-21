@@ -209,8 +209,6 @@ class ServerLocations(object):
 class Permissions(object):
     """Allows handling of permissions for ``mozprofile``"""
 
-    _num_permissions = 0
-
     def __init__(self, profileDir, locations=None):
         self._profileDir = profileDir
         self._locations = ServerLocations(add_callback=self.write_db)
@@ -248,7 +246,6 @@ class Permissions(object):
             # set the permissions
             permissions = { 'allowXULXBL': 'noxul' not in location.options }
             for perm, allow in permissions.iteritems():
-                self._num_permissions += 1
                 if allow:
                     permission_type = 1
                 else:
@@ -259,15 +256,14 @@ class Permissions(object):
 
                 # if the db contains 8 columns, we're using user_version 3
                 if count == 8:
-                    statement = "INSERT INTO moz_hosts values(?, ?, ?, ?, 0, 0, 0, 0)"
+                    statement = "INSERT INTO moz_hosts values(NULL, ?, ?, ?, 0, 0, 0, 0)"
                     cursor.execute("PRAGMA user_version=3;")
                 else:
-                    statement = "INSERT INTO moz_hosts values(?, ?, ?, ?, 0, 0)"
+                    statement = "INSERT INTO moz_hosts values(NULL, ?, ?, ?, 0, 0)"
                     cursor.execute("PRAGMA user_version=2;")
 
                 cursor.execute(statement,
-                               (self._num_permissions, location.host, perm,
-                               permission_type))
+                               (location.host, perm, permission_type))
 
         # Commit and close
         permDB.commit()
