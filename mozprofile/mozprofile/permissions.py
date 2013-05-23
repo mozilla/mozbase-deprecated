@@ -24,7 +24,7 @@ import urlparse
 # http://hg.mozilla.org/mozilla-central/file/b871dfb2186f/build/automation.py.in#l28
 _DEFAULT_PORTS = { 'http': '8888',
                    'https': '4443',
-                   'ws': '9988',
+                   'ws': '4443',
                    'wss': '4443' }
 
 class LocationError(Exception):
