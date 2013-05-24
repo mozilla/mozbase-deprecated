@@ -4,6 +4,7 @@
 # License, v. 2.0. If a copy of the MPL was not distributed with this file,
 # You can obtain one at http://mozilla.org/MPL/2.0/.
 
+import mozfile
 import mozhttpd
 import os
 import shutil
@@ -238,17 +239,21 @@ user_pref("webgl.force-enabled", true);
 
         # write them to a temporary location
         path = None
+        read_prefs = None
         try:
-            with tempfile.NamedTemporaryFile(suffix='.js', delete=False) as f:
+            with mozfile.NamedTemporaryFile(suffix='.js', delete=False) as f:
                 path = f.name
                 preferences.write(f, _prefs)
 
             # read them back and ensure we get what we put in
-            self.assertEqual(dict(Preferences.read_prefs(path)), _prefs)
+            read_prefs = dict(Preferences.read_prefs(path))
 
         finally:
             # cleanup
-            os.remove(path)
+            if path and os.path.exists(path):
+                os.remove(path)
+
+        self.assertEqual(read_prefs, _prefs)
 
     def test_read_prefs_with_comments(self):
         """test reading preferences from a prefs.js file that contains comments"""

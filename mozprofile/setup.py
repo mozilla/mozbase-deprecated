@@ -44,7 +44,7 @@ setup(name='mozprofile',
       include_package_data=True,
       zip_safe=False,
       install_requires=deps,
-      tests_require=['mozhttpd'],
+      tests_require=['mozhttpd', 'mozfile'],
       entry_points="""
       # -*- Entry points: -*-
       [console_scripts]
