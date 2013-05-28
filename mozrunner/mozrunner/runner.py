@@ -126,7 +126,10 @@ class Runner(object):
     @property
     def command(self):
         """Returns the command list to run."""
-        return [self.binary, '-profile', self.profile.profile]
+        commands = [self.binary, '-profile', self.profile.profile]
+        # Bug 775416 - Ensure that binary options are passed in first
+        commands[1:1] = self.cmdargs
+        return commands
 
     def get_repositoryInfo(self):
         """Read repository information from application.ini and platform.ini."""
@@ -168,7 +171,7 @@ class Runner(object):
             self.profile.reset()
             assert self.profile.exists(), "%s : failure to reset profile" % self.__class__.__name__
 
-        cmd = self._wrap_command(self.command+self.cmdargs)
+        cmd = self._wrap_command(self.command)
 
         # attach a debugger, if specified
         if debug_args:
