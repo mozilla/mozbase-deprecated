@@ -235,8 +235,9 @@ class DeviceManagerADB(DeviceManager):
     def fileExists(self, filepath):
         p = self._runCmd(["shell", "ls", "-a", filepath])
         data = p.stdout.readlines()
-        if (len(data) == 1):
-            if (data[0].rstrip() == filepath):
+        if len(data) == 1:
+            foundpath = data[0].decode('utf-8').rstrip()
+            if foundpath == filepath:
                 return True
         return False
 
