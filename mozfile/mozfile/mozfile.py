@@ -2,7 +2,9 @@
 # License, v. 2.0. If a copy of the MPL was not distributed with this
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
+from contextlib import contextmanager
 import os
+import shutil
 import tarfile
 import tempfile
 import urlparse
@@ -15,7 +17,8 @@ __all__ = ['extract_tarball',
            'is_url',
            'load',
            'rmtree',
-           'NamedTemporaryFile']
+           'NamedTemporaryFile',
+           'TemporaryDirectory']
 
 
 ### utilities for extracting archives
@@ -232,3 +235,19 @@ def load(resource):
         return file(resource)
 
     return urllib2.urlopen(resource)
+
+@contextmanager
+def TemporaryDirectory():
+    """
+    create a temporary directory using tempfile.mkdtemp, and then clean it up.
+
+    Example usage:
+    with TemporaryDirectory() as tmp:
+       open(os.path.join(tmp, "a_temp_file"), "w").write("data")
+
+    """
+    tempdir = tempfile.mkdtemp()
+    try:
+        yield tempdir
+    finally:
+        shutil.rmtree(tempdir)
