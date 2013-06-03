@@ -13,7 +13,7 @@ except IOError:
 
 PACKAGE_VERSION = '1.5'
 
-deps = ['mozinfo == 0.4',
+deps = ['mozinfo >= 0.4',
         'mozfile'
        ]
 
