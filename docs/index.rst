@@ -33,7 +33,7 @@ sentence).
 This is the main documentation for users of mozbase. There is also a
 project_ wiki page with notes on development practices and administration.
 
-.. _project: https://wiki.mozilla.org/Auto-tools/Projects/MozBase
+.. _project: https://wiki.mozilla.org/Auto-tools/Projects/Mozbase
 
 The documentation is organized by category, then by module. Figure out what you
 want to do then dive in!

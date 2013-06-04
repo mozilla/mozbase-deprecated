@@ -10,7 +10,7 @@ Setup mozbase packages for development.
 Packages may be specified as command line arguments.
 If no arguments are given, install all packages.
 
-See https://wiki.mozilla.org/Auto-tools/Projects/MozBase
+See https://wiki.mozilla.org/Auto-tools/Projects/Mozbase
 """
 
 import os
