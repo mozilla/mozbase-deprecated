@@ -4,7 +4,14 @@
 # License, v. 2.0. If a copy of the MPL was not distributed with this file,
 # You can obtain one at http://mozilla.org/MPL/2.0/.
 
-__all__ = ['Runner', 'ThunderbirdRunner', 'FirefoxRunner', 'runners', 'CLI', 'cli', 'package_metadata']
+__all__ = ['CLI',
+           'cli',
+           'package_metadata',
+           'Runner',
+           'runners',
+           'FirefoxRunner',
+           'FirefoxMetroRunner',
+           'ThunderbirdRunner']
 
 import mozinfo
 import optparse
@@ -84,6 +91,9 @@ class Runner(object):
             raise Exception("Binary not specified")
         if not os.path.exists(self.binary):
             raise OSError("Binary path does not exist: %s" % self.binary)
+
+        # To be safe the absolute path of the binary should be used
+        self.binary = os.path.abspath(self.binary)
 
         # allow Mac binaries to be specified as an app bundle
         plist = '%s/Contents/Info.plist' % self.binary
@@ -247,16 +257,42 @@ class FirefoxRunner(Runner):
     def __init__(self, profile, binary=None, **kwargs):
 
         # take the binary from BROWSER_PATH environment variable
-        if (not binary) and 'BROWSER_PATH' in os.environ:
-            binary = os.environ['BROWSER_PATH']
-
+        binary = binary or os.environ.get('BROWSER_PATH')
         Runner.__init__(self, profile, binary, **kwargs)
+
+
+class FirefoxMetroRunner(Runner):
+    """Specialized Runner subclass for running Firefox.Metro"""
+
+    profile_class = FirefoxMetroProfile
+
+    # helper application to launch Firefox in Metro mode
+    here = os.path.dirname(os.path.abspath(__file__))
+    immersiveHelperPath = os.path.join(here, 'tools', 'metrotestharness.exe')
+
+    def __init__(self, profile, binary=None, **kwargs):
+
+        # take the binary from BROWSER_PATH environment variable
+        binary = binary or os.environ.get('BROWSER_PATH')
+        Runner.__init__(self, profile, binary, **kwargs)
+
+        if not mozinfo.isWin:
+            raise Exception('Firefox Metro mode is only supported on Windows 8 and onwards')
+
+    @property
+    def command(self):
+       command = Runner.command.fget(self)
+       command[:0] = [self.immersiveHelperPath, '-firefoxpath']
+
+       return command
+
 
 class ThunderbirdRunner(Runner):
     """Specialized Runner subclass for running Thunderbird"""
     profile_class = ThunderbirdProfile
 
 runners = {'firefox': FirefoxRunner,
+           'firefoxmetro' : FirefoxMetroRunner,
            'thunderbird': ThunderbirdRunner}
 
 class CLI(MozProfileCLI):
