@@ -97,9 +97,11 @@ def extract(src, dest=None):
 
     # namelist doesn't include folders, append these to the list
     for name in namelist:
-        root = os.path.join(dest, name[:name.find('/')])
-        if root not in top_level_files:
-            top_level_files.append(root)
+        index = name.find('/')
+        if index != -1:
+            root = os.path.join(dest, name[:index])
+            if root not in top_level_files:
+                top_level_files.append(root)
 
     return top_level_files
 
