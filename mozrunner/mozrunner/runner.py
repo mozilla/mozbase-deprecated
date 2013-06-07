@@ -10,7 +10,7 @@ __all__ = ['CLI',
            'Runner',
            'runners',
            'FirefoxRunner',
-           'FirefoxMetroRunner',
+           'MetroFirefoxRunner',
            'ThunderbirdRunner']
 
 import mozinfo
@@ -261,20 +261,25 @@ class FirefoxRunner(Runner):
         Runner.__init__(self, profile, binary, **kwargs)
 
 
-class FirefoxMetroRunner(Runner):
+class MetroFirefoxRunner(Runner):
     """Specialized Runner subclass for running Firefox.Metro"""
 
-    profile_class = FirefoxMetroProfile
+    profile_class = MetroFirefoxProfile
 
     # helper application to launch Firefox in Metro mode
     here = os.path.dirname(os.path.abspath(__file__))
-    immersiveHelperPath = os.path.join(here, 'tools', 'metrotestharness.exe')
+    immersiveHelperPath = os.path.sep.join([here,
+                                            'resources',
+                                            'metrotestharness.exe'])
 
     def __init__(self, profile, binary=None, **kwargs):
 
         # take the binary from BROWSER_PATH environment variable
         binary = binary or os.environ.get('BROWSER_PATH')
         Runner.__init__(self, profile, binary, **kwargs)
+
+        if not os.path.exists(self.immersiveHelperPath):
+            raise OSError('Can not find Metro launcher: %s' % self.immersiveHelperPath)
 
         if not mozinfo.isWin:
             raise Exception('Firefox Metro mode is only supported on Windows 8 and onwards')
@@ -292,7 +297,7 @@ class ThunderbirdRunner(Runner):
     profile_class = ThunderbirdProfile
 
 runners = {'firefox': FirefoxRunner,
-           'firefoxmetro' : FirefoxMetroRunner,
+           'metrofirefox' : MetroFirefoxRunner,
            'thunderbird': ThunderbirdRunner}
 
 class CLI(MozProfileCLI):
@@ -325,7 +330,8 @@ class CLI(MozProfileCLI):
         try:
             self.runner_class = runners[self.options.app]
         except KeyError:
-            self.parser.error('Application "%s" unknown (should be one of "firefox" or "thunderbird")' % self.options.app)
+            self.parser.error('Application "%s" unknown (should be one of "%s")' %
+                              (self.options.app, ', '.join(runners.keys())))
 
     def add_options(self, parser):
         """add options to the parser"""

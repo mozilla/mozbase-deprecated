@@ -4,7 +4,7 @@
 
 __all__ = ['Profile',
            'FirefoxProfile',
-           'FirefoxMetroProfile',
+           'MetroFirefoxProfile',
            'ThunderbirdProfile']
 
 import os
@@ -294,7 +294,7 @@ class FirefoxProfile(Profile):
                    'toolkit.telemetry.enabledPreRelease' : False,
                    }
 
-class FirefoxMetroProfile(Profile):
+class MetroFirefoxProfile(Profile):
     """Specialized Profile subclass for Firefox Metro"""
 
     preferences = {# Don't automatically update the application for desktop and metro build
