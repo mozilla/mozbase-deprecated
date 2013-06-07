@@ -92,7 +92,7 @@ def extract(src, dest=None):
                         src)
 
     # namelist returns paths with forward slashes even in windows
-    top_level_files = [os.path.join(dest, name) for name in namelist
+    top_level_files = [os.path.join(dest, name.rstrip('/')) for name in namelist
                        if len(name.rstrip('/').split('/')) == 1]
 
     # namelist doesn't include folders, append these to the list
