@@ -201,7 +201,7 @@ class MozHttpd(object):
     True.
     """
 
-    def __init__(self, host="127.0.0.1", port=8888, docroot=None,
+    def __init__(self, host="127.0.0.1", port=0, docroot=None,
                  urlhandlers=None, proxy_host_dirs=False, log_requests=False):
         self.host = host
         self.port = int(port)
@@ -252,6 +252,18 @@ class MozHttpd(object):
             except AttributeError:
                 pass
         self.httpd = None
+
+    def get_url(self, path="/"):
+        """
+        Returns a URL that can be used for accessing the server (e.g. http://192.168.1.3:4321/)
+
+        :param path: Path to append to URL (e.g. if path were /foobar.html you would get a URL like
+                     http://192.168.1.3:4321/foobar.html). Default is `/`.
+        """
+        if not self.httpd:
+            return None
+
+        return "http://%s:%s%s" % (self.host, self.httpd.server_port, path)
 
     __del__ = stop
 
