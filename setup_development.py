@@ -30,7 +30,9 @@ here = os.path.dirname(os.path.abspath(__file__))
 # all python packages
 mozbase_packages = [i for i in os.listdir(here)
                     if os.path.exists(os.path.join(here, i, 'setup.py'))]
-extra_packages = ["sphinx"]
+extra_packages = ["sphinx", # documentation: https://wiki.mozilla.org/Auto-tools/Projects/Mozbase#Documentation
+                  "mock",   # testing: https://wiki.mozilla.org/Auto-tools/Projects/Mozbase#Tests
+                  ]
 
 def cycle_check(order, dependencies):
     """ensure no cyclic dependencies"""
