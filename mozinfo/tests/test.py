@@ -11,27 +11,24 @@ import shutil
 import sys
 import tempfile
 import unittest
+import mozinfo
 
 class TestMozinfo(unittest.TestCase):
     def setUp(self):
-        import mozinfo
         reload(mozinfo)
         self.tempdir = os.path.abspath(tempfile.mkdtemp())
 
     def tearDown(self):
-        del sys.modules["mozinfo"]
         shutil.rmtree(self.tempdir)
 
     def test_basic(self):
         """Test that mozinfo has a few attributes."""
-        import mozinfo
         self.assertNotEqual(mozinfo.os, None)
         # should have isFoo == True where os == "foo"
         self.assertTrue(getattr(mozinfo, "is" + mozinfo.os[0].upper() + mozinfo.os[1:]))
 
     def test_update(self):
         """Test that mozinfo.update works."""
-        import mozinfo
         mozinfo.update({"foo": 123})
         self.assertEqual(mozinfo.info["foo"], 123)
 
@@ -40,9 +37,15 @@ class TestMozinfo(unittest.TestCase):
         j = os.path.join(self.tempdir, "mozinfo.json")
         with open(j, "w") as f:
             f.write(json.dumps({"foo": "xyz"}))
-        import mozinfo
         mozinfo.update(j)
         self.assertEqual(mozinfo.info["foo"], "xyz")
+
+    def test_update_file_invalid_json(self):
+        """Test that mozinfo.update handles invalid JSON correctly"""
+        j = os.path.join(self.tempdir,'test.json')
+        with open(j, 'w') as f:
+            f.write('invalid{"json":')
+        self.assertRaises(ValueError,mozinfo.update,[j])
 
     def test_find_and_update_file(self):
         """Test that mozinfo.find_and_update_from_json can
@@ -50,9 +53,17 @@ class TestMozinfo(unittest.TestCase):
         j = os.path.join(self.tempdir, "mozinfo.json")
         with open(j, "w") as f:
             f.write(json.dumps({"foo": "abcdefg"}))
-        import mozinfo
         self.assertEqual(mozinfo.find_and_update_from_json(self.tempdir), j)
         self.assertEqual(mozinfo.info["foo"], "abcdefg")
+
+    def test_find_and_update_file_invalid_json(self):
+        """Test that mozinfo.find_and_update_from_json can
+        handle invalid JSON"""
+        j = os.path.join(self.tempdir, "mozinfo.json")
+        with open(j, 'w') as f:
+            f.write('invalid{"json":')
+        self.assertRaises(ValueError, mozinfo.find_and_update_from_json, self.tempdir)
+
 
     def test_find_and_update_file_mozbuild(self):
         """Test that mozinfo.find_and_update_from_json can
@@ -60,7 +71,6 @@ class TestMozinfo(unittest.TestCase):
         j = os.path.join(self.tempdir, "mozinfo.json")
         with open(j, "w") as f:
             f.write(json.dumps({"foo": "123456"}))
-        import mozinfo
         m = mock.MagicMock()
         # Mock the value of MozbuildObject.from_environment().topobjdir.
         m.MozbuildObject.from_environment.return_value.topobjdir = self.tempdir
