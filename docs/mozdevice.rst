@@ -82,6 +82,16 @@ DeviceManagerADB implementation
 
 .. autoclass:: mozdevice.DeviceManagerADB
 
+ADB-specific methods
+````````````````````
+DeviceManagerADB has several methods that are not present in all
+DeviceManager implementations. Please do not use them in code that
+is meant to be interoperable.
+
+.. automethod:: DeviceManagerADB.forward
+.. automethod:: DeviceManagerADB.remount
+.. automethod:: DeviceManagerADB.devices
+
 DeviceManagerSUT implementation
 -------------------------------
 
