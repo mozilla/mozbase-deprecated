@@ -12,6 +12,7 @@ from mozfile import TemporaryDirectory
 import os
 import unittest
 
+
 class TestTemporaryDirectory(unittest.TestCase):
 
     def test_removed(self):

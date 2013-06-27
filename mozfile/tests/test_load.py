@@ -10,6 +10,7 @@ import tempfile
 import unittest
 from mozfile import load
 
+
 class TestLoad(unittest.TestCase):
     """test the load function"""
 
@@ -35,7 +36,6 @@ class TestLoad(unittest.TestCase):
             self.assertEqual(content, 'example')
         finally:
             httpd.stop()
-
 
     def test_file_path(self):
         """test loading from file path"""
