@@ -521,12 +521,10 @@ class DeviceManagerADB(DeviceManager):
         raise DMError("Failed to get application root for: %s" % packageName)
 
     def reboot(self, wait = False, **kwargs):
-        self._runCmd(["reboot"])
-        if (not wait):
+        self._checkCmd(["reboot"])
+        if not wait:
             return
-        countdown = 40
-        while (countdown > 0):
-            self._checkCmd(["wait-for-device", "shell", "ls", "/sbin"])
+        self._checkCmd(["wait-for-device", "shell", "ls", "/sbin"])
 
     def updateApp(self, appBundlePath, **kwargs):
         return self._runCmd(["install", "-r", appBundlePath]).stdout.read()
