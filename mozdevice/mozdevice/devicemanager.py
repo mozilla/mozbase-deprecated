@@ -258,7 +258,8 @@ class DeviceManager(object):
     @abstractmethod
     def fileExists(self, filepath):
         """
-        Return whether filepath exists and is a file on the device file system.
+        Return whether filepath exists on the device file system,
+        regardless of file type.
         """
 
     @abstractmethod

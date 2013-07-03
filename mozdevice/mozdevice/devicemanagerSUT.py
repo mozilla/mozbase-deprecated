@@ -395,19 +395,24 @@ class DeviceManagerSUT(DeviceManager):
     def fileExists(self, filepath):
         # Because we always have / style paths we make this a lot easier with some
         # assumptions
-        s = filepath.split('/')
-        containingpath = '/'.join(s[:-1])
-        return s[-1] in self.listFiles(containingpath)
+        filepath = posixpath.normpath(filepath)
+        # / should always exist but we can use this to check for things like
+        # having access to the filesystem
+        if filepath == '/':
+            return self.dirExists(filepath)
+        (containingpath, filename) = posixpath.split(filepath)
+        return filename in self.listFiles(containingpath)
 
     def listFiles(self, rootdir):
-        rootdir = rootdir.rstrip('/')
-        if (self.dirExists(rootdir) == False):
+        rootdir = posixpath.normpath(rootdir)
+        if not self.dirExists(rootdir):
             return []
         data = self._runCmds([{ 'cmd': 'cd ' + rootdir }, { 'cmd': 'ls' }])
 
         files = filter(lambda x: x, data.splitlines())
         if len(files) == 1 and files[0] == '<empty>':
-            # special case on the agent: empty directories return just the string "<empty>"
+            # special case on the agent: empty directories return just the
+            # string "<empty>"
             return []
         return files
 
