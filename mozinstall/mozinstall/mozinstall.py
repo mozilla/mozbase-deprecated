@@ -206,7 +206,7 @@ def uninstall(install_folder):
 
     # Ensure that we remove any trace of the installation. Even the uninstaller
     # on Windows leaves files behind we have to explicitely remove.
-    shutil.rmtree(install_folder)
+    mozfile.rmtree(install_folder)
 
 
 def _install_dmg(src, dest):
