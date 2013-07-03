@@ -368,15 +368,13 @@ class DeviceManagerSUT(DeviceManager):
 
         existentDirectories = []
         for root, dirs, files in os.walk(localDir, followlinks=True):
-            parts = root.split(localDir)
+            _, subpath = root.split(localDir)
+            subpath = subpath.lstrip('/')
+            remoteRoot = posixpath.join(remoteDir, subpath)
             for f in files:
-                remoteRoot = remoteDir + '/' + parts[1]
-                if (remoteRoot.endswith('/')):
-                    remoteName = remoteRoot + f
-                else:
-                    remoteName = remoteRoot + '/' + f
+                remoteName = posixpath.join(remoteRoot, f)
 
-                if (parts[1] == ""):
+                if subpath == "":
                     remoteRoot = remoteDir
 
                 parent = os.path.dirname(remoteName)
