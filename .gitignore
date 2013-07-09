@@ -7,11 +7,11 @@ dist
 *~
 #*
 .DS_Store
-*.exe
 *.o
 *.a
 *.so.0
 proclaunch
+proclaunch.exe
 .idea
 docs/_build
 bin
