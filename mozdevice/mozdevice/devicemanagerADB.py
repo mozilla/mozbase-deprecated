@@ -533,7 +533,7 @@ class DeviceManagerADB(DeviceManager):
         timestr = self._runCmd(["shell", "date", "+%s"]).stdout.read().strip()
         if (not timestr or not timestr.isdigit()):
             raise DMError("Unable to get current time using date (got: '%s')" % timestr)
-        return str(int(timestr)*1000)
+        return int(timestr)*1000
 
     def getInfo(self, directive=None):
         ret = {}

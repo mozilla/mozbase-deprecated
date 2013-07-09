@@ -877,7 +877,7 @@ class DeviceManagerSUT(DeviceManager):
         self._logger.debug("updateApp: got status back: %s" % status)
 
     def getCurrentTime(self):
-        return self._runCmds([{ 'cmd': 'clok' }]).strip()
+        return int(self._runCmds([{ 'cmd': 'clok' }]).strip())
 
     def _getCallbackIpAndPort(self, aIp, aPort):
         """
