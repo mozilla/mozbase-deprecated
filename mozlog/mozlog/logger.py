@@ -8,6 +8,10 @@ from logging import *
 # 'from logging import *'
 # see https://bugzilla.mozilla.org/show_bug.cgi?id=700415#c35
 from logging import getLoggerClass, addLevelName, setLoggerClass, shutdown, debug, info, basicConfig
+try:
+    import json
+except ImportError:
+    import simplejson as json
 
 _default_level = INFO
 _LoggerClass = getLoggerClass()
@@ -30,7 +34,8 @@ addLevelName(CRASH, 'PROCESS-CRASH')
 class MozLogger(_LoggerClass):
     """
     MozLogger class which adds some convenience log levels
-    related to automated testing in Mozilla
+    related to automated testing in Mozilla and ability to
+    output structured log messages.
     """
     def testStart(self, message, *args, **kwargs):
         """Logs a test start message"""
@@ -55,6 +60,43 @@ class MozLogger(_LoggerClass):
     def processCrash(self, message, *args, **kwargs):
         """Logs a process crash message"""
         self.log(CRASH, message, *args, **kwargs)
+
+    def log_structured(self, action, params=None):
+        """Logs a structured message object."""
+        if (params is None):
+            params = {}
+
+        level = params.get('_level', _default_level)
+        if isinstance(level, int):
+            params['_level'] = getLevelName(level)
+        else:
+            params['_level'] = level
+            level = getLevelName(level.upper())
+
+            # If the logger is fed a level number unknown to the logging
+            # module, getLevelName will return a string. Unfortunately,
+            # the logging module will raise a type error elsewhere if
+            # the level is not an integer.
+            if not isinstance(level, int):
+                level = _default_level
+
+        params['_namespace'] = self.name
+        params['action'] = action
+
+        message = params.get('message', 'UNKNOWN')
+        self.log(level, message, extra={'params': params})
+
+class JSONFormatter(Formatter):
+    """Log formatter for emitting structured JSON entries."""
+
+    def format(self, record):
+        params = getattr(record, 'params')
+        params['_time'] = int(round(record.created * 1000, 0))
+
+        if params.get('indent') is not None:
+            return json.dumps(params, indent=params['indent'])
+
+        return json.dumps(params)
 
 class _MozFormatter(Formatter):
     """
