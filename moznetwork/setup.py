@@ -6,7 +6,7 @@ from setuptools import setup
 
 PACKAGE_VERSION = '0.21'
 
-deps=[]
+deps=[ 'mozinfo' ]
 
 setup(name='moznetwork',
       version=PACKAGE_VERSION,
