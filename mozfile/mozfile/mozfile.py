@@ -52,7 +52,8 @@ def extract_zip(src, dest):
     for name in namelist:
         filename = os.path.realpath(os.path.join(dest, name))
         if name.endswith('/'):
-            os.makedirs(filename)
+            if not os.path.isdir(filename):
+                os.makedirs(filename)
         else:
             path = os.path.dirname(filename)
             if not os.path.isdir(path):
