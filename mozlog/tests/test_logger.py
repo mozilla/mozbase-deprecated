@@ -3,6 +3,7 @@
 # You can obtain one at http://mozilla.org/MPL/2.0/.
 
 import mozlog
+import tempfile
 import unittest
 import socket
 import time
@@ -19,17 +20,36 @@ class ListHandler(mozlog.Handler):
     def emit(self, record):
         self.messages.append(self.format(record))
 
+class TestLogging(unittest.TestCase):
+    """Tests behavior of basic mozlog api."""
+
+    def test_logger_defaults(self):
+        """Tests the default logging format and behavior."""
+
+        default_logger = mozlog.getLogger('default.logger')
+        self.assertEqual(default_logger.name, 'default.logger')
+        self.assertEqual(len(default_logger.handlers), 1)
+        self.assertTrue(isinstance(default_logger.handlers[0],
+                                   mozlog.StreamHandler))
+
+        f = tempfile.NamedTemporaryFile()
+        list_logger = mozlog.getLogger('file.logger',
+                                       handler=mozlog.FileHandler(f.name))
+        self.assertEqual(len(list_logger.handlers), 1)
+        self.assertTrue(isinstance(list_logger.handlers[0],
+                                   mozlog.FileHandler))
+        f.close()
+
+        self.assertRaises(ValueError, mozlog.getLogger,
+                          'file.logger', handler=ListHandler())
+
 class TestStructuredLogging(unittest.TestCase):
     """Tests structured output in mozlog."""
 
     def setUp(self):
         self.handler = ListHandler()
         self.handler.setFormatter(mozlog.JSONFormatter())
-        self.logger = mozlog.getLogger('test.Logger')
-
-        # Prevents tests from producing output via a default handler.
-        for h in self.logger.handlers:
-            self.logger.removeHandler(h)
+        self.logger = mozlog.MozLogger('test.Logger')
         self.logger.addHandler(self.handler)
         self.logger.setLevel(mozlog.DEBUG)
 

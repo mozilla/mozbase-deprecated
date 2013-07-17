@@ -98,7 +98,7 @@ class JSONFormatter(Formatter):
 
         return json.dumps(params)
 
-class _MozFormatter(Formatter):
+class MozFormatter(Formatter):
     """
     MozFormatter class used to standardize formatting
     If a different format is desired, this can be explicitly
@@ -127,29 +127,35 @@ class _MozFormatter(Formatter):
         fmt = '%(name)s %(levelname)s ' + sep + ' %(message)s'
         return fmt % record.__dict__
 
-def getLogger(name, logfile=None):
+def getLogger(name, handler=None):
     """
     Returns the logger with the specified name.
     If the logger doesn't exist, it is created.
+    If handler is specified, adds it to the logger. Otherwise a default handler
+    that logs to standard output will be used.
 
     :param name: The name of the logger to retrieve
-    :param logfile: If specified, the logger will log to the specified file.
-                    Otherwise, the logger logs to stdout.
-                    This parameter only has an effect if the logger doesn't already exist.
+    :param handler: A handler to add to the logger. If the logger already exists,
+                    and a handler is specified, an exception will be raised. To
+                    add a handler to an existing logger, call that logger's
+                    addHandler method.
     """
     setLoggerClass(MozLogger)
 
     if name in Logger.manager.loggerDict:
-        return getSysLogger(name)
+        if (handler):
+            raise ValueError('The handler parameter requires ' + \
+                             'that a logger by this name does ' + \
+                             'not already exist')
+        return Logger.manager.loggerDict[name]
 
     logger = getSysLogger(name)
     logger.setLevel(_default_level)
 
-    if logfile:
-        handler = FileHandler(logfile)
-    else:
+    if handler is None:
         handler = StreamHandler()
-    handler.setFormatter(_MozFormatter())
+        handler.setFormatter(MozFormatter())
+
     logger.addHandler(handler)
     logger.propagate = False
     return logger

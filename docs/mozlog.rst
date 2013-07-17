@@ -27,7 +27,7 @@ Log to stdout::
 Log to a file::
 
     import mozlog
-    log = mozlog.getLogger('MODULE_NAME', 'path/to/log/file')
+    log = mozlog.getLogger('MODULE_NAME', handler=mozlog.FileHandler('path/to/log/file'))
     log.warning('Careful!')
     log.testKnownFail('We know the cause for this failure')
     mozlog.shutdown()
