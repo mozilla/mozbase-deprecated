@@ -229,6 +229,13 @@ def main(args=sys.argv[1:]):
         call([sys.executable, 'setup.py', 'develop', '--no-deps'],
              cwd=os.path.join(here, reverse_mapping[package]))
 
+    # add the directory of sys.executable to path to aid the correct
+    # `easy_install` getting called
+    # https://bugzilla.mozilla.org/show_bug.cgi?id=893878
+    os.environ['PATH'] = '%s%s%s' % (os.path.dirname(os.path.abspath(sys.executable)),
+                                     os.path.pathsep,
+                                     os.environ.get('PATH', '').strip(os.path.pathsep))
+
     # install non-mozbase dependencies
     # these need to be installed separately and the --no-deps flag
     # subsequently used due to a bug in setuptools; see
