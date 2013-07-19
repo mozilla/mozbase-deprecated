@@ -18,8 +18,14 @@ class TestMozinfo(unittest.TestCase):
         reload(mozinfo)
         self.tempdir = os.path.abspath(tempfile.mkdtemp())
 
+        # When running from an objdir mozinfo will use a build generated json file
+        # instead of the ones created for testing. Prevent that from happening.
+        # See bug 896038 for details.
+        sys.modules['mozbuild'] = None
+
     def tearDown(self):
         shutil.rmtree(self.tempdir)
+        del sys.modules['mozbuild']
 
     def test_basic(self):
         """Test that mozinfo has a few attributes."""
