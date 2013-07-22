@@ -3,7 +3,7 @@
 # You can obtain one at http://mozilla.org/MPL/2.0/.
 
 import mozlog
-import tempfile
+import mozfile
 import unittest
 import socket
 import time
@@ -32,7 +32,7 @@ class TestLogging(unittest.TestCase):
         self.assertTrue(isinstance(default_logger.handlers[0],
                                    mozlog.StreamHandler))
 
-        f = tempfile.NamedTemporaryFile()
+        f = mozfile.NamedTemporaryFile()
         list_logger = mozlog.getLogger('file.logger',
                                        handler=mozlog.FileHandler(f.name))
         self.assertEqual(len(list_logger.handlers), 1)
@@ -60,7 +60,7 @@ class TestStructuredLogging(unittest.TestCase):
         The actual message should contain no fields other than the timestamp
         field and those present in expected."""
 
-        self.assertTrue(isinstance(actual['_time'], int))
+        self.assertTrue(isinstance(actual['_time'], (int, long)))
 
         for k, v in expected.items():
             self.assertEqual(v, actual[k])
