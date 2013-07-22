@@ -4,7 +4,7 @@
 
 from setuptools import setup
 
-PACKAGE_VERSION = '0.2'
+PACKAGE_VERSION = '0.3'
 
 deps = ['mozdevice >= 0.16', 'marionette_client >= 0.5.2']
 
