@@ -7,7 +7,7 @@
 __all__ = ['CLI',
            'cli',
            'package_metadata',
-           'Runner',
+           'LocalRunner',
            'local_runners',
            'FirefoxRunner',
            'MetroFirefoxRunner',
@@ -202,8 +202,8 @@ class LocalRunner(Runner):
         return cmd
 
 
-class FirefoxRunner(Runner):
-    """Specialized Runner subclass for running Firefox."""
+class FirefoxRunner(LocalRunner):
+    """Specialized LocalRunner subclass for running Firefox."""
 
     profile_class = FirefoxProfile
 
@@ -211,11 +211,11 @@ class FirefoxRunner(Runner):
 
         # take the binary from BROWSER_PATH environment variable
         binary = binary or os.environ.get('BROWSER_PATH')
-        Runner.__init__(self, profile, binary, **kwargs)
+        LocalRunner.__init__(self, profile, binary, **kwargs)
 
 
-class MetroFirefoxRunner(Runner):
-    """Specialized Runner subclass for running Firefox.Metro"""
+class MetroFirefoxRunner(LocalRunner):
+    """Specialized LocalRunner subclass for running Firefox.Metro"""
 
     profile_class = MetroFirefoxProfile
 
@@ -229,7 +229,7 @@ class MetroFirefoxRunner(Runner):
 
         # take the binary from BROWSER_PATH environment variable
         binary = binary or os.environ.get('BROWSER_PATH')
-        Runner.__init__(self, profile, binary, **kwargs)
+        LocalRunner.__init__(self, profile, binary, **kwargs)
 
         if not os.path.exists(self.immersiveHelperPath):
             raise OSError('Can not find Metro launcher: %s' % self.immersiveHelperPath)
@@ -239,14 +239,14 @@ class MetroFirefoxRunner(Runner):
 
     @property
     def command(self):
-       command = Runner.command.fget(self)
+       command = LocalRunner.command.fget(self)
        command[:0] = [self.immersiveHelperPath, '-firefoxpath']
 
        return command
 
 
-class ThunderbirdRunner(Runner):
-    """Specialized Runner subclass for running Thunderbird"""
+class ThunderbirdRunner(LocalRunner):
+    """Specialized LocalRunner subclass for running Thunderbird"""
     profile_class = ThunderbirdProfile
 
 local_runners = {'firefox': FirefoxRunner,
