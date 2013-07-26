@@ -338,9 +338,10 @@ class DeviceManagerSUT(DeviceManager):
         # woops, we couldn't find an end of line/return value
         raise DMError("Automation Error: Error finding end of line/return value when running '%s'" % cmdline)
 
-    def pushFile(self, localname, destname, retryLimit = None):
+    def pushFile(self, localname, destname, retryLimit=None, createDir=True):
         retryLimit = retryLimit or self.retryLimit
-        self.mkDirs(destname)
+        if createDir:
+            self.mkDirs(destname)
 
         try:
             filesize = os.path.getsize(localname)
@@ -382,8 +383,7 @@ class DeviceManagerSUT(DeviceManager):
                     self.mkDirs(remoteName)
                     existentDirectories.append(parent)
 
-                self.pushFile(os.path.join(root, f), remoteName, retryLimit=retryLimit)
-
+                self.pushFile(os.path.join(root, f), remoteName, retryLimit=retryLimit, createDir=False)
 
     def dirExists(self, remotePath):
         ret = self._runCmds([{ 'cmd': 'isdir ' + remotePath }]).strip()
