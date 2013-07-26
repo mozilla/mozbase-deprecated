@@ -81,8 +81,8 @@ class LocalRunner(Runner):
     def __init__(self, profile, binary, cmdargs=None, env=None,
                  kp_kwargs=None, clean_profile=None, process_class=None):
 
-        super(LocalRunner, self).__init__(profile, clean_profile=clean_profile, kp_kwargs=None,
-                                               process_class=process_class, env=None)
+        super(LocalRunner, self).__init__(profile, clean_profile=clean_profile, kp_kwargs=kp_kwargs,
+                                               process_class=process_class, env=env)
 
         # find the binary
         self.binary = binary
