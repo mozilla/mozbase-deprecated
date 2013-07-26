@@ -571,18 +571,19 @@ class DeviceManagerADB(DeviceManager):
 
         timeout = int(timeout)
         retries = 0
-        while retries < retryLimit:
-            proc = subprocess.Popen(finalArgs, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
-            start_time = time.time()
-            ret_code = proc.poll()
-            while ((time.time() - start_time) <= timeout) and ret_code == None:
-                time.sleep(self._pollingInterval)
+        with tempfile.SpooledTemporaryFile() as procOut:
+            while retries < retryLimit:
+                proc = subprocess.Popen(finalArgs, stdout=procOut, stderr=subprocess.STDOUT)
+                start_time = time.time()
                 ret_code = proc.poll()
-            if ret_code == None:
-                proc.kill()
-                retries += 1
-                continue
-            return ret_code
+                while ((time.time() - start_time) <= timeout) and ret_code == None:
+                    time.sleep(self._pollingInterval)
+                    ret_code = proc.poll()
+                if ret_code == None:
+                    proc.kill()
+                    retries += 1
+                    continue
+                return ret_code
         raise DMError("Timeout exceeded for _checkCmd call after %d retries." % retries)
 
     def chmodDir(self, remoteDir, mask="777"):
