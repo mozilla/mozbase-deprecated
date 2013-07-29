@@ -226,5 +226,29 @@ class TestManifestparser(unittest.TestCase):
         names = [i['name'] for i in manifest.tests]
         self.assertFalse('test_0202_app_launch_apply_update_dirlocked.js' in names)
 
+    def test_verifyDirectory(self):
+
+        directory = os.path.join(here, 'verifyDirectory')
+
+        # correct manifest
+        manifest_path = os.path.join(directory, 'verifyDirectory.ini')
+        manifest = ManifestParser(manifests=(manifest_path,))
+        missing = manifest.verifyDirectory(directory, extensions=('.js',))
+        self.assertEqual(missing, (set(), set()))
+
+        # manifest is missing test_1.js
+        test_1 = os.path.join(directory, 'test_1.js')
+        manifest_path = os.path.join(directory, 'verifyDirectory_incomplete.ini')
+        manifest = ManifestParser(manifests=(manifest_path,))
+        missing = manifest.verifyDirectory(directory, extensions=('.js',))
+        self.assertEqual(missing, (set(), set([test_1])))
+
+        # filesystem is missing test_notappearinginthisfilm.js
+        missing_test = os.path.join(directory, 'test_notappearinginthisfilm.js')
+        manifest_path = os.path.join(directory, 'verifyDirectory_toocomplete.ini')
+        manifest = ManifestParser(manifests=(manifest_path,))
+        missing = manifest.verifyDirectory(directory, extensions=('.js',))
+        self.assertEqual(missing, (set([missing_test]), set()))
+
 if __name__ == '__main__':
     unittest.main()

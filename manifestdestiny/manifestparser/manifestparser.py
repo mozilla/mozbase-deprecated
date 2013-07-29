@@ -499,13 +499,6 @@ class ManifestParser(object):
         # return the tests
         return tests
 
-    def missing(self, tests=None):
-        """return list of tests that do not exist on the filesystem"""
-        if tests is None:
-            tests = self.tests
-        return [test for test in tests
-                if not os.path.exists(test['path'])]
-
     def manifests(self, tests=None):
         """
         return manifests in order in which they appear in the tests
@@ -521,7 +514,51 @@ class ManifestParser(object):
                 manifests.append(manifest)
         return manifests
 
-    ### methods for outputting from manifests
+    def paths(self):
+        return [i['path'] for i in self.tests]
+
+    ### methods for auditing
+
+    def missing(self, tests=None):
+        """return list of tests that do not exist on the filesystem"""
+        if tests is None:
+            tests = self.tests
+        return [test for test in tests
+                if not os.path.exists(test['path'])]
+
+    def verifyDirectory(self, directories, pattern=None, extensions=None):
+        """
+        checks what is on the filesystem vs what is in a manifest
+        returns a 2-tuple of sets:
+        (missing_from_filesystem, missing_from_manifest)
+        """
+
+        files = set([])
+        if isinstance(directories, basestring):
+            directories = [directories]
+
+        # get files in directories
+        for directory in directories:
+            for dirpath, dirnames, filenames in os.walk(directory, topdown=True):
+
+                # only add files that match a pattern
+                if pattern:
+                    filenames = [filename for filename in filenames
+                                 if fnmatch(filename, pattern)]
+
+                # only add files that have one of the extensions
+                if extensions:
+                    filenames = [filename for filename in filenames
+                                 if os.path.splitext(filename)[-1] in extensions]
+
+                files.update([os.path.join(dirpath, filename) for filename in filenames])
+
+        paths = set(self.paths())
+        missing_from_filesystem = paths.difference(files)
+        missing_from_manifest = files.difference(paths)
+        return (missing_from_filesystem, missing_from_manifest)
+
+    ### methods for output
 
     def write(self, fp=sys.stdout, rootdir=None,
               global_tags=None, global_kwargs=None,
