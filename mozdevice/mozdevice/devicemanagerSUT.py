@@ -230,7 +230,7 @@ class DeviceManagerSUT(DeviceManager):
 
                     # Get our response
                     try:
-                          # Wait up to a second for socket to become ready for reading...
+                        # Wait up to a second for socket to become ready for reading...
                         if select.select([self._sock], [], [], select_timeout)[0]:
                             temp = self._sock.recv(1024)
                             self._logger.debug("response: %s" % temp)
@@ -562,30 +562,23 @@ class DeviceManagerSUT(DeviceManager):
         # the class level if we wanted to refactor sendCMD().  For now they are
         # only used to pull files.
 
-        def uread(to_recv, error_msg, timeout=None):
+        def uread(to_recv, error_msg):
             """ unbuffered read """
-            timer = 0
-            select_timeout = 1
-            if not timeout:
-                timeout = self.default_timeout
-
             try:
-                if select.select([self._sock], [], [], select_timeout)[0]:
+                data = ""
+                if select.select([self._sock], [], [], self.default_timeout)[0]:
                     data = self._sock.recv(to_recv)
-                    timer = 0
-                timer += select_timeout
-                if timer > timeout:
-                    err('timeout in uread while retrieving file')
-
                 if not data:
+                    # timed out waiting for response or error response
                     err(error_msg)
+
                 return data
             except:
                 err(error_msg)
 
         def read_until_char(c, buf, error_msg):
             """ read until 'c' is found; buffer rest """
-            while not '\n' in buf:
+            while not c in buf:
                 data = uread(1024, error_msg)
                 buf += data
             return buf.partition(c)
