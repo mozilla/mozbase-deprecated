@@ -47,7 +47,6 @@ class AddonManager(object):
         if addons:
             if isinstance(addons, basestring):
                 addons = [addons]
-            self.installed_addons.extend(addons)
             for addon in addons:
                 self.install_from_path(addon)
         # install addon manifests
@@ -56,7 +55,6 @@ class AddonManager(object):
                 manifests = [manifests]
             for manifest in manifests:
                 self.install_from_manifest(manifest)
-            self.installed_manifests.extend(manifests)
 
     def install_from_manifest(self, filepath):
         """
@@ -82,6 +80,7 @@ class AddonManager(object):
                 query += 'search/' + addon['name'] + '/default/1'   # this query grabs information on the first addon returned from a search
             install_path = AddonManager.get_amo_install_path(query)
             self.install_from_path(install_path)
+        self.installed_manifests.append(filepath)
 
     @classmethod
     def get_amo_install_path(self, query):
@@ -242,6 +241,8 @@ class AddonManager(object):
             # remove the temporary directory, if any
             if tmpdir:
                 dir_util.remove_tree(tmpdir)
+
+            self.installed_addons.append(addon)
 
         # remove temporary file, if any
         if tmpfile:
