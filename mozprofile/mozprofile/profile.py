@@ -12,7 +12,9 @@ import time
 import tempfile
 import types
 import uuid
+
 from addons import AddonManager
+from mozfile import tree
 from permissions import Permissions
 from prefs import Preferences
 from shutil import copytree, rmtree
@@ -254,6 +256,80 @@ class Profile(object):
                 self.webapps.clean()
 
     __del__ = cleanup
+
+    ### methods for introspection
+
+    def summary(self, return_parts=False):
+        """
+        returns string summarizing profile information.
+        if return_parts is true, return the (Part_name, value) list
+        of tuples instead of the assembled string
+        """
+
+        parts = [('Path', self.profile)] # profile path
+
+        # directory tree
+        parts.append(('Files', '\n%s' % tree(self.profile)))
+
+        # preferences
+        for prefs_file in ('user.js', 'prefs.js'):
+            path = os.path.join(self.profile, prefs_file)
+            if os.path.exists(path):
+
+                # prefs that get their own section
+                # This is currently only 'network.proxy.autoconfig_url'
+                # but could be expanded to include others
+                section_prefs = ['network.proxy.autoconfig_url']
+                line_length = 80
+                line_length_buffer = 10 # buffer for 80 character display: length = 80 - len(key) - len(': ') - line_length_buffer
+                line_length_buffer += len(': ')
+                def format_value(key, value):
+                    if key not in section_prefs:
+                        return value
+                    max_length = line_length - len(key) - line_length_buffer
+                    if len(value) > max_length:
+                        value = '%s...' % value[:max_length]
+                    return value
+
+                prefs = Preferences.read_prefs(path)
+                if prefs:
+                    prefs = dict(prefs)
+                    parts.append((prefs_file,
+                    '\n%s' %('\n'.join(['%s: %s' % (key, format_value(key, prefs[key]))
+                                        for key in sorted(prefs.keys())
+                                        ]))))
+
+                    # Currently hardcorded to 'network.proxy.autoconfig_url'
+                    # but could be generalized, possibly with a generalized (simple)
+                    # JS-parser
+                    network_proxy_autoconfig = prefs.get('network.proxy.autoconfig_url')
+                    if network_proxy_autoconfig and network_proxy_autoconfig.strip():
+                        network_proxy_autoconfig = network_proxy_autoconfig.strip()
+                        lines = network_proxy_autoconfig.replace(';', ';\n').splitlines()
+                        lines = [line.strip() for line in lines]
+                        origins_string = 'var origins = ['
+                        origins_end = '];'
+                        if origins_string in lines[0]:
+                            start = lines[0].find(origins_string)
+                            end = lines[0].find(origins_end, start);
+                            splitline = [lines[0][:start],
+                                         lines[0][start:start+len(origins_string)-1],
+                                         ]
+                            splitline.extend(lines[0][start+len(origins_string):end].replace(',', ',\n').splitlines())
+                            splitline.append(lines[0][end:])
+                            lines[0:1] = [i.strip() for i in splitline]
+                        parts.append(('Network Proxy Autoconfig, %s' % (prefs_file),
+                                      '\n%s' % '\n'.join(lines)))
+
+        if return_parts:
+            return parts
+
+        retval = '%s\n' % ('\n\n'.join(['[%s]: %s' % (key, value)
+                                        for key, value in parts]))
+        return retval
+
+    __str__ = summary
+
 
 class FirefoxProfile(Profile):
     """Specialized Profile subclass for Firefox"""
