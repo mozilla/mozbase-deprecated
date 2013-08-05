@@ -350,7 +350,7 @@ class DeviceManager(object):
         """
         Executes shell command on device and returns exit code.
 
-        :param cmd: Command string to execute
+        :param cmd: Commandline list to execute
         :param outputfile: File to store output
         :param env: Environment to pass to exec command
         :param cwd: Directory to execute command from
@@ -362,6 +362,7 @@ class DeviceManager(object):
         """
         Executes shell command on device and returns output as a string.
 
+        :param cmd: Commandline list to execute
         :param env: Environment to pass to exec command
         :param cwd: Directory to execute command from
         :param timeout: specified in seconds, defaults to 'default_timeout'
