@@ -149,7 +149,9 @@ class DMCli(object):
                             help="Verbose output from DeviceManager",
                             default=False)
         parser.add_argument("--host", action="store",
-                            help="Device hostname (only if using TCP/IP)",
+                            help="Device hostname (only if using TCP/IP, " \
+                                "defaults to TEST_DEVICE environment " \
+                                "variable if present)",
                             default=os.environ.get('TEST_DEVICE'))
         parser.add_argument("-p", "--port", action="store",
                             type=int,
@@ -157,8 +159,9 @@ class DMCli(object):
                             "adb-over-tcp)", default=None)
         parser.add_argument("-m", "--dmtype", action="store",
                             help="DeviceManager type (adb or sut, defaults " \
-                                "to adb)", default=os.environ.get('DM_TRANS',
-                                                                  'adb'))
+                                "to DM_TRANS environment variable, if " \
+                                "present, or adb)",
+                            default=os.environ.get('DM_TRANS', 'adb'))
         parser.add_argument("-d", "--hwid", action="store",
                             help="HWID", default=None)
         parser.add_argument("--package-name", action="store",
