@@ -63,7 +63,7 @@ class MozLogger(_LoggerClass):
 
     def log_structured(self, action, params=None):
         """Logs a structured message object."""
-        if (params is None):
+        if params is None:
             params = {}
 
         level = params.get('_level', _default_level)
@@ -80,23 +80,36 @@ class MozLogger(_LoggerClass):
             if not isinstance(level, int):
                 level = _default_level
 
-        params['_namespace'] = self.name
         params['action'] = action
 
-        message = params.get('message', 'UNKNOWN')
+        # The can message be None. This is expected, and shouldn't cause
+        # unstructured formatters to fail.
+        message = params.get('_message')
+
         self.log(level, message, extra={'params': params})
 
 class JSONFormatter(Formatter):
     """Log formatter for emitting structured JSON entries."""
 
     def format(self, record):
-        params = getattr(record, 'params')
-        params['_time'] = int(round(record.created * 1000, 0))
+        # Default values determined by logger metadata
+        output = {
+            '_time': int(round(record.created * 1000, 0)),
+            '_namespace': record.name,
+            '_level': getLevelName(record.levelno),
+        }
 
-        if params.get('indent') is not None:
-            return json.dumps(params, indent=params['indent'])
+        # If this message was created by a call to log_structured,
+        # anything specified by the caller's params should act as
+        # an override.
+        output.update(getattr(record, 'params', {}))
 
-        return json.dumps(params)
+        if record.msg and output.get('_message') is None:
+            # For compatibility with callers using the printf like
+            # API exposed by python logging, call the default formatter.
+            output['_message'] = Formatter.format(self, record)
+
+        return json.dumps(output, indent=output.get('indent'))
 
 class MozFormatter(Formatter):
     """
@@ -143,7 +156,7 @@ def getLogger(name, handler=None):
     setLoggerClass(MozLogger)
 
     if name in Logger.manager.loggerDict:
-        if (handler):
+        if handler:
             raise ValueError('The handler parameter requires ' + \
                              'that a logger by this name does ' + \
                              'not already exist')

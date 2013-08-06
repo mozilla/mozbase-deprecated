@@ -72,39 +72,76 @@ class TestStructuredLogging(unittest.TestCase):
     def test_structured_output(self):
         self.logger.log_structured('test_message',
                                    {'_level': mozlog.INFO,
-                                    'message': 'message one'})
+                                    '_message': 'message one'})
         self.logger.log_structured('test_message',
                                    {'_level': mozlog.INFO,
-                                    'message': 'message two'})
+                                    '_message': 'message two'})
+        self.logger.log_structured('error_message',
+                                   {'_level': mozlog.ERROR,
+                                    'diagnostic': 'unexpected error'})
 
         message_one_expected = {'_namespace': 'test.Logger',
                                 '_level': 'INFO',
-                                'message': 'message one',
+                                '_message': 'message one',
                                 'action': 'test_message'}
         message_two_expected = {'_namespace': 'test.Logger',
                                 '_level': 'INFO',
-                                'message': 'message two',
+                                '_message': 'message two',
                                 'action': 'test_message'}
+        message_three_expected = {'_namespace': 'test.Logger',
+                                  '_level': 'ERROR',
+                                  'diagnostic': 'unexpected error',
+                                  'action': 'error_message'}
 
         message_one_actual = json.loads(self.handler.messages[0])
         message_two_actual = json.loads(self.handler.messages[1])
+        message_three_actual = json.loads(self.handler.messages[2])
 
         self.check_messages(message_one_expected, message_one_actual)
         self.check_messages(message_two_expected, message_two_actual)
+        self.check_messages(message_three_expected, message_three_actual)
+
+    def test_unstructured_conversion(self):
+        """ Tests that logging to a logger with a structured formatter
+        via the traditional logging interface works as expected. """
+        self.logger.info('%s %s %d', 'Message', 'number', 1)
+        self.logger.error('Message number 2')
+        self.logger.debug('Message with %s', 'some extras',
+                          extra={'params': {'action': 'mozlog_test_output',
+                                            'is_failure': False}})
+        message_one_expected = {'_namespace': 'test.Logger',
+                                '_level': 'INFO',
+                                '_message': 'Message number 1'}
+        message_two_expected = {'_namespace': 'test.Logger',
+                                '_level': 'ERROR',
+                                '_message': 'Message number 2'}
+        message_three_expected = {'_namespace': 'test.Logger',
+                                  '_level': 'DEBUG',
+                                  '_message': 'Message with some extras',
+                                  'action': 'mozlog_test_output',
+                                  'is_failure': False}
+
+        message_one_actual = json.loads(self.handler.messages[0])
+        message_two_actual = json.loads(self.handler.messages[1])
+        message_three_actual = json.loads(self.handler.messages[2])
+
+        self.check_messages(message_one_expected, message_one_actual)
+        self.check_messages(message_two_expected, message_two_actual)
+        self.check_messages(message_three_expected, message_three_actual)
 
     def message_callback(self):
         if len(self.handler.messages) == 3:
             message_one_expected = {'_namespace': 'test.Logger',
                                     '_level': 'DEBUG',
-                                    'message': 'socket message one',
+                                    '_message': 'socket message one',
                                     'action': 'test_message'}
             message_two_expected = {'_namespace': 'test.Logger',
                                     '_level': 'DEBUG',
-                                    'message': 'socket message two',
+                                    '_message': 'socket message two',
                                     'action': 'test_message'}
             message_three_expected = {'_namespace': 'test.Logger',
                                       '_level': 'DEBUG',
-                                      'message': 'socket message three',
+                                      '_message': 'socket message three',
                                       'action': 'test_message'}
 
             message_one_actual = json.loads(self.handler.messages[0])
@@ -124,21 +161,16 @@ class TestStructuredLogging(unittest.TestCase):
                                                   message_callback=self.message_callback,
                                                   timeout=0.5)
 
-        # The namespace fields of these messages will be overwritten.
-        message_string_one = json.dumps({'message': 'socket message one',
+        message_string_one = json.dumps({'_message': 'socket message one',
                                          'action': 'test_message',
-                                         '_level': 'DEBUG',
-                                         '_namespace': 'foo.logger'})
-
-        message_string_two = json.dumps({'message': 'socket message two',
+                                         '_level': 'DEBUG'})
+        message_string_two = json.dumps({'_message': 'socket message two',
                                          'action': 'test_message',
-                                         '_level': 'DEBUG',
-                                         '_namespace': 'foo.logger'})
+                                         '_level': 'DEBUG'})
 
-        message_string_three = json.dumps({'message': 'socket message three',
+        message_string_three = json.dumps({'_message': 'socket message three',
                                            'action': 'test_message',
-                                           '_level': 'DEBUG',
-                                           '_namespace': 'foo.logger'})
+                                           '_level': 'DEBUG'})
 
         message_string = message_string_one + '\n' + \
                          message_string_two + '\n' + \
