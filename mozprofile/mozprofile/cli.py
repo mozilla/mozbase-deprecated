@@ -103,6 +103,9 @@ def cli(args=sys.argv[1:]):
     # process the command line
     cli = MozProfileCLI(args, add_options)
 
+    if cli.args:
+        cli.parser.error("Program doesn't support positional arguments.")
+
     if cli.options.firefox_profile:
         cli.profile_class = FirefoxProfile
 
