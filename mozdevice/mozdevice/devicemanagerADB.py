@@ -71,12 +71,6 @@ class DeviceManagerADB(DeviceManager):
         # existence of an su binary
         self._checkForRoot()
 
-        # Can we use run-as? (not required)
-        try:
-            self._verifyRun()
-        except DMError:
-            pass
-
         # can we use zip to speed up some file operations? (currently not
         # required)
         try:
