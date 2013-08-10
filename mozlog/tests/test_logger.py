@@ -198,5 +198,45 @@ class TestStructuredLogging(unittest.TestCase):
 
         server_thread.join()
 
+class Loggable(mozlog.LoggingMixin):
+    """Trivial class inheriting from LoggingMixin"""
+    pass
+
+class TestLoggingMixin(unittest.TestCase):
+    """Tests basic use of LoggingMixin"""
+
+    def test_mixin(self):
+        loggable = Loggable()
+        self.assertTrue(not hasattr(loggable, "_logger"))
+        loggable.log(mozlog.INFO, "This will instantiate the logger")
+        self.assertTrue(hasattr(loggable, "_logger"))
+        self.assertEqual(loggable._logger.name, "test_logger.Loggable")
+
+        self.assertRaises(ValueError, loggable.set_logger,
+                          "not a logger")
+
+        logger = mozlog.MozLogger('test.mixin')
+        handler = ListHandler()
+        logger.addHandler(handler)
+        loggable.set_logger(logger)
+        self.assertTrue(isinstance(loggable._logger.handlers[0],
+                                   ListHandler))
+        self.assertEqual(loggable._logger.name, "test.mixin")
+
+        loggable.log(mozlog.WARN, 'message for "log" method')
+        loggable.info('message for "info" method')
+        loggable.error('message for "error" method')
+        loggable.log_structured('test_message',
+                                params={'_message': 'message for ' + \
+                                        '"log_structured" method'})
+
+        expected_messages = ['message for "log" method',
+                             'message for "info" method',
+                             'message for "error" method',
+                             'message for "log_structured" method']
+
+        actual_messages = loggable._logger.handlers[0].messages
+        self.assertEqual(expected_messages, actual_messages)
+
 if __name__ == '__main__':
     unittest.main()

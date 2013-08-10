@@ -8,3 +8,4 @@ It simply wraps Python's logging_ module and adds a few convenience methods for 
 
 from logger import *
 from loglistener import LogMessageServer
+from loggingmixin import LoggingMixin

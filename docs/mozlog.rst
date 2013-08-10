@@ -32,4 +32,16 @@ Log to a file::
     log.testKnownFail('We know the cause for this failure')
     mozlog.shutdown()
 
+Log from an existing object using the LoggingMixin::
+
+    import mozlog
+    class Loggable(mozlog.LoggingMixin):
+        """Trivial class inheriting from LoggingMixin"""
+        def say_hello(self):
+            self.info("hello")
+
+    loggable = Loggable()
+    loggable.say_hello()
+
+
 .. _logging: http://docs.python.org/library/logging.html
