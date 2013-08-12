@@ -361,6 +361,8 @@ class FirefoxProfile(Profile):
                    'extensions.update.notifyUser' : False,
                    # Enable test mode to run multiple tests in parallel
                    'focusmanager.testmode' : True,
+                   # Enable test mode to not raise an OS level dialog for location sharing
+                   'geo.provider.testing' : True,
                    # Suppress delay for main action in popup notifications
                    'security.notification_enable_delay' : 0,
                    # Suppress automatic safe mode after crashes
