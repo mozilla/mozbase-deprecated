@@ -6,6 +6,9 @@ applications (Firefox, Thunderbird, etc.). In addition to creating profiles,
 mozprofile can install addons_ and set preferences_ Mozprofile can be utilized
 from the command line or as an API.
 
+The preferred way of setting up profile data (addons, permissions, preferences
+etc) is by passing them to the profile_ constructor.
+
 Addons
 ------
 
@@ -45,8 +48,9 @@ Permissions
 .. automodule:: mozprofile.permissions
    :members:
 
-mozprofile also takes care of adding permissions to the profile.
-See here_.
+You can set permissions by creating a ``ServerLocations`` object that you pass
+to the ``Profile`` constructor. Hosts can be added to it with
+``add_host(host, port)``. ``port`` can be 0.
 
 Preferences
 -----------
@@ -56,8 +60,9 @@ Preferences
 
 Preferences can be set in several ways:
 
-- using the API: You can pass preferences in to the Profile class's
-  constructor: ``obj = FirefoxProfile(preferences=[("accessibility.typeaheadfind.flashBar", 0)])``
+- using the API: You can make a dictionary with the preferences and pass it to
+  the ``Profile`` constructor. You can also add more preferences with the
+  ``Profile.set_preferences`` method.
 - using a JSON blob file: ``mozprofile --preferences myprefs.json``
 - using a ``.ini`` file: ``mozprofile --preferences myprefs.ini``
 - via the command line: ``mozprofile --pref key:value --pref key:value [...]``

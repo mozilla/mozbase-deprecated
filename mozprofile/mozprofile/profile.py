@@ -27,20 +27,20 @@ except ImportError:
 
 class Profile(object):
     """Handles all operations regarding profile. Created new profiles, installs extensions,
-    sets preferences and handles cleanup."""
+    sets preferences and handles cleanup.
+
+    :param profile: Path to the profile
+    :param addons: String of one or list of addons to install
+    :param addon_manifests: Manifest for addons, see http://ahal.ca/blog/2011/bulk-installing-fx-addons/
+    :param apps: Dictionary or class of webapps to install
+    :param preferences: Dictionary or class of preferences
+    :param locations: ServerLocations object
+    :param proxy: setup a proxy
+    :param restore: If true remove all installed addons preferences when cleaning up
+    """
 
     def __init__(self, profile=None, addons=None, addon_manifests=None, apps=None,
                  preferences=None, locations=None, proxy=None, restore=True):
-        """
-        :param profile: Path to the profile
-        :param addons: String of one or list of addons to install
-        :param addon_manifests: Manifest for addons, see http://ahal.ca/blog/2011/bulk-installing-fx-addons/
-        :param apps: Dictionary or class of webapps to install
-        :param preferences: Dictionary or class of preferences
-        :param locations: locations to proxy
-        :param proxy: setup a proxy - dict of server-loc,server-port,ssl-port
-        :param restore: If true remove all installed addons preferences when cleaning up
-        """
 
         # if true, remove installed addons/prefs afterwards
         self.restore = restore
