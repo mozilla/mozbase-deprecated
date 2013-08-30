@@ -11,7 +11,7 @@ PACKAGE_VERSION = '0.14'
 assert sys.version_info[0] == 2
 
 deps = ["ManifestDestiny >= 0.5.4",
-        "mozfile >= 0.10"]
+        "mozfile >= 0.11"]
 # version-dependent dependencies
 try:
     import json
