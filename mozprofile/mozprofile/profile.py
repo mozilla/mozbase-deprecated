@@ -36,7 +36,7 @@ class Profile(object):
     :param preferences: Dictionary or class of preferences
     :param locations: ServerLocations object
     :param proxy: setup a proxy
-    :param restore: If true remove all installed addons preferences when cleaning up
+    :param restore: If true remove all added addons and preferences when cleaning up
     """
 
     def __init__(self, profile=None, addons=None, addon_manifests=None, apps=None,
@@ -88,7 +88,7 @@ class Profile(object):
         self.set_preferences(user_js)
 
         # handle addon installation
-        self.addon_manager = AddonManager(self.profile)
+        self.addon_manager = AddonManager(self.profile, restore=self.restore)
         self.addon_manager.install_addons(addons, addon_manifests)
 
         # handle webapps

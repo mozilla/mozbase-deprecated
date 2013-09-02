@@ -16,14 +16,17 @@ AMO_API_VERSION = "1.5"
 
 class AddonManager(object):
     """
-    Handles all operations regarding addons in a profile including: installing and cleaning addons
+    Handles all operations regarding addons in a profile including:
+    installing and cleaning addons
     """
 
-    def __init__(self, profile):
+    def __init__(self, profile, restore=True):
         """
         :param profile: the path to the profile for which we install addons
+        :param restore: whether to reset to the previous state on instance garbage collection
         """
         self.profile = profile
+        self.restore = restore
 
         # information needed for profile reset:
         # https://github.com/mozilla/mozbase/blob/270a857328b130860d1b1b512e23899557a3c8f7/mozprofile/mozprofile/profile.py#L93
@@ -31,7 +34,7 @@ class AddonManager(object):
         self.installed_manifests = []
 
         # addons that we've installed; needed for cleanup
-        self._addon_dirs = []
+        self._addons = []
 
         # backup dir for already existing addons
         self.backup_dir = None
@@ -72,7 +75,6 @@ class AddonManager(object):
 
             # No path specified, try to grab it off AMO
             locale = addon.get('amo_locale', 'en_US')
-
             query = 'https://services.addons.mozilla.org/' + locale + '/firefox/api/' + AMO_API_VERSION + '/'
             if 'amo_id' in addon:
                 query += 'addon/' + addon['amo_id']                 # this query grabs information on the addon base on its id
@@ -80,6 +82,7 @@ class AddonManager(object):
                 query += 'search/' + addon['name'] + '/default/1'   # this query grabs information on the first addon returned from a search
             install_path = AddonManager.get_amo_install_path(query)
             self.install_from_path(install_path)
+
         self.installed_manifests.append(filepath)
 
     @classmethod
@@ -112,7 +115,6 @@ class AddonManager(object):
              'unpack':  False }                # whether to unpack the addon
         """
 
-        # TODO: We don't use the unpack variable yet, but we should: bug 662683
         details = {
             'id': None,
             'unpack': False,
@@ -192,7 +194,7 @@ class AddonManager(object):
             if not os.path.isdir(path):
                 return
             addons = [os.path.join(path, x) for x in os.listdir(path) if
-                    os.path.isdir(os.path.join(path, x))]
+                      os.path.isdir(os.path.join(path, x))]
 
         # install each addon
         for addon in addons:
@@ -226,17 +228,18 @@ class AddonManager(object):
                 if not os.path.exists(extensions_path):
                     os.makedirs(extensions_path)
                 # save existing xpi file to restore later
-                if os.path.exists(addon_path + '.xpi'):
+                addon_path += '.xpi'
+                if os.path.exists(addon_path):
                     self.backup_dir = self.backup_dir or tempfile.mkdtemp()
-                    shutil.copy(addon_path + '.xpi', self.backup_dir)
-                shutil.copy(xpifile, addon_path + '.xpi')
+                    shutil.copy(addon_path, self.backup_dir)
+                shutil.copy(xpifile, addon_path)
             else:
                 # save existing dir to restore later
                 if os.path.exists(addon_path):
                     self.backup_dir = self.backup_dir or tempfile.mkdtemp()
                     dir_util.copy_tree(addon_path, self.backup_dir, preserve_symlinks=1)
                 dir_util.copy_tree(addon, addon_path, preserve_symlinks=1)
-                self._addon_dirs.append(addon_path)
+            self._addons.append(addon_path)
 
             # remove the temporary directory, if any
             if tmpdir:
@@ -250,9 +253,14 @@ class AddonManager(object):
 
     def clean_addons(self):
         """Cleans up addons in the profile."""
-        for addon in self._addon_dirs:
+
+        # remove addons installed by this instance
+        for addon in self._addons:
             if os.path.isdir(addon):
                 dir_util.remove_tree(addon)
+            elif os.path.isfile(addon):
+                os.remove(addon)
+
         # restore backups
         if self.backup_dir and os.path.isdir(self.backup_dir):
             extensions_path = os.path.join(self.profile, 'extensions', 'staged')
@@ -263,4 +271,9 @@ class AddonManager(object):
             if not os.listdir(self.backup_dir):
                 shutil.rmtree(self.backup_dir, ignore_errors=True)
 
-    __del__ = clean_addons
+        # reset instance variables to defaults via __init__
+        self.__init__(self.profile, restore=self.restore)
+
+    def __del__(self):
+        if self.restore:
+            self.clean_addons() # reset to pre-instance state

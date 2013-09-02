@@ -1,5 +1,9 @@
 #!/usr/bin/env python
 
+# This Source Code Form is subject to the terms of the Mozilla Public
+# License, v. 2.0. If a copy of the MPL was not distributed with this file,
+# You can obtain one at http://mozilla.org/MPL/2.0/.
+
 import addon_stubs
 import mozprofile
 import mozfile
@@ -80,6 +84,42 @@ class TestAddonsManager(unittest.TestCase):
                                 duplicate_profile.profile, 'extensions', 'staged'))]
         # New addons installed should be removed by clean_addons()
         self.assertEqual(installed_addons, addons_after_cleanup)
+
+    def test_noclean(self):
+        """test `restore=True/False` functionality"""
+
+        profile = tempfile.mkdtemp()
+        tmpdir = tempfile.mkdtemp()
+        try:
+
+            # empty initially
+            self.assertFalse(bool(os.listdir(profile)))
+
+            # make an addon
+            stub = addon_stubs.generate_addon(name='empty-0-1.xpi',
+                                              path=tmpdir)
+
+            # install it with a restore=True AddonManager
+            addons  = mozprofile.addons.AddonManager(profile, restore=True)
+            addons.install_from_path(stub)
+
+            # now its there
+            self.assertEqual(os.listdir(profile), ['extensions'])
+            extensions = os.path.join(profile, 'extensions', 'staged')
+            self.assertTrue(os.path.exists(extensions))
+            contents = os.listdir(extensions)
+            self.assertEqual(len(contents), 1)
+
+            # del addons; now its gone though the directory tree exists
+            del addons
+            self.assertEqual(os.listdir(profile), ['extensions'])
+            self.assertTrue(os.path.exists(extensions))
+            contents = os.listdir(extensions)
+            self.assertEqual(len(contents), 0)
+
+        finally:
+            mozfile.rmtree(tmpdir)
+            mozfile.rmtree(profile)
 
 
 if __name__ == '__main__':
