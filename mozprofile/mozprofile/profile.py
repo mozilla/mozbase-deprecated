@@ -175,7 +175,9 @@ class Profile(object):
         returns True if popped
         """
 
-        lines = file(os.path.join(self.profile, filename)).read().splitlines()
+        path = os.path.join(self.profile, filename)
+        with file(path) as f:
+            lines = f.read().splitlines()
         def last_index(_list, value):
             """
             returns the last index of an item;
@@ -199,9 +201,8 @@ class Profile(object):
 
         # write the prefs
         cleaned_prefs = '\n'.join(lines[:s] + lines[e+1:])
-        f = file(os.path.join(self.profile, 'user.js'), 'w')
-        f.write(cleaned_prefs)
-        f.close()
+        with file(path, 'w') as f:
+            f.write(cleaned_prefs)
         return True
 
     def clean_preferences(self):
