@@ -106,9 +106,12 @@ class LocalRunner(Runner):
                     if i != '-foreground']
         if len(_cmdargs) != len(self.cmdargs):
             # foreground should be last; see
-            # - https://bugzilla.mozilla.org/show_bug.cgi?id=625614
-            # - https://bugzilla.mozilla.org/show_bug.cgi?id=626826
+            # https://bugzilla.mozilla.org/show_bug.cgi?id=625614
             self.cmdargs = _cmdargs
+            self.cmdargs.append('-foreground')
+        if mozinfo.isMac and '-foreground' not in self.cmdargs:
+            # runner should specify '-foreground' on Mac; see
+            # https://bugzilla.mozilla.org/show_bug.cgi?id=916512
             self.cmdargs.append('-foreground')
 
         # process environment
