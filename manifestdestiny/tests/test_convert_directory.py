@@ -18,11 +18,12 @@ here = os.path.dirname(os.path.abspath(__file__))
 class TestDirectoryConversion(unittest.TestCase):
     """test conversion of a directory tree to a manifest structure"""
 
-    def create_stub(self):
+    def create_stub(self, directory=None):
         """stub out a directory with files in it"""
 
         files = ('foo', 'bar', 'fleem')
-        directory = tempfile.mkdtemp()
+        if directory is None:
+            directory = tempfile.mkdtemp()
         for i in files:
             file(os.path.join(directory, i), 'w').write(i)
         subdir = os.path.join(directory, 'subdir')
@@ -114,25 +115,6 @@ class TestDirectoryConversion(unittest.TestCase):
             raise
         finally:
             shutil.rmtree(stub)
-
-    def test_relpath(self):
-        """test convert `relative_to` functionality"""
-
-        oldcwd = os.getcwd()
-        stub = self.create_stub()
-        try:
-            # subdir with in-memory manifest
-            files = ['../bar', '../fleem', '../foo', 'subfile']
-            subdir = os.path.join(stub, 'subdir')
-            os.chdir(subdir)
-            parser = convert([stub], relative_to='.')
-            self.assertEqual([i['name'] for i in parser.tests],
-                             files)
-        except:
-            raise
-        finally:
-            shutil.rmtree(stub)
-            os.chdir(oldcwd)
 
     def test_update(self):
         """
