@@ -140,6 +140,16 @@ must start on a new line, inline comments are not supported.
 In the example above, the 'color' property will have the value 'red #
 not a valid comment'.
 
+Manifest Conditional Expressions
+````````````````````````````````
+The conditional expressions used in manifests are parsed using the *ExpressionParser* class.
+
+.. autoclass:: manifestparser.ExpressionParser
+
+Consumers of this module are expected to pass in a value dictionary
+for evaluating conditional expressions. A common pattern is to pass
+the dictionary from the :mod:`mozinfo` module.
+
 Data
 ````
 

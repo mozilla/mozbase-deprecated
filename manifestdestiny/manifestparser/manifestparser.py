@@ -138,13 +138,45 @@ for index, rank in enumerate(precedence):
         token.lbp = index # lbp = lowest left binding power
 
 class ParseError(Exception):
-    """errror parsing conditional expression"""
+    """error parsing conditional expression"""
 
 class ExpressionParser(object):
+    """
+    A parser for a simple expression language.
+
+    The expression language can be described as follows::
+
+        EXPRESSION ::= LITERAL | '(' EXPRESSION ')' | '!' EXPRESSION | EXPRESSION OP EXPRESSION
+        OP ::= '==' | '!=' | '&&' | '||'
+        LITERAL ::= BOOL | INT | IDENT | STRING
+        BOOL ::= 'true' | 'false'
+        INT ::= [0-9]+
+        IDENT ::= [a-zA-Z_]\w*
+        STRING ::= '"' [^\"] '"' | ''' [^\'] '''
+
+    At its core, expressions consist of booleans, integers, identifiers and.
+    strings. Booleans are one of *true* or *false*. Integers are a series
+    of digits. Identifiers are a series of English letters and underscores.
+    Strings are a pair of matching quote characters (single or double) with
+    zero or more characters inside.
+
+    Expressions can be combined with operators: the equals (==) and not
+    equals (!=) operators compare two expressions and produce a boolean. The
+    and (&&) and or (||) operators take two expressions and produce the logical
+    AND or OR value of them, respectively. An expression can also be prefixed
+    with the not (!) operator, which produces its logical negation.
+
+    Finally, any expression may be contained within parentheses for grouping.
+
+    Identifiers take their values from the mapping provided.
+    """
     def __init__(self, text, valuemapping, strict=False):
         """
-        Initialize the parser with input |text|, and |valuemapping| as
-        a dict mapping identifier names to values.
+        Initialize the parser
+        :param text: The expression to parse as a string.
+        :param valuemapping: A dict mapping identifier names to values.
+        :param strict: If true, referencing an identifier that was not
+                       provided in :valuemapping: will raise an error.
         """
         self.text = text
         self.valuemapping = valuemapping
@@ -168,6 +200,7 @@ class ExpressionParser(object):
         def not_(scanner, t): return not_op_token()
 
         scanner = re.Scanner([
+            # Note: keep these in sync with the class docstring above.
             (r"true|false", bool_),
             (r"[a-zA-Z_]\w*", identifier),
             (r"[0-9]+", integer),
@@ -236,9 +269,12 @@ class ExpressionParser(object):
 
 def parse(text, **values):
     """
-    Parse and evaluate a boolean expression in |text|. Use |values| to look
-    up the value of identifiers referenced in the expression. Returns the final
-    value of the expression. A ParseError will be raised if parsing fails.
+    Parse and evaluate a boolean expression.
+    :param text: The expression to parse, as a string.
+    :param values: A dict containing a name to value mapping for identifiers
+                   referenced in *text*.
+    :rtype: the final value of the expression.
+    :raises: :py:exc::ParseError: will be raised if parsing fails.
     """
     return ExpressionParser(text, values).parse()
 
