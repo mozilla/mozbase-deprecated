@@ -8,10 +8,7 @@ from logging import *
 # 'from logging import *'
 # see https://bugzilla.mozilla.org/show_bug.cgi?id=700415#c35
 from logging import getLoggerClass, addLevelName, setLoggerClass, shutdown, debug, info, basicConfig
-try:
-    import json
-except ImportError:
-    import simplejson as json
+import json
 
 _default_level = INFO
 _LoggerClass = getLoggerClass()

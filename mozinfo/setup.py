@@ -8,10 +8,6 @@ PACKAGE_VERSION = '0.6'
 
 # dependencies
 deps = ['mozfile >= 0.6']
-try:
-    import json
-except ImportError:
-    deps = ['simplejson']
 
 setup(name='mozinfo',
       version=PACKAGE_VERSION,

@@ -7,6 +7,7 @@ __all__ = ['Profile',
            'MetroFirefoxProfile',
            'ThunderbirdProfile']
 
+import json
 import os
 import time
 import tempfile
@@ -20,10 +21,6 @@ from prefs import Preferences
 from shutil import copytree, rmtree
 from webapps import WebappCollection
 
-try:
-    import json
-except ImportError:
-    import simplejson as json
 
 class Profile(object):
     """Handles all operations regarding profile. Created new profiles, installs extensions,

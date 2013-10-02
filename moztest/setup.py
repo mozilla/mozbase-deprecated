@@ -8,10 +8,6 @@ PACKAGE_VERSION = '0.3'
 
 # dependencies
 deps = ['mozinfo']
-try:
-    import json
-except ImportError:
-    deps.append('simplejson')
 
 setup(name='moztest',
       version=PACKAGE_VERSION,

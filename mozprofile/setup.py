@@ -14,10 +14,6 @@ deps = ["ManifestDestiny >= 0.5.4",
         "mozfile >= 0.11"]
 # version-dependent dependencies
 try:
-    import json
-except ImportError:
-    deps.append('simplejson')
-try:
     import sqlite3
 except ImportError:
     deps.append('pysqlite')
