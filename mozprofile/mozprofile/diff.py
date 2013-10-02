@@ -63,7 +63,7 @@ def diff_profiles(args=sys.argv[1:]):
         parser.error("Profile not found: %s" % (', '.join(missing)))
 
     # get the profile differences
-    diffs = diff(*([mozprofile.Profile(arg)
+    diffs = diff(*([profile.Profile(arg)
                     for arg in args]))
 
     # display them
