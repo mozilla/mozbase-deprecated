@@ -12,12 +12,6 @@ assert sys.version_info[0] == 2
 
 deps = ["ManifestDestiny >= 0.5.4",
         "mozfile >= 0.11"]
-# version-dependent dependencies
-try:
-    import sqlite3
-except ImportError:
-    deps.append('pysqlite')
-
 
 setup(name='mozprofile',
       version=PACKAGE_VERSION,
