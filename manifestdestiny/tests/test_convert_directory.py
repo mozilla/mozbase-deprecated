@@ -40,6 +40,7 @@ class TestDirectoryConversion(unittest.TestCase):
         # create a stub directory
         stub = self.create_stub()
         try:
+            stub = stub.replace(os.path.sep, "/")
             self.assertTrue(os.path.exists(stub) and os.path.isdir(stub))
 
             # Make a manifest for it

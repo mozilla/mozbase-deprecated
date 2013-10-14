@@ -1001,7 +1001,7 @@ class ManifestParser(object):
                              for filename in filenames]
 
             # write to manifest
-            print >> write, '\n'.join(['[%s]' % (filename)
+            print >> write, '\n'.join(['[%s]' % denormalize_path(filename)
                                                for filename in filenames])
 
 
