@@ -414,13 +414,25 @@ class ManifestParser(object):
     def _read(self, root, filename, defaults):
 
         # get directory of this file if not file-like object
-        here = None
         if isinstance(filename, string):
-            here = os.path.dirname(os.path.abspath(filename))
+            filename = os.path.abspath(filename)
+            fp = open(filename)
+            here = os.path.dirname(filename)
+        else:
+            fp = filename
+            filename = here = None
         defaults['here'] = here
 
+        # Rootdir is needed for relative path calculation. Precompute it for
+        # the microoptimization used below.
+        if self.rootdir is None:
+            rootdir = ""
+        else:
+            assert os.path.isabs(self.rootdir)
+            rootdir = self.rootdir + os.path.sep
+
         # read the configuration
-        sections = read_ini(fp=filename, variables=defaults, strict=self.strict)
+        sections = read_ini(fp=fp, variables=defaults, strict=self.strict)
 
         # get the tests
         for section, data in sections:
@@ -447,10 +459,9 @@ class ManifestParser(object):
             # otherwise an item
             test = data
             test['name'] = section
-            if isinstance(filename, string):
-                test['manifest'] = os.path.abspath(filename)
-            else:
-                test['manifest'] = None # file pointer
+
+            # Will be None if the manifest being read is a file-like object.
+            test['manifest'] = filename
 
             # determine the path
             path = test.get('path', section)
@@ -458,9 +469,24 @@ class ManifestParser(object):
             if '://' not in path: # don't futz with URLs
                 path = normalize_path(path)
                 if here and not os.path.isabs(path):
-                    path = os.path.join(here, path)
-                if self.rootdir is not None:
-                    _relpath = relpath(path, self.rootdir)
+                    path = os.path.normpath(os.path.join(here, path))
+
+                # Microoptimization, because relpath is quite expensive.
+                # We know that rootdir is an absolute path or empty. If path
+                # starts with rootdir, then path is also absolute and the tail
+                # of the path is the relative path (possibly non-normalized,
+                # when here is unknown).
+                # For this to work rootdir needs to be terminated with a path
+                # separator, so that references to sibling directories with
+                # a common prefix don't get misscomputed (e.g. /root and
+                # /rootbeer/file).
+                # When the rootdir is unknown, the relpath needs to be left
+                # unchanged. We use an empty string as rootdir in that case,
+                # which leaves relpath unchanged after slicing.
+                if path.startswith(rootdir):
+                    _relpath = path[len(rootdir):]
+                else:
+                    _relpath = relpath(path, rootdir)
 
             test['path'] = path
             test['relpath'] = _relpath

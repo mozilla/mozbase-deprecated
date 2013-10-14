@@ -132,6 +132,29 @@ class TestManifestParser(unittest.TestCase):
         self.assertEqual(manifest.tests[0]['path'],
                          os.path.join(here, 'fleem'))
 
+    def test_relative_path(self):
+        """
+        Relative test paths are correctly calculated.
+        """
+        relative_path = os.path.join(here, 'relative-path.ini')
+        manifest = ManifestParser(manifests=(relative_path,))
+        self.assertEqual(manifest.tests[0]['path'],
+                         os.path.join(os.path.dirname(here), 'fleem'))
+        self.assertEqual(manifest.tests[0]['relpath'],
+                         os.path.join('..', 'fleem'))
+        self.assertEqual(manifest.tests[1]['relpath'],
+                         os.path.join('..', 'testsSIBLING', 'example'))
+
+    def test_path_from_fd(self):
+        """
+        Test paths are left untouched when manifest is a file-like object.
+        """
+        fp = StringIO("[section]\npath=fleem")
+        manifest = ManifestParser(manifests=(fp,))
+        self.assertEqual(manifest.tests[0]['path'], 'fleem')
+        self.assertEqual(manifest.tests[0]['relpath'], 'fleem')
+        self.assertEqual(manifest.tests[0]['manifest'], None)
+
     def test_comments(self):
         """
         ensure comments work, see
