@@ -10,7 +10,7 @@ PACKAGE_VERSION = '5.24'
 
 desc = """Reliable start/stop/configuration of Mozilla Applications (Firefox, Thunderbird, etc.)"""
 
-deps = ['mozcrash >= 0.3',
+deps = ['mozcrash >= 0.9',
         'mozdevice >= 0.28',
         'mozinfo >= 0.4',
         'mozlog >= 1.3',
