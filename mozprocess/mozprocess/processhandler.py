@@ -566,6 +566,7 @@ falling back to not using job objects for managing child processes"""
         self._ignore_children = ignore_children
         self.keywordargs = kwargs
         self.outThread = None
+        self.read_buffer = ''
 
         if env is None:
             env = os.environ.copy()
@@ -696,12 +697,13 @@ falling back to not using job objects for managing child processes"""
             elif outputTimeout:
                 lineReadTimeout = outputTimeout
 
-            (line, self.didTimeout) = self.readWithTimeout(logsource, lineReadTimeout)
-            while line != "" and not self.didTimeout:
-                self.processOutputLine(line.rstrip())
+            (lines, self.didTimeout) = self.readWithTimeout(logsource, lineReadTimeout)
+            while lines != "" and not self.didTimeout:
+                for line in lines.splitlines():
+                    self.processOutputLine(line.rstrip())
                 if timeout:
                     lineReadTimeout = timeout - (datetime.now() - self.startTime).seconds
-                (line, self.didTimeout) = self.readWithTimeout(logsource, lineReadTimeout)
+                (lines, self.didTimeout) = self.readWithTimeout(logsource, lineReadTimeout)
 
             if self.didTimeout:
                 self.proc.kill()
@@ -777,15 +779,31 @@ falling back to not using job objects for managing child processes"""
     else:
         # Generic
         def _readWithTimeout(self, f, timeout):
-            try:
-                (r, w, e) = select.select([f], [], [], timeout)
-            except:
-                # return a blank line
-                return ('', True)
+            while True:
+                try:
+                    (r, w, e) = select.select([f], [], [], timeout)
+                except:
+                    # return a blank line
+                    return ('', True)
 
-            if len(r) == 0:
-                return ('', True)
-            return (f.readline(), False)
+                if len(r) == 0:
+                    return ('', True)
+
+                output = os.read(f.fileno(), 4096)
+                if not output:
+                    return (self.read_buffer, False)
+                self.read_buffer += output
+                if '\n' not in self.read_buffer:
+                    time.sleep(0.01)
+                    continue
+                tmp = self.read_buffer.split('\n')
+                lines, self.read_buffer = tmp[:-1], tmp[-1]
+                real_lines = [x for x in lines if x != '']
+                if not real_lines:
+                    time.sleep(0.01)
+                    continue
+                break
+            return ('\n'.join(lines), False)
 
     @property
     def pid(self):
