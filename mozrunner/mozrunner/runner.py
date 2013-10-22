@@ -19,6 +19,9 @@ def abstractmethod(method):
                               (repr(method), filename, line))
   return not_implemented
 
+class RunnerNotStartedError(Exception):
+    """Exception handler in case the runner is not started."""
+
 class Runner(object):
 
     def __init__(self, profile, clean_profile=True, process_class=None, kp_kwargs=None, env=None):
@@ -27,6 +30,7 @@ class Runner(object):
         self.kp_kwargs = kp_kwargs or {}
         self.process_class = process_class or ProcessHandler
         self.process_handler = None
+        self.returncode = None
         self.profile = profile
         self.log = mozlog.getLogger('MozRunner')
 
@@ -68,17 +72,18 @@ class Runner(object):
         Use is_running() to determine whether or not a timeout occured.
         Timeout is ignored if interactive was set to True.
         """
-        if self.process_handler is None:
-            return
+        if self.process_handler is not None:
+            if isinstance(self.process_handler, subprocess.Popen):
+                self.returncode = self.process_handler.wait()
+            else:
+                self.process_handler.wait(timeout)
+                self.returncode = self.process_handler.proc.poll()
+                if self.returncode is not None:
+                    self.process_handler = None
+        elif self.returncode is None:
+            raise RunnerNotStartedError("Wait called before runner started")
 
-        if isinstance(self.process_handler, subprocess.Popen):
-            return_code = self.process_handler.wait()
-        else:
-            self.process_handler.wait(timeout)
-            return_code = self.process_handler.proc.poll()
-            if return_code is not None:
-                self.process_handler = None
-        return return_code
+        return self.returncode
 
     def is_running(self):
         """
