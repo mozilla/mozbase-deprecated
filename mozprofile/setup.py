@@ -5,13 +5,13 @@
 import sys
 from setuptools import setup
 
-PACKAGE_VERSION = '0.15'
+PACKAGE_VERSION = '0.16'
 
 # we only support python 2 right now
 assert sys.version_info[0] == 2
 
 deps = ["ManifestDestiny >= 0.5.4",
-        "mozfile >= 0.11"]
+        "mozfile >= 0.12"]
 
 setup(name='mozprofile',
       version=PACKAGE_VERSION,
