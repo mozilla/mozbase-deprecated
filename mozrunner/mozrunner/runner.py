@@ -4,8 +4,10 @@
 # License, v. 2.0. If a copy of the MPL was not distributed with this file,
 # You can obtain one at http://mozilla.org/MPL/2.0/.
 import subprocess
+import traceback
 
 from mozprocess.processhandler import ProcessHandler
+import mozcrash
 import mozlog
 
 # we can replace this method with 'abc'
@@ -24,7 +26,8 @@ class RunnerNotStartedError(Exception):
 
 class Runner(object):
 
-    def __init__(self, profile, clean_profile=True, process_class=None, kp_kwargs=None, env=None):
+    def __init__(self, profile, clean_profile=True, process_class=None,
+                 kp_kwargs=None, env=None, symbols_path=None):
         self.clean_profile = clean_profile
         self.env = env or {}
         self.kp_kwargs = kp_kwargs or {}
@@ -33,6 +36,7 @@ class Runner(object):
         self.returncode = None
         self.profile = profile
         self.log = mozlog.getLogger('MozRunner')
+        self.symbols_path = symbols_path
 
     @abstractmethod
     def start(self, *args, **kwargs):
@@ -107,6 +111,16 @@ class Runner(object):
         """
         if getattr(self, 'profile', False):
             self.profile.reset()
+
+    def check_for_crashes(self, dump_directory, test_name=None):
+        crashed = False
+        try:
+            crashed = mozcrash.check_for_crashes(dump_directory,
+                                                 self.symbols_path,
+                                                 test_name=test_name)
+        except:
+            traceback.print_exc()
+        return crashed
 
     def cleanup(self):
         """
