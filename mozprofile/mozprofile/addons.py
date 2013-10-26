@@ -11,8 +11,10 @@ from distutils import dir_util
 from manifestparser import ManifestParser
 from xml.dom import minidom
 
+
 # Needed for the AMO's rest API - https://developer.mozilla.org/en/addons.mozilla.org_%28AMO%29_API_Developers%27_Guide/The_generic_AMO_API
 AMO_API_VERSION = "1.5"
+
 
 class AddonManager(object):
     """
@@ -38,6 +40,18 @@ class AddonManager(object):
 
         # backup dir for already existing addons
         self.backup_dir = None
+
+    def is_addon(self, addon_path):
+        """
+        Checks if the given path is a valid addon
+
+        :param addon_path: path to the add-on directory or XPI
+        """
+        try:
+            details = self.addon_details(addon_path)
+            return details.get('id') is not None
+        except:
+            return False
 
     def install_addons(self, addons=None, manifests=None):
         """
@@ -187,14 +201,16 @@ class AddonManager(object):
         else:
             tmpfile = None
 
-        # if the addon is a directory, install all addons in it
         addons = [path]
-        if not path.endswith('.xpi') and not os.path.exists(os.path.join(path, 'install.rdf')):
+
+        # if path is not an add-on, try to install all contained add-ons
+        if not self.is_addon(path):
             # If the path doesn't exist, then we don't really care, just return
             if not os.path.isdir(path):
                 return
             addons = [os.path.join(path, x) for x in os.listdir(path) if
-                      os.path.isdir(os.path.join(path, x))]
+                      self.is_addon(os.path.join(path, x))]
+            addons.sort()
 
         # install each addon
         for addon in addons:
