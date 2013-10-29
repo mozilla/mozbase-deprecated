@@ -18,6 +18,9 @@ import mozfile
 AMO_API_VERSION = "1.5"
 
 
+class AddonFormatError(Exception):
+    """Exception for not well-formed add-on manifest files"""
+
 class AddonManager(object):
     """
     Handles all operations regarding addons in a profile including:
@@ -161,29 +164,31 @@ class AddonManager(object):
             return ''.join(rc).strip()
 
         if zipfile.is_zipfile(addon_path):
-            compressed_file = zipfile.ZipFile(addon_path, 'r')
-            try:
-                parseable = compressed_file.read('install.rdf')
-                doc = minidom.parseString(parseable)
-            finally:
-                compressed_file.close()
+            with zipfile.ZipFile(addon_path, 'r') as compressed_file:
+                manifest = compressed_file.read('install.rdf')
         else:
-            doc = minidom.parse(os.path.join(addon_path, 'install.rdf'))
+            with open(os.path.join(addon_path, 'install.rdf'), 'r') as f:
+                manifest = f.read()
 
-        # Get the namespaces abbreviations
-        em = get_namespace_id(doc, "http://www.mozilla.org/2004/em-rdf#")
-        rdf = get_namespace_id(doc, "http://www.w3.org/1999/02/22-rdf-syntax-ns#")
+        try:
+            doc = minidom.parseString(manifest)
 
-        description = doc.getElementsByTagName(rdf + "Description").item(0)
-        for node in description.childNodes:
-            # Remove the namespace prefix from the tag for comparison
-            entry = node.nodeName.replace(em, "")
-            if entry in details.keys():
-                details.update({ entry: get_text(node) })
+            # Get the namespaces abbreviations
+            em = get_namespace_id(doc, 'http://www.mozilla.org/2004/em-rdf#')
+            rdf = get_namespace_id(doc, 'http://www.w3.org/1999/02/22-rdf-syntax-ns#')
 
-        # turn unpack into a true/false value
-        if isinstance(details['unpack'], basestring):
-            details['unpack'] = details['unpack'].lower() == 'true'
+            description = doc.getElementsByTagName(rdf + 'Description').item(0)
+            for node in description.childNodes:
+                # Remove the namespace prefix from the tag for comparison
+                entry = node.nodeName.replace(em, "")
+                if entry in details.keys():
+                    details.update({entry: get_text(node)})
+
+            # turn unpack into a true/false value
+            if isinstance(details['unpack'], basestring):
+                details['unpack'] = details['unpack'].lower() == 'true'
+        except Exception, e:
+            raise AddonFormatError(str(e))
 
         return details
 
@@ -290,4 +295,4 @@ class AddonManager(object):
 
     def __del__(self):
         if self.restore:
-            self.clean_addons() # reset to pre-instance state
+            self.clean_addons()  # reset to pre-instance state

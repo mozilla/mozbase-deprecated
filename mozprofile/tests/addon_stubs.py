@@ -18,7 +18,8 @@ stubs = {
     'test-addon-4@mozilla.org': 'test_addon_4.rdf',
     'test-addon-invalid-no-id@mozilla.org': 'test_addon_invalid_no_id.rdf',
     'test-addon-invalid-version@mozilla.org': 'test_addon_invalid_version.rdf',
-    'test-addon-invalid-no-manifest@mozilla.org': None,}
+    'test-addon-invalid-no-manifest@mozilla.org': None,
+    'test-addon-invalid-not-wellformed@mozilla.org': 'test_addon_invalid_not_wellformed.rdf'}
 
 
 def generate_addon(addon_id, path=None, name=None, xpi=True):

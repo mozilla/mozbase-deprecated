@@ -15,6 +15,7 @@ import mozprofile
 
 from addon_stubs import generate_addon, generate_manifest
 
+
 here = os.path.dirname(os.path.abspath(__file__))
 
 
@@ -119,6 +120,27 @@ class TestAddonsManager(unittest.TestCase):
 
         # Cleanup the temporary addon and manifest directories
         mozfile.rmtree(os.path.dirname(temp_manifest))
+
+    def test_addon_details(self):
+        # Generate installer stubs for a valid and invalid add-on manifest
+        valid_addon = generate_addon('test-addon-1@mozilla.org',
+                                     path=self.tmpdir)
+        invalid_addon = generate_addon('test-addon-invalid-not-wellformed@mozilla.org',
+                                       path=self.tmpdir)
+
+        # Check valid add-on
+        details = self.am.addon_details(valid_addon)
+        self.assertEqual(details['id'], 'test-addon-1@mozilla.org')
+        self.assertEqual(details['name'], 'Test Add-on 1')
+        self.assertEqual(details['unpack'], False)
+        self.assertEqual(details['version'], '0.1')
+
+        # Check invalid add-on
+        self.assertRaises(mozprofile.addons.AddonFormatError,
+                          self.am.addon_details, invalid_addon)
+
+        # Check invalid path
+        self.assertRaises(IOError, self.am.addon_details, '')
 
     @unittest.skip("Bug 900154")
     def test_clean_addons(self):
