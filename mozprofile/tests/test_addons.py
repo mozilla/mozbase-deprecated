@@ -4,12 +4,14 @@
 # License, v. 2.0. If a copy of the MPL was not distributed with this file,
 # You can obtain one at http://mozilla.org/MPL/2.0/.
 
-import mozprofile
-import mozfile
-import tempfile
 import os
+import tempfile
 import unittest
+
 from manifestparser import ManifestParser
+import mozfile
+import mozhttpd
+import mozprofile
 
 from addon_stubs import generate_addon, generate_manifest
 
@@ -57,22 +59,26 @@ class TestAddonsManager(unittest.TestCase):
                                      path=self.tmpdir,
                                      name='addon-4',
                                      xpi=False))
+        addons.sort()
 
         self.am.install_from_path(self.tmpdir)
 
-        # Bug 919368:
-        # am.installed_addons cannot be used because XPI files are getting
-        # copied to a temporary location first.
+        self.assertEqual(self.am.installed_addons, addons)
 
-        # Get ids for addons installed into the profile
-        addon_ids = [self.am.addon_details(x).get('id') for x in addons]
-        addon_ids.sort()
+    def test_install_from_path_url(self):
+        server = mozhttpd.MozHttpd(docroot=os.path.join(here, 'addons'))
+        server.start()
 
-        installed_addon_ids = [self.am.addon_details(x).get('id') for x in
-                                   self.am._addons]
-        installed_addon_ids.sort()
+        addon = server.get_url() + 'empty.xpi'
+        self.am.install_from_path(addon)
 
-        self.assertEqual(addon_ids, installed_addon_ids)
+        # bug 932337
+        # We currently store downloaded add-ons with a tmp filename.
+        # So we cannot successfully do real comparisons
+        self.assertEqual(self.am.installed_addons, self.am.downloaded_addons)
+
+        for addon in self.am.downloaded_addons:
+            self.assertTrue(os.path.isfile(addon))
 
     def test_install_from_path_invalid_addons(self):
         # Generate installer stubs for all possible types of addons
@@ -138,6 +144,9 @@ class TestAddonsManager(unittest.TestCase):
     def test_noclean(self):
         """test `restore=True/False` functionality"""
 
+        server = mozhttpd.MozHttpd(docroot=os.path.join(here, 'addons'))
+        server.start()
+
         profile = tempfile.mkdtemp()
         tmpdir = tempfile.mkdtemp()
 
@@ -146,25 +155,33 @@ class TestAddonsManager(unittest.TestCase):
             self.assertFalse(bool(os.listdir(profile)))
 
             # make an addon
-            stub = generate_addon('test-addon-1@mozilla.org',
-                                              path=tmpdir)
+            addons = []
+            addons.append(generate_addon('test-addon-1@mozilla.org',
+                                         path=tmpdir))
+            addons.append(server.get_url() + 'empty.xpi')
 
             # install it with a restore=True AddonManager
-            addons  = mozprofile.addons.AddonManager(profile, restore=True)
-            addons.install_from_path(stub)
+            am = mozprofile.addons.AddonManager(profile, restore=True)
+
+            for addon in addons:
+                am.install_from_path(addon)
 
             # now its there
             self.assertEqual(os.listdir(profile), ['extensions'])
             staging_folder = os.path.join(profile, 'extensions', 'staged')
             self.assertTrue(os.path.exists(staging_folder))
-            self.assertEqual(os.listdir(staging_folder),
-                             [os.path.basename(stub)])
+            self.assertEqual(len(os.listdir(staging_folder)), 2)
 
             # del addons; now its gone though the directory tree exists
-            del addons
+            downloaded_addons = am.downloaded_addons
+            del am
+
             self.assertEqual(os.listdir(profile), ['extensions'])
             self.assertTrue(os.path.exists(staging_folder))
             self.assertEqual(os.listdir(staging_folder), [])
+
+            for addon in downloaded_addons:
+                self.assertFalse(os.path.isfile(addon))
 
         finally:
             mozfile.rmtree(tmpdir)

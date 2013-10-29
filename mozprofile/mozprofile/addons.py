@@ -2,14 +2,16 @@
 # License, v. 2.0. If a copy of the MPL was not distributed with this file,
 # You can obtain one at http://mozilla.org/MPL/2.0/.
 
+from distutils import dir_util
 import os
 import shutil
 import tempfile
 import urllib2
 import zipfile
-from distutils import dir_util
-from manifestparser import ManifestParser
 from xml.dom import minidom
+
+from manifestparser import ManifestParser
+import mozfile
 
 
 # Needed for the AMO's rest API - https://developer.mozilla.org/en/addons.mozilla.org_%28AMO%29_API_Developers%27_Guide/The_generic_AMO_API
@@ -37,6 +39,9 @@ class AddonManager(object):
 
         # addons that we've installed; needed for cleanup
         self._addons = []
+
+        # addons we have downloaded and which have to be removed from the file system
+        self.downloaded_addons = []
 
         # backup dir for already existing addons
         self.backup_dir = None
@@ -190,16 +195,15 @@ class AddonManager(object):
         :param unpack: whether to unpack unless specified otherwise in the install.rdf
         """
 
-        # if the addon is a url, download it
+        # if the addon is a URL, download it
         # note that this won't work with protocols urllib2 doesn't support
-        if '://' in path:
+        if mozfile.is_url(path):
             response = urllib2.urlopen(path)
             fd, path = tempfile.mkstemp(suffix='.xpi')
             os.write(fd, response.read())
             os.close(fd)
-            tmpfile = path
-        else:
-            tmpfile = None
+
+            self.downloaded_addons.append(path)
 
         addons = [path]
 
@@ -214,58 +218,48 @@ class AddonManager(object):
 
         # install each addon
         for addon in addons:
-            tmpdir = None
-            xpifile = None
-            if addon.endswith('.xpi'):
-                tmpdir = tempfile.mkdtemp(suffix = '.' + os.path.split(addon)[-1])
-                compressed_file = zipfile.ZipFile(addon, 'r')
-                for name in compressed_file.namelist():
-                    if name.endswith('/'):
-                        os.makedirs(os.path.join(tmpdir, name))
-                    else:
-                        if not os.path.isdir(os.path.dirname(os.path.join(tmpdir, name))):
-                            os.makedirs(os.path.dirname(os.path.join(tmpdir, name)))
-                        data = compressed_file.read(name)
-                        f = open(os.path.join(tmpdir, name), 'wb')
-                        f.write(data)
-                        f.close()
-                xpifile = addon
-                addon = tmpdir
-
             # determine the addon id
-            addon_details = AddonManager.addon_details(addon)
+            addon_details = self.addon_details(addon)
             addon_id = addon_details.get('id')
             assert addon_id, 'The addon id could not be found: %s' % addon
+
+            # if the add-on has to be unpacked force it now
+            # note: we might want to let Firefox do it in case of addon details
+            orig_path = None
+            if unpack or addon_details['unpack']:
+                orig_path = addon
+                addon = tempfile.mkdtemp()
+                mozfile.extract(orig_path, addon)
 
             # copy the addon to the profile
             extensions_path = os.path.join(self.profile, 'extensions', 'staged')
             addon_path = os.path.join(extensions_path, addon_id)
-            if not unpack and not addon_details['unpack'] and xpifile:
-                if not os.path.exists(extensions_path):
-                    os.makedirs(extensions_path)
+
+            if os.path.isfile(addon):
                 # save existing xpi file to restore later
                 addon_path += '.xpi'
                 if os.path.exists(addon_path):
                     self.backup_dir = self.backup_dir or tempfile.mkdtemp()
                     shutil.copy(addon_path, self.backup_dir)
-                shutil.copy(xpifile, addon_path)
+
+                if not os.path.exists(extensions_path):
+                    os.makedirs(extensions_path)
+                shutil.copy(addon, addon_path)
             else:
                 # save existing dir to restore later
                 if os.path.exists(addon_path):
                     self.backup_dir = self.backup_dir or tempfile.mkdtemp()
                     dir_util.copy_tree(addon_path, self.backup_dir, preserve_symlinks=1)
+
                 dir_util.copy_tree(addon, addon_path, preserve_symlinks=1)
+
+            # if we had to extract the addon, remove the temporary directory
+            if orig_path:
+                dir_util.remove_tree(addon)
+                addon = orig_path
+
             self._addons.append(addon_path)
-
-            # remove the temporary directory, if any
-            if tmpdir:
-                dir_util.remove_tree(tmpdir)
-
             self.installed_addons.append(addon)
-
-        # remove temporary file, if any
-        if tmpfile:
-            os.remove(tmpfile)
 
     def clean_addons(self):
         """Cleans up addons in the profile."""
@@ -276,6 +270,10 @@ class AddonManager(object):
                 dir_util.remove_tree(addon)
             elif os.path.isfile(addon):
                 os.remove(addon)
+
+        # remove downloaded add-ons
+        for addon in self.downloaded_addons:
+            os.remove(addon)
 
         # restore backups
         if self.backup_dir and os.path.isdir(self.backup_dir):
