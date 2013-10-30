@@ -791,7 +791,9 @@ falling back to not using job objects for managing child processes"""
 
                 output = os.read(f.fileno(), 4096)
                 if not output:
-                    return (self.read_buffer, False)
+                    output = self.read_buffer
+                    self.read_buffer = ''
+                    return (output, False)
                 self.read_buffer += output
                 if '\n' not in self.read_buffer:
                     time.sleep(0.01)
