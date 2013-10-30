@@ -262,8 +262,9 @@ class AddonManager(object):
             addon_path = os.path.join(extensions_path, addon_id)
 
             if os.path.isfile(addon):
-                # save existing xpi file to restore later
                 addon_path += '.xpi'
+
+                # save existing xpi file to restore later
                 if os.path.exists(addon_path):
                     self.backup_dir = self.backup_dir or tempfile.mkdtemp()
                     shutil.copy(addon_path, self.backup_dir)
@@ -275,7 +276,9 @@ class AddonManager(object):
                 # save existing dir to restore later
                 if os.path.exists(addon_path):
                     self.backup_dir = self.backup_dir or tempfile.mkdtemp()
-                    dir_util.copy_tree(addon_path, self.backup_dir, preserve_symlinks=1)
+                    dest = os.path.join(self.backup_dir,
+                                        os.path.basename(addon_path))
+                    dir_util.copy_tree(addon_path, dest, preserve_symlinks=1)
 
                 dir_util.copy_tree(addon, addon_path, preserve_symlinks=1)
 

@@ -25,11 +25,21 @@ class TestAddonsManager(unittest.TestCase):
 
     def setUp(self):
         self.profile = mozprofile.profile.Profile()
-        self.am = mozprofile.addons.AddonManager(profile=self.profile.profile)
+        self.am = self.profile.addon_manager
+
+        self.profile_path = self.profile.profile
         self.tmpdir = tempfile.mkdtemp()
 
     def tearDown(self):
         mozfile.rmtree(self.tmpdir)
+
+        self.am = None
+        self.profile = None
+
+        # Bug 934484
+        # Sometimes the profile folder gets recreated at the end and will be left
+        # behind. So we should ensure that we clean it up correctly.
+        mozfile.rmtree(self.profile_path)
 
     def test_install_from_path_xpi(self):
         addons_to_install = []
@@ -81,6 +91,24 @@ class TestAddonsManager(unittest.TestCase):
 
         for addon in self.am.downloaded_addons:
             self.assertTrue(os.path.isfile(addon))
+
+    def test_install_from_path_backup(self):
+        # Generate installer stubs for all possible types of addons
+        addons = []
+        addons.append(generate_addon('test-addon-1@mozilla.org',
+                                     path=self.tmpdir,
+                                     xpi=False))
+        addons.append(generate_addon('test-addon-1@mozilla.org',
+                                     path=self.tmpdir,
+                                     xpi=False,
+                                     name='test-addon-1-dupe@mozilla.org'))
+        addons.sort()
+
+        self.am.install_from_path(self.tmpdir)
+
+        self.assertIsNotNone(self.am.backup_dir)
+        self.assertEqual(os.listdir(self.am.backup_dir),
+                         ['test-addon-1@mozilla.org'])
 
     def test_install_from_path_invalid_addons(self):
         # Generate installer stubs for all possible types of addons

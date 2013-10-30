@@ -243,6 +243,7 @@ class Profile(object):
 
     def cleanup(self):
         """Cleanup operations for the profile."""
+
         if self.restore:
             if self.create_new:
                 if os.path.exists(self.profile):
