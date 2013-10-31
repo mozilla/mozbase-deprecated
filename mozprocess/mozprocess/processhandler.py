@@ -701,9 +701,13 @@ falling back to not using job objects for managing child processes"""
                 lineReadTimeout = outputTimeout
 
             (lines, self.didTimeout) = self.readWithTimeout(logsource, lineReadTimeout)
-            while lines != "" and not self.didTimeout:
+            while lines != "":
                 for line in lines.splitlines():
                     self.processOutputLine(line.rstrip())
+
+                if self.didTimeout:
+                    break
+
                 if timeout:
                     lineReadTimeout = timeout - (datetime.now() - self.startTime).seconds
                 (lines, self.didTimeout) = self.readWithTimeout(logsource, lineReadTimeout)
