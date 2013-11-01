@@ -36,7 +36,7 @@ class ProcessHandlerMixin(object):
     :param cwd: working directory for command (defaults to None).
     :param env: is the environment to use for the process (defaults to os.environ).
     :param ignore_children: causes system to ignore child processes when True, defaults to False (which tracks child processes).
-    :param kill_on_timeout: when True, the process will be killed when a timeout is reached. When False, the caller is responsible for killing the process. (Defaults to True.)
+    :param kill_on_timeout: when True, the process will be killed when a timeout is reached. When False, the caller is responsible for killing the process. Failure to do so could cause a call to wait() to hang indefinitely. (Defaults to True.)
     :param processOutputLine: function to be called for each line of output produced by the process (defaults to None).
     :param onTimeout: function to be called when the process times out.
     :param onFinish: function to be called when the process terminates normally without timing out.
@@ -746,8 +746,6 @@ falling back to not using job objects for managing child processes"""
                 count += 1
                 if timeout and count > timeout:
                     return None
-        if self.didTimeout and not self._kill_on_timeout:
-            return None
 
         return self.proc.wait()
 
