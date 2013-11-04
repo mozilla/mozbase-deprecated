@@ -21,6 +21,7 @@ AMO_API_VERSION = "1.5"
 class AddonFormatError(Exception):
     """Exception for not well-formed add-on manifest files"""
 
+
 class AddonManager(object):
     """
     Handles all operations regarding addons in a profile including:
@@ -48,6 +49,26 @@ class AddonManager(object):
 
         # backup dir for already existing addons
         self.backup_dir = None
+
+    def get_addon_path(self, addon_id):
+        """Returns the path to the installed add-on
+
+        :param addon_id: id of the add-on to retrieve the path from
+        """
+        # By default we should expect add-ons being located under the
+        # extensions folder. Only if the application hasn't been run and
+        # installed the add-ons yet, it will be located under 'staged'.
+        # Also add-ons could have been unpacked by the application.
+        extensions_path = os.path.join(self.profile, 'extensions')
+        paths = [os.path.join(extensions_path, addon_id),
+                 os.path.join(extensions_path, addon_id + '.xpi'),
+                 os.path.join(extensions_path, 'staged', addon_id),
+                 os.path.join(extensions_path, 'staged', addon_id + '.xpi')]
+        for path in paths:
+            if os.path.exists(path):
+                return path
+
+        raise IOError('Add-on not found: %s' % addon_id)
 
     def is_addon(self, addon_path):
         """
@@ -263,7 +284,7 @@ class AddonManager(object):
                 dir_util.remove_tree(addon)
                 addon = orig_path
 
-            self._addons.append(addon_path)
+            self._addons.append(addon_id)
             self.installed_addons.append(addon)
 
     def clean_addons(self):
@@ -271,10 +292,13 @@ class AddonManager(object):
 
         # remove addons installed by this instance
         for addon in self._addons:
-            if os.path.isdir(addon):
-                dir_util.remove_tree(addon)
-            elif os.path.isfile(addon):
-                os.remove(addon)
+            # Bug 934484
+            # Cleaning up add-ons will fail because add-ons have already been
+            # removed by Profile.cleanup(). So ignore failures for now.
+            try:
+                self.remove_addon(addon)
+            except IOError, e:
+                pass
 
         # remove downloaded add-ons
         for addon in self.downloaded_addons:
@@ -296,3 +320,14 @@ class AddonManager(object):
     def __del__(self):
         if self.restore:
             self.clean_addons()  # reset to pre-instance state
+
+    def remove_addon(self, addon_id):
+        """Remove the add-on as specified by the id
+
+        :param addon_id: id of the add-on to be removed
+        """
+        path = self.get_addon_path(addon_id)
+        if os.path.isdir(path):
+            dir_util.remove_tree(path)
+        elif os.path.isfile(path):
+            os.remove(path)

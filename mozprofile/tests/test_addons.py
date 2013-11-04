@@ -5,6 +5,7 @@
 # You can obtain one at http://mozilla.org/MPL/2.0/.
 
 import os
+import shutil
 import tempfile
 import unittest
 
@@ -208,6 +209,28 @@ class TestAddonsManager(unittest.TestCase):
         finally:
             mozfile.rmtree(tmpdir)
             mozfile.rmtree(profile)
+
+    def test_remove_addon(self):
+        addons = []
+        addons.append(generate_addon('test-addon-1@mozilla.org',
+                                     path=self.tmpdir))
+        addons.append(generate_addon('test-addon-2@mozilla.org',
+                                     path=self.tmpdir))
+
+        self.am.install_from_path(self.tmpdir)
+
+        extensions_path = os.path.join(self.am.profile, 'extensions')
+        staging_path = os.path.join(extensions_path, 'staged')
+
+        # Fake a run by virtually installing one of the staged add-ons
+        shutil.move(os.path.join(staging_path, 'test-addon-1@mozilla.org.xpi'),
+                    extensions_path)
+
+        for addon in self.am._addons:
+            self.am.remove_addon(addon)
+
+        self.assertEqual(os.listdir(staging_path), [])
+        self.assertEqual(os.listdir(extensions_path), ['staged'])
 
 
 if __name__ == '__main__':
