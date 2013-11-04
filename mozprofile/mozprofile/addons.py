@@ -50,6 +50,36 @@ class AddonManager(object):
         # backup dir for already existing addons
         self.backup_dir = None
 
+    @classmethod
+    def download(self, url, target_folder=None):
+        """
+        Downloads an add-on from the specified URL to the target folder
+
+        :param url: URL of the add-on (XPI file)
+        :param target_folder: Folder to store the XPI file in
+
+        """
+        response = urllib2.urlopen(url)
+        fd, path = tempfile.mkstemp(suffix='.xpi')
+        os.write(fd, response.read())
+        os.close(fd)
+
+        if not self.is_addon(path):
+            os.remove(path)
+            raise AddonFormatError('Not a valid add-on: %s' % url)
+
+        # Give the downloaded file a better name by using the add-on id
+        details = self.addon_details(path)
+        new_path = path.replace('.xpi', '_%s.xpi' % details.get('id'))
+
+        # Move the add-on to the target folder if requested
+        if target_folder:
+            new_path = os.path.join(target_folder, os.path.basename(new_path))
+
+        os.rename(path, new_path)
+
+        return new_path
+
     def get_addon_path(self, addon_id):
         """Returns the path to the installed add-on
 
@@ -70,6 +100,7 @@ class AddonManager(object):
 
         raise IOError('Add-on not found: %s' % addon_id)
 
+    @classmethod
     def is_addon(self, addon_path):
         """
         Checks if the given path is a valid addon
@@ -225,11 +256,7 @@ class AddonManager(object):
         # if the addon is a URL, download it
         # note that this won't work with protocols urllib2 doesn't support
         if mozfile.is_url(path):
-            response = urllib2.urlopen(path)
-            fd, path = tempfile.mkstemp(suffix='.xpi')
-            os.write(fd, response.read())
-            os.close(fd)
-
+            path = self.download(path)
             self.downloaded_addons.append(path)
 
         addons = [path]

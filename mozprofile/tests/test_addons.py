@@ -8,6 +8,7 @@ import os
 import shutil
 import tempfile
 import unittest
+import urllib2
 
 from manifestparser import ManifestParser
 import mozfile
@@ -66,6 +67,55 @@ class TestAddonsManager(unittest.TestCase):
         self.assertIn(addon_folder, self.am.installed_addons)
         self.assertIn(addon_xpi, self.am.installed_addons)
         self.am.clean_addons()
+
+    def test_download(self):
+        server = mozhttpd.MozHttpd(docroot=os.path.join(here, 'addons'))
+        server.start()
+
+        # Download a valid add-on without a class instance to the general
+        # tmp folder and clean-up
+        try:
+            addon = server.get_url() + 'empty.xpi'
+            xpi_file = mozprofile.addons.AddonManager.download(addon)
+            self.assertTrue(os.path.isfile(xpi_file))
+            self.assertIn('test-empty@quality.mozilla.org.xpi',
+                          os.path.basename(xpi_file))
+            self.assertNotIn(self.tmpdir, os.path.dirname(xpi_file))
+        finally:
+            # Given that the file is stored outside of the created tmp dir
+            # we have to ensure to explicitely remove it
+            if os.path.isfile(xpi_file):
+                os.remove(xpi_file)
+
+        # Download an valid add-on to a special folder
+        addon = server.get_url() + 'empty.xpi'
+        xpi_file = self.am.download(addon, self.tmpdir)
+        self.assertTrue(os.path.isfile(xpi_file))
+        self.assertIn('test-empty@quality.mozilla.org.xpi',
+                      os.path.basename(xpi_file))
+        self.assertIn(self.tmpdir, os.path.dirname(xpi_file))
+        self.assertEqual(self.am.downloaded_addons, [])
+        os.remove(xpi_file)
+
+        # Download an invalid add-on to a special folder
+        addon = server.get_url() + 'invalid.xpi'
+        self.assertRaises(mozprofile.addons.AddonFormatError,
+                          self.am.download, addon, self.tmpdir)
+        self.assertEqual(os.listdir(self.tmpdir), [])
+
+        # Download from an invalid URL
+        addon = server.get_url() + 'not_existent.xpi'
+        self.assertRaises(urllib2.HTTPError,
+                          self.am.download, addon, self.tmpdir)
+        self.assertEqual(os.listdir(self.tmpdir), [])
+
+        # Download from an invalid URL
+        addon = 'not_existent.xpi'
+        self.assertRaises(ValueError,
+                          self.am.download, addon, self.tmpdir)
+        self.assertEqual(os.listdir(self.tmpdir), [])
+
+        server.stop()
 
     def test_install_from_path_xpi(self):
         addons_to_install = []
@@ -135,13 +185,12 @@ class TestAddonsManager(unittest.TestCase):
         addon = server.get_url() + 'empty.xpi'
         self.am.install_from_path(addon)
 
-        # bug 932337
-        # We currently store downloaded add-ons with a tmp filename.
-        # So we cannot successfully do real comparisons
-        self.assertEqual(self.am.installed_addons, self.am.downloaded_addons)
+        server.stop()
 
-        for addon in self.am.downloaded_addons:
-            self.assertTrue(os.path.isfile(addon))
+        self.assertEqual(len(self.am.downloaded_addons), 1)
+        self.assertTrue(os.path.isfile(self.am.downloaded_addons[0]))
+        self.assertIn('test-empty@quality.mozilla.org.xpi',
+                      os.path.basename(self.am.downloaded_addons[0]))
 
     def test_install_from_path_backup(self):
         # Generate installer stubs for all possible types of addons
