@@ -12,6 +12,7 @@ import tempfile
 import urlparse
 import urllib2
 import zipfile
+import time
 
 __all__ = ['extract_tarball',
            'extract_zip',
@@ -23,6 +24,10 @@ __all__ = ['extract_tarball',
            'NamedTemporaryFile',
            'TemporaryDirectory']
 
+try:
+    WindowsError
+except NameError:
+    WindowsError = None # so we can unconditionally catch it later...
 
 ### utilities for extracting archives
 
@@ -109,6 +114,27 @@ def extract(src, dest=None):
 
     return top_level_files
 
+### utility for broken windows.
+
+def _call_with_windows_retry(func, filename, num_retries=5, retry_delay=0.5):
+    """
+    It's possible to see spurious errors on Windows due to various things
+    keeping a handle to the directory open (explorer, virus scanners, etc)
+    So we try a few times if it fails with a known error.
+    """
+    retry_count = 0
+    while True:
+        try:
+            func(filename)
+            break
+        except WindowsError as e:
+            # Error 145 == "the directory is not empty"
+            # Error 32 == "The process cannot access the file because it is being used by another process"
+            if retry_count == num_retries or e.winerror not in [32, 145]:
+                raise
+            retry_count += 1
+            print "Retrying removal of", filename, "as Windows thinks it is in use"
+            time.sleep(retry_delay)
 
 ### utilities for directory trees
 
@@ -157,9 +183,9 @@ def rmtree(dir):
         else:
             if os.path.isfile(full_name):
                 os.chmod(full_name, 0700)
-            os.remove(full_name)
-    os.rmdir(dir)
+            _call_with_windows_retry(os.remove, full_name)
 
+    _call_with_windows_retry(os.rmdir, dir)
 
 def depth(directory):
     """returns the integer depth of a directory or path relative to '/' """
