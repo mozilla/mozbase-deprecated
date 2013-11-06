@@ -77,6 +77,31 @@ class TestAddonsManager(unittest.TestCase):
 
         self.assertEqual(self.am.installed_addons, addons)
 
+    def test_install_from_path_unpack(self):
+        # Generate installer stubs for all possible types of addons
+        addon_xpi = generate_addon('test-addon-unpack@mozilla.org',
+                                   path=self.tmpdir)
+        addon_folder = generate_addon('test-addon-unpack@mozilla.org',
+                                      path=self.tmpdir,
+                                      xpi=False)
+        addon_no_unpack = generate_addon('test-addon-1@mozilla.org',
+                                         path=self.tmpdir)
+
+        # Test unpack flag for add-on as XPI
+        self.am.install_from_path(addon_xpi)
+        self.assertEqual(self.am.installed_addons, [addon_xpi])
+        self.am.clean_addons()
+
+        # Test unpack flag for add-on as folder
+        self.am.install_from_path(addon_folder)
+        self.assertEqual(self.am.installed_addons, [addon_folder])
+        self.am.clean_addons()
+
+        # Test forcing unpack an add-on
+        self.am.install_from_path(addon_no_unpack, unpack=True)
+        self.assertEqual(self.am.installed_addons, [addon_no_unpack])
+        self.am.clean_addons()
+
     def test_install_from_path_url(self):
         server = mozhttpd.MozHttpd(docroot=os.path.join(here, 'addons'))
         server.start()

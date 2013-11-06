@@ -89,6 +89,7 @@ class AddonManager(object):
         :param addons: a list of addon paths to install
         :param manifest: a list of addon manifests to install
         """
+
         # install addon paths
         if addons:
             if isinstance(addons, basestring):
@@ -252,7 +253,7 @@ class AddonManager(object):
             # if the add-on has to be unpacked force it now
             # note: we might want to let Firefox do it in case of addon details
             orig_path = None
-            if unpack or addon_details['unpack']:
+            if os.path.isfile(addon) and (unpack or addon_details['unpack']):
                 orig_path = addon
                 addon = tempfile.mkdtemp()
                 mozfile.extract(orig_path, addon)
