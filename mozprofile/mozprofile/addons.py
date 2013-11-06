@@ -94,7 +94,7 @@ class AddonManager(object):
         if addons:
             if isinstance(addons, basestring):
                 addons = [addons]
-            for addon in addons:
+            for addon in set(addons):
                 self.install_from_path(addon)
         # install addon manifests
         if manifests:

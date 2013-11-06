@@ -41,6 +41,32 @@ class TestAddonsManager(unittest.TestCase):
         # behind. So we should ensure that we clean it up correctly.
         mozfile.rmtree(self.profile_path)
 
+    def test_install_addons_multiple_same_source(self):
+        # Generate installer stubs for all possible types of addons
+        addon_xpi = generate_addon('test-addon-1@mozilla.org',
+                                   path=self.tmpdir)
+        addon_folder = generate_addon('test-addon-1@mozilla.org',
+                                      path=self.tmpdir,
+                                      xpi=False)
+
+        # The same folder should not be installed twice
+        self.am.install_addons([addon_folder, addon_folder])
+        self.assertEqual(self.am.installed_addons, [addon_folder])
+        self.am.clean_addons()
+
+        # The same XPI file should not be installed twice
+        self.am.install_addons([addon_xpi, addon_xpi])
+        self.assertEqual(self.am.installed_addons, [addon_xpi])
+        self.am.clean_addons()
+
+        # Even if it is the same id the add-on should be installed twice, if
+        # specified via XPI and folder
+        self.am.install_addons([addon_folder, addon_xpi])
+        self.assertEqual(len(self.am.installed_addons), 2)
+        self.assertIn(addon_folder, self.am.installed_addons)
+        self.assertIn(addon_xpi, self.am.installed_addons)
+        self.am.clean_addons()
+
     def test_install_from_path_xpi(self):
         addons_to_install = []
         addons_installed = []
