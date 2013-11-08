@@ -53,12 +53,12 @@ class TestAddonsManager(unittest.TestCase):
         # The same folder should not be installed twice
         self.am.install_addons([addon_folder, addon_folder])
         self.assertEqual(self.am.installed_addons, [addon_folder])
-        self.am.clean_addons()
+        self.am.clean()
 
         # The same XPI file should not be installed twice
         self.am.install_addons([addon_xpi, addon_xpi])
         self.assertEqual(self.am.installed_addons, [addon_xpi])
-        self.am.clean_addons()
+        self.am.clean()
 
         # Even if it is the same id the add-on should be installed twice, if
         # specified via XPI and folder
@@ -66,7 +66,7 @@ class TestAddonsManager(unittest.TestCase):
         self.assertEqual(len(self.am.installed_addons), 2)
         self.assertIn(addon_folder, self.am.installed_addons)
         self.assertIn(addon_xpi, self.am.installed_addons)
-        self.am.clean_addons()
+        self.am.clean()
 
     def test_download(self):
         server = mozhttpd.MozHttpd(docroot=os.path.join(here, 'addons'))
@@ -166,17 +166,17 @@ class TestAddonsManager(unittest.TestCase):
         # Test unpack flag for add-on as XPI
         self.am.install_from_path(addon_xpi)
         self.assertEqual(self.am.installed_addons, [addon_xpi])
-        self.am.clean_addons()
+        self.am.clean()
 
         # Test unpack flag for add-on as folder
         self.am.install_from_path(addon_folder)
         self.assertEqual(self.am.installed_addons, [addon_folder])
-        self.am.clean_addons()
+        self.am.clean()
 
         # Test forcing unpack an add-on
         self.am.install_from_path(addon_no_unpack, unpack=True)
         self.assertEqual(self.am.installed_addons, [addon_no_unpack])
-        self.am.clean_addons()
+        self.am.clean()
 
     def test_install_from_path_url(self):
         server = mozhttpd.MozHttpd(docroot=os.path.join(here, 'addons'))
@@ -193,17 +193,17 @@ class TestAddonsManager(unittest.TestCase):
                       os.path.basename(self.am.downloaded_addons[0]))
 
     def test_install_from_path_after_reset(self):
+        # Installing the same add-on after a reset should not cause a failure
         addon = generate_addon('test-addon-1@mozilla.org',
                                path=self.tmpdir, xpi=False)
 
-        # Installing the same add-on after a reset should not cause a failure
-        self.am.install_from_path(addon)
+        # We cannot use self.am because profile.reset() creates a new instance
+        self.profile.addon_manager.install_from_path(addon)
 
         self.profile.reset()
-        self.am.clean_addons()  # Bug 934484 - clean_up is not getting called
 
-        self.am.install_from_path(addon)
-        self.assertEqual(self.am.installed_addons, [addon])
+        self.profile.addon_manager.install_from_path(addon)
+        self.assertEqual(self.profile.addon_manager.installed_addons, [addon])
 
     def test_install_from_path_backup(self):
         staged_path = os.path.join(self.profile_path, 'extensions', 'staged')
@@ -227,10 +227,10 @@ class TestAddonsManager(unittest.TestCase):
         self.assertEqual(os.listdir(self.am.backup_dir),
                          ['test-addon-1@mozilla.org.xpi'])
 
-        self.am.clean_addons()
+        self.am.clean()
         self.assertEqual(os.listdir(staged_path),
                          ['test-addon-1@mozilla.org.xpi'])
-        self.am.clean_addons()
+        self.am.clean()
 
         # Test backup of folders
         self.am.install_from_path(addon_folder)
@@ -241,10 +241,10 @@ class TestAddonsManager(unittest.TestCase):
         self.assertEqual(os.listdir(self.am.backup_dir),
                          ['test-addon-1@mozilla.org'])
 
-        self.am.clean_addons()
+        self.am.clean()
         self.assertEqual(os.listdir(staged_path),
                          ['test-addon-1@mozilla.org'])
-        self.am.clean_addons()
+        self.am.clean()
 
         # Test backup of xpi files with another file name
         self.am.install_from_path(addon_name)
@@ -255,10 +255,10 @@ class TestAddonsManager(unittest.TestCase):
         self.assertEqual(os.listdir(self.am.backup_dir),
                          ['test-addon-1@mozilla.org.xpi'])
 
-        self.am.clean_addons()
+        self.am.clean()
         self.assertEqual(os.listdir(staged_path),
                          ['test-addon-1@mozilla.org.xpi'])
-        self.am.clean_addons()
+        self.am.clean()
 
     def test_install_from_path_invalid_addons(self):
         # Generate installer stubs for all possible types of addons
@@ -335,7 +335,7 @@ class TestAddonsManager(unittest.TestCase):
         # Cleanup addons
         duplicate_profile = mozprofile.profile.Profile(profile=self.profile.profile,
                                                        addons=addon_two)
-        duplicate_profile.addon_manager.clean_addons()
+        duplicate_profile.addon_manager.clean()
 
         addons_after_cleanup = [unicode(x[:-len('.xpi')]) for x in os.listdir(os.path.join(
                                 duplicate_profile.profile, 'extensions', 'staged'))]
@@ -397,7 +397,7 @@ class TestAddonsManager(unittest.TestCase):
 
         self.am.install_from_path(self.tmpdir)
 
-        extensions_path = os.path.join(self.am.profile, 'extensions')
+        extensions_path = os.path.join(self.profile_path, 'extensions')
         staging_path = os.path.join(extensions_path, 'staged')
 
         # Fake a run by virtually installing one of the staged add-ons

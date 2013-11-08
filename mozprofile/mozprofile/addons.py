@@ -35,19 +35,61 @@ class AddonManager(object):
         self.profile = profile
         self.restore = restore
 
-        # information needed for profile reset:
-        # https://github.com/mozilla/mozbase/blob/270a857328b130860d1b1b512e23899557a3c8f7/mozprofile/mozprofile/profile.py#L93
+        # Initialize all class members
+        self._internal_init()
+
+    def _internal_init(self):
+        """Internal: Initialize all class members to their default value"""
+
+        # Add-ons installed; needed for cleanup
+        self._addons = []
+
+        # Backup folder for already existing addons
+        self.backup_dir = None
+
+        # Add-ons downloaded and which have to be removed from the file system
+        self.downloaded_addons = []
+
+        # Information needed for profile reset (see http://bit.ly/17JesUf)
         self.installed_addons = []
         self.installed_manifests = []
 
-        # addons that we've installed; needed for cleanup
-        self._addons = []
+    def __del__(self):
+        # reset to pre-instance state
+        if self.restore:
+            self.clean()
 
-        # addons we have downloaded and which have to be removed from the file system
-        self.downloaded_addons = []
+    def clean(self):
+        """Clean up addons in the profile."""
 
-        # backup dir for already existing addons
-        self.backup_dir = None
+        # Remove all add-ons installed
+        for addon in self._addons:
+            # TODO (bug 934642)
+            # Once we have a proper handling of add-ons we should kill the id
+            # from self._addons once the add-on is removed. For now lets forget
+            # about the exception
+            try:
+                self.remove_addon(addon)
+            except IOError, e:
+                pass
+
+        # Remove all downloaded add-ons
+        for addon in self.downloaded_addons:
+            os.remove(addon)
+
+        # restore backups
+        if self.backup_dir and os.path.isdir(self.backup_dir):
+            extensions_path = os.path.join(self.profile, 'extensions', 'staged')
+
+            for backup in os.listdir(self.backup_dir):
+                backup_path = os.path.join(self.backup_dir, backup)
+                shutil.move(backup_path, extensions_path)
+
+            if not os.listdir(self.backup_dir):
+                shutil.rmtree(self.backup_dir, ignore_errors=True)
+
+        # reset instance variables to defaults
+        self._internal_init()
 
     @classmethod
     def download(self, url, target_folder=None):
@@ -316,41 +358,6 @@ class AddonManager(object):
 
             self._addons.append(addon_id)
             self.installed_addons.append(addon)
-
-    def clean_addons(self):
-        """Cleans up addons in the profile."""
-
-        # remove addons installed by this instance
-        for addon in self._addons:
-            # Bug 934484
-            # Cleaning up add-ons will fail because add-ons have already been
-            # removed by Profile.cleanup(). So ignore failures for now.
-            try:
-                self.remove_addon(addon)
-            except IOError, e:
-                pass
-
-        # remove downloaded add-ons
-        for addon in self.downloaded_addons:
-            os.remove(addon)
-
-        # restore backups
-        if self.backup_dir and os.path.isdir(self.backup_dir):
-            extensions_path = os.path.join(self.profile, 'extensions', 'staged')
-
-            for backup in os.listdir(self.backup_dir):
-                backup_path = os.path.join(self.backup_dir, backup)
-                shutil.move(backup_path, extensions_path)
-
-            if not os.listdir(self.backup_dir):
-                shutil.rmtree(self.backup_dir, ignore_errors=True)
-
-        # reset instance variables to defaults via __init__
-        self.__init__(self.profile, restore=self.restore)
-
-    def __del__(self):
-        if self.restore:
-            self.clean_addons()  # reset to pre-instance state
 
     def remove_addon(self, addon_id):
         """Remove the add-on as specified by the id
