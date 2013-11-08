@@ -192,23 +192,73 @@ class TestAddonsManager(unittest.TestCase):
         self.assertIn('test-empty@quality.mozilla.org.xpi',
                       os.path.basename(self.am.downloaded_addons[0]))
 
+    def test_install_from_path_after_reset(self):
+        addon = generate_addon('test-addon-1@mozilla.org',
+                               path=self.tmpdir, xpi=False)
+
+        # Installing the same add-on after a reset should not cause a failure
+        self.am.install_from_path(addon)
+
+        self.profile.reset()
+        self.am.clean_addons()  # Bug 934484 - clean_up is not getting called
+
+        self.am.install_from_path(addon)
+        self.assertEqual(self.am.installed_addons, [addon])
+
     def test_install_from_path_backup(self):
+        staged_path = os.path.join(self.profile_path, 'extensions', 'staged')
+
         # Generate installer stubs for all possible types of addons
-        addons = []
-        addons.append(generate_addon('test-addon-1@mozilla.org',
-                                     path=self.tmpdir,
-                                     xpi=False))
-        addons.append(generate_addon('test-addon-1@mozilla.org',
-                                     path=self.tmpdir,
-                                     xpi=False,
-                                     name='test-addon-1-dupe@mozilla.org'))
-        addons.sort()
+        addon_xpi = generate_addon('test-addon-1@mozilla.org',
+                                   path=self.tmpdir)
+        addon_folder = generate_addon('test-addon-1@mozilla.org',
+                                      path=self.tmpdir,
+                                      xpi=False)
+        addon_name = generate_addon('test-addon-1@mozilla.org',
+                                    path=self.tmpdir,
+                                    name='test-addon-1-dupe@mozilla.org')
 
-        self.am.install_from_path(self.tmpdir)
+        # Test backup of xpi files
+        self.am.install_from_path(addon_xpi)
+        self.assertIsNone(self.am.backup_dir)
 
+        self.am.install_from_path(addon_xpi)
+        self.assertIsNotNone(self.am.backup_dir)
+        self.assertEqual(os.listdir(self.am.backup_dir),
+                         ['test-addon-1@mozilla.org.xpi'])
+
+        self.am.clean_addons()
+        self.assertEqual(os.listdir(staged_path),
+                         ['test-addon-1@mozilla.org.xpi'])
+        self.am.clean_addons()
+
+        # Test backup of folders
+        self.am.install_from_path(addon_folder)
+        self.assertIsNone(self.am.backup_dir)
+
+        self.am.install_from_path(addon_folder)
         self.assertIsNotNone(self.am.backup_dir)
         self.assertEqual(os.listdir(self.am.backup_dir),
                          ['test-addon-1@mozilla.org'])
+
+        self.am.clean_addons()
+        self.assertEqual(os.listdir(staged_path),
+                         ['test-addon-1@mozilla.org'])
+        self.am.clean_addons()
+
+        # Test backup of xpi files with another file name
+        self.am.install_from_path(addon_name)
+        self.assertIsNone(self.am.backup_dir)
+
+        self.am.install_from_path(addon_xpi)
+        self.assertIsNotNone(self.am.backup_dir)
+        self.assertEqual(os.listdir(self.am.backup_dir),
+                         ['test-addon-1@mozilla.org.xpi'])
+
+        self.am.clean_addons()
+        self.assertEqual(os.listdir(staged_path),
+                         ['test-addon-1@mozilla.org.xpi'])
+        self.am.clean_addons()
 
     def test_install_from_path_invalid_addons(self):
         # Generate installer stubs for all possible types of addons

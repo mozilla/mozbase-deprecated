@@ -2,7 +2,6 @@
 # License, v. 2.0. If a copy of the MPL was not distributed with this file,
 # You can obtain one at http://mozilla.org/MPL/2.0/.
 
-from distutils import dir_util
 import os
 import shutil
 import tempfile
@@ -292,27 +291,27 @@ class AddonManager(object):
             if os.path.isfile(addon):
                 addon_path += '.xpi'
 
-                # save existing xpi file to restore later
+                # move existing xpi file to backup location to restore later
                 if os.path.exists(addon_path):
                     self.backup_dir = self.backup_dir or tempfile.mkdtemp()
-                    shutil.copy(addon_path, self.backup_dir)
+                    shutil.move(addon_path, self.backup_dir)
 
+                # copy new add-on to the extension folder
                 if not os.path.exists(extensions_path):
                     os.makedirs(extensions_path)
                 shutil.copy(addon, addon_path)
             else:
-                # save existing dir to restore later
+                # move existing folder to backup location to restore later
                 if os.path.exists(addon_path):
                     self.backup_dir = self.backup_dir or tempfile.mkdtemp()
-                    dest = os.path.join(self.backup_dir,
-                                        os.path.basename(addon_path))
-                    dir_util.copy_tree(addon_path, dest, preserve_symlinks=1)
+                    shutil.move(addon_path, self.backup_dir)
 
-                dir_util.copy_tree(addon, addon_path, preserve_symlinks=1)
+                # copy new add-on to the extension folder
+                shutil.copytree(addon, addon_path, symlinks=True)
 
             # if we had to extract the addon, remove the temporary directory
             if orig_path:
-                dir_util.remove_tree(addon)
+                mozfile.rmtree(addon)
                 addon = orig_path
 
             self._addons.append(addon_id)
@@ -338,10 +337,11 @@ class AddonManager(object):
         # restore backups
         if self.backup_dir and os.path.isdir(self.backup_dir):
             extensions_path = os.path.join(self.profile, 'extensions', 'staged')
+
             for backup in os.listdir(self.backup_dir):
                 backup_path = os.path.join(self.backup_dir, backup)
-                addon_path = os.path.join(extensions_path, backup)
-                shutil.move(backup_path, addon_path)
+                shutil.move(backup_path, extensions_path)
+
             if not os.listdir(self.backup_dir):
                 shutil.rmtree(self.backup_dir, ignore_errors=True)
 
@@ -359,6 +359,6 @@ class AddonManager(object):
         """
         path = self.get_addon_path(addon_id)
         if os.path.isdir(path):
-            dir_util.remove_tree(path)
+            mozfile.rmtree(path)
         elif os.path.isfile(path):
             os.remove(path)
