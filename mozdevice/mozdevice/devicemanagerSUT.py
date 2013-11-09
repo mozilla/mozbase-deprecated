@@ -818,10 +818,8 @@ class DeviceManagerSUT(DeviceManager):
 
         data = self._runCmds([{ 'cmd': cmd }])
 
-        f = re.compile('Failure')
-        for line in data.split():
-            if (f.match(line)):
-                raise DMError("Remove Device Error: Error installing app. Error message: %s" % data)
+        if 'installation complete [0]' not in data:
+            raise DMError("Remove Device Error: Error installing app. Error message: %s" % data)
 
     def uninstallApp(self, appName, installPath=None):
         cmd = 'uninstall ' + appName
