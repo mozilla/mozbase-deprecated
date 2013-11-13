@@ -521,8 +521,20 @@ falling back to not using job objects for managing child processes"""
 
                 if not self._ignore_children:
                     try:
-                        # os.waitpid returns a (pid, status) tuple
-                        return os.waitpid(self.pid, 0)[1]
+                        # os.waitpid return value:
+                        # > [...] a tuple containing its pid and exit status
+                        # > indication: a 16-bit number, whose low byte is the
+                        # > signal number that killed the process, and whose
+                        # > high byte is the exit status (if the signal number
+                        # > is zero)
+                        # - http://docs.python.org/2/library/os.html#os.wait
+                        status = os.waitpid(self.pid, 0)[1]
+
+                        # For consistency, format status the same as subprocess'
+                        # returncode attribute
+                        if status > 255:
+                            return status >> 8
+                        return -status
                     except OSError, e:
                         if getattr(e, "errno", None) != 10:
                             # Error 10 is "no child process", which could indicate normal
@@ -737,6 +749,10 @@ falling back to not using job objects for managing child processes"""
         If timeout is not None, will return after timeout seconds.
         This timeout only causes the wait function to return and
         does not kill the process.
+
+        Returns the process' exit code. A None value indicates the
+        process hasn't terminated yet. A negative value -N indicates
+        the process was killed by signal N (Unix only).
         """
         if self.outThread:
             # Thread.join() blocks the main thread until outThread is finished
