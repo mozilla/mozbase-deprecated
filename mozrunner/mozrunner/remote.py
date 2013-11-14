@@ -1,3 +1,4 @@
+from StringIO import StringIO
 import ConfigParser
 import os
 import posixpath
@@ -68,6 +69,7 @@ class RemoteRunner(Runner):
 
         super(RemoteRunner, self).cleanup()
 
+        self.dm.remount()
         for backup_file in self.backup_files:
             # Restore the original profiles.ini
             self.dm.shellCheckOutput(['dd', 'if=%s.orig' % backup_file, 'of=%s' % backup_file])
@@ -204,7 +206,10 @@ class B2GRunner(RemoteRunner):
 
     def _reboot_device(self):
         serial, status = self._get_device_status()
-        self.dm.shellCheckOutput(['/system/bin/reboot'])
+
+        buf = StringIO()
+        self.dm.shell('/system/bin/reboot', buf)
+        buf.close()
 
         # The reboot command can return while adb still thinks the device is
         # connected, so wait a little bit for it to disconnect from adb.
@@ -219,8 +224,8 @@ class B2GRunner(RemoteRunner):
                 # device hasn't come back online in 2 minutes, something's wrong
                 raise Exception("Device %s (status: %s) not back online after reboot" % (serial, rstatus))
             time.sleep(5)
-            rserial, rstatus = self.getDeviceStatus(serial)
-        self.log.info('device:', serial, 'status:', rstatus)
+            rserial, rstatus = self._get_device_status(serial)
+        self.log.info('device: %s, status: %s' % (serial, rstatus))
 
     def _get_device_status(self, serial=None):
         # If we know the device serial number, we look for that,
@@ -245,7 +250,7 @@ class B2GRunner(RemoteRunner):
         active = False
         time_out = 0
         while not active and time_out < 40:
-            proc = subprocess.Popen([self.dm._adbPath, 'shell', '/system/bin/netcfg'])
+            proc = subprocess.Popen([self.dm._adbPath, 'shell', '/system/bin/netcfg'], stdout=subprocess.PIPE)
             proc.stdout.readline() # ignore first line
             line = proc.stdout.readline()
             while line != "":
@@ -261,6 +266,7 @@ class B2GRunner(RemoteRunner):
         """
         Copy profile and update the remote profiles ini file to point to the new profile
         """
+        self.dm.remount()
 
         # copy the profile to the device.
         if self.dm.dirExists(self.remote_profile):
@@ -276,10 +282,10 @@ class B2GRunner(RemoteRunner):
         if os.path.isdir(extension_dir):
             # Copy the extensions to the B2G bundles dir.
             # need to write to read-only dir
-            subprocess.Popen([self.dm._adbPath, 'remount']).communicate()
             for filename in os.listdir(extension_dir):
-                self.dm.shellCheckOutput(['rm', '-rf',
-                                          os.path.join(self.bundles_dir, filename)])
+                fpath = os.path.join(self.bundles_dir, filename)
+                if self.dm.fileExists(fpath):
+                    self.dm.shellCheckOutput(['rm', '-rf', fpath])
             try:
                 self.dm.pushDir(extension_dir, self.bundles_dir)
             except DMError:
