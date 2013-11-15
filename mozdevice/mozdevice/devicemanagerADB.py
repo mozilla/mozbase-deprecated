@@ -267,6 +267,12 @@ class DeviceManagerADB(DeviceManager):
         else:
             self.removeFile(remoteDir.strip())
 
+    def moveTree(self, source, destination):
+        self._checkCmd(["shell", "mv", source, destination])
+
+    def copyTree(self, source, destination):
+        self._checkCmd(["shell", "dd", "if=%s" % source, "of=%s" % destination])
+
     def listFiles(self, rootdir):
         p = self._runCmd(["shell", "ls", "-a", rootdir])
         data = p.stdout.readlines()

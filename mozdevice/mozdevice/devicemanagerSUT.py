@@ -425,6 +425,12 @@ class DeviceManagerSUT(DeviceManager):
         if self.dirExists(remoteDir):
             self._runCmds([{ 'cmd': 'rmdr ' + remoteDir }])
 
+    def moveTree(self, source, destination):
+        self._runCmds([{ 'cmd': 'mv %s %s' % (source, destination) }])
+
+    def copyTree(self, source, destination):
+        self._runCmds([{ 'cmd': 'dd if=%s of=%s' % (source, destination) }])
+
     def getProcessList(self):
         data = self._runCmds([{ 'cmd': 'ps' }])
 

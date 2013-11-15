@@ -283,6 +283,24 @@ class DeviceManager(object):
         """
 
     @abstractmethod
+    def moveTree(self, source, destination):
+         """
+         Does a move of the file or directory on the device.
+
+        :param source: Path to the original file or directory
+        :param destination: Path to the destination file or directory
+         """
+
+    @abstractmethod
+    def copyTree(self, source, destination):
+         """
+         Does a copy of the file or directory on the device.
+
+        :param source: Path to the original file or directory
+        :param destination: Path to the destination file or directory
+         """
+
+    @abstractmethod
     def chmodDir(self, remoteDirname, mask="777"):
         """
         Recursively changes file permissions in a directory.
