@@ -2,13 +2,16 @@
 # License, v. 2.0. If a copy of the MPL was not distributed with this file,
 # You can obtain one at http://mozilla.org/MPL/2.0/.
 
-import mozlog
-import mozfile
-import unittest
-import socket
-import time
-import threading
+import datetime
 import json
+import socket
+import threading
+import time
+import unittest
+
+import mozfile
+
+import mozlog
 
 class ListHandler(mozlog.Handler):
     """Mock handler appends messages to a list for later inspection."""
@@ -42,6 +45,20 @@ class TestLogging(unittest.TestCase):
 
         self.assertRaises(ValueError, mozlog.getLogger,
                           'file.logger', handler=ListHandler())
+
+    def test_timestamps(self):
+        """Verifies that timestamps are included when asked for."""
+        log_name = 'test'
+        handler = ListHandler()
+        handler.setFormatter(mozlog.MozFormatter())
+        log = mozlog.getLogger(log_name, handler=handler)
+        log.info('no timestamp')
+        self.assertTrue(handler.messages[-1].startswith('%s ' % log_name))
+        handler.setFormatter(mozlog.MozFormatter(include_timestamp=True))
+        log.info('timestamp')
+        # Just verify that this raises no exceptions.
+        datetime.datetime.strptime(handler.messages[-1][:23],
+                                   '%Y-%m-%d %H:%M:%S,%f')
 
 class TestStructuredLogging(unittest.TestCase):
     """Tests structured output in mozlog."""
