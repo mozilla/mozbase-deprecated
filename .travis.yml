@@ -4,10 +4,13 @@ python:
 install: python setup_development.py
 script: python test.py
 notifications:
-  # irc notifications not working with irc.mozilla.org, see: https://github.com/travis-ci/travis-ci/issues/436
-  # (leaving it configured in case this is fixed at some point)
   irc:
-    - "irc.mozilla.org#ateam"
+    channels:
+      - "irc.mozilla.org#ateam"
+    on_success: change
+    on_failure: always
   email:
     recipients:
       - auto-tools@mozilla.com
+    on_success: change
+    on_failure: always
