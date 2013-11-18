@@ -2,8 +2,6 @@
 # License, v. 2.0. If a copy of the MPL was not distributed with this file,
 # You can obtain one at http://mozilla.org/MPL/2.0/.
 
-import logging
-import mozinfo
 import os
 import select
 import signal
@@ -19,7 +17,11 @@ __all__ = ['ProcessHandlerMixin', 'ProcessHandler']
 # Set the MOZPROCESS_DEBUG environment variable to 1 to see some debugging output
 MOZPROCESS_DEBUG = os.getenv("MOZPROCESS_DEBUG")
 
-if mozinfo.isWin:
+# We dont use mozinfo because it is expensive to import, see bug 933558.
+isWin = os.name == "nt"
+isPosix = os.name == "posix" # includes MacOS X
+
+if isWin:
     import ctypes, ctypes.wintypes, msvcrt
     from ctypes import sizeof, addressof, c_ulong, byref, POINTER, WinError, c_longlong
     import winprocess
@@ -77,7 +79,7 @@ class ProcessHandlerMixin(object):
             # Parameter for whether or not we should attempt to track child processes
             self._ignore_children = ignore_children
 
-            if not self._ignore_children and not mozinfo.isWin:
+            if not self._ignore_children and not isWin:
                 # Set the process group id for linux systems
                 # Sets process group id to the pid of the parent process
                 # NOTE: This prevents you from using preexec_fn and managing
@@ -97,7 +99,7 @@ class ProcessHandlerMixin(object):
                 raise
 
         def __del__(self, _maxint=sys.maxint):
-            if mozinfo.isWin:
+            if isWin:
                 if self._handle:
                     if hasattr(self, '_internal_poll'):
                         self._internal_poll(_deadstate=_maxint)
@@ -110,7 +112,7 @@ class ProcessHandlerMixin(object):
 
         def kill(self):
             self.returncode = 0
-            if mozinfo.isWin:
+            if isWin:
                 if not self._ignore_children and self._handle and self._job:
                     winprocess.TerminateJobObject(self._job, winprocess.ERROR_CONTROL_C_EXIT)
                     self.returncode = winprocess.GetExitCodeProcess(self._handle)
@@ -155,7 +157,7 @@ class ProcessHandlerMixin(object):
 
         """ Private Members of Process class """
 
-        if mozinfo.isWin:
+        if isWin:
             # Redefine the execute child so that we can track process groups
             def _execute_child(self, args, executable, preexec_fn, close_fds,
                                cwd, env, universal_newlines, startupinfo,
@@ -510,7 +512,7 @@ falling back to not using job objects for managing child processes"""
                 else:
                     self._handle = None
 
-        elif mozinfo.isMac or mozinfo.isUnix:
+        elif isPosix:
 
             def _wait(self):
                 """ Haven't found any reason to differentiate between these platforms
@@ -775,7 +777,7 @@ falling back to not using job objects for managing child processes"""
 
     ### Private methods from here on down. Thar be dragons.
 
-    if mozinfo.isWin:
+    if isWin:
         # Windows Specific private functions are defined in this block
         PeekNamedPipe = ctypes.windll.kernel32.PeekNamedPipe
         GetLastError = ctypes.windll.kernel32.GetLastError
