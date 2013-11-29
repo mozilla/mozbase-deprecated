@@ -1,3 +1,5 @@
+# Mozbase [![Build Status](https://travis-ci.org/mozilla/mozbase.png)](https://travis-ci.org/mozilla/mozbase)
+
 Mozbase is a set of easy-to-use Python packages forming a supplemental standard
 library for Mozilla. It provides consistency and reduces redundancy in
 automation and other system-level software. All of Mozilla's test harnesses use
