@@ -4,6 +4,7 @@
 
 import os
 import shutil
+import sys
 import tempfile
 import urllib2
 import zipfile
@@ -11,10 +12,13 @@ from xml.dom import minidom
 
 from manifestparser import ManifestParser
 import mozfile
-
+import mozlog
 
 # Needed for the AMO's rest API - https://developer.mozilla.org/en/addons.mozilla.org_%28AMO%29_API_Developers%27_Guide/The_generic_AMO_API
 AMO_API_VERSION = "1.5"
+
+# Logger for 'mozprofile.addons' module
+module_logger = mozlog.getLogger(__name__)
 
 
 class AddonFormatError(Exception):
@@ -150,8 +154,8 @@ class AddonManager(object):
         """
         try:
             details = self.addon_details(addon_path)
-            return details.get('id') is not None
-        except:
+            return True
+        except AddonFormatError, e:
             return False
 
     def install_addons(self, addons=None, manifests=None):
@@ -168,6 +172,7 @@ class AddonManager(object):
                 addons = [addons]
             for addon in set(addons):
                 self.install_from_path(addon)
+
         # install addon manifests
         if manifests:
             if isinstance(manifests, basestring):
@@ -257,12 +262,20 @@ class AddonManager(object):
                     rc.append(node.data)
             return ''.join(rc).strip()
 
-        if zipfile.is_zipfile(addon_path):
-            with zipfile.ZipFile(addon_path, 'r') as compressed_file:
-                manifest = compressed_file.read('install.rdf')
-        else:
-            with open(os.path.join(addon_path, 'install.rdf'), 'r') as f:
-                manifest = f.read()
+        try:
+            if zipfile.is_zipfile(addon_path):
+                # Bug 944361 - We cannot use 'with' together with zipFile because
+                # it will cause an exception thrown in Python 2.6.
+                try:
+                    compressed_file = zipfile.ZipFile(addon_path, 'r')
+                    manifest = compressed_file.read('install.rdf')
+                finally:
+                    compressed_file.close()
+            else:
+                with open(os.path.join(addon_path, 'install.rdf'), 'r') as f:
+                    manifest = f.read()
+        except (IOError, KeyError), e:
+            raise AddonFormatError, str(e), sys.exc_info()[2]
 
         try:
             doc = minidom.parseString(manifest)
@@ -277,12 +290,16 @@ class AddonManager(object):
                 entry = node.nodeName.replace(em, "")
                 if entry in details.keys():
                     details.update({entry: get_text(node)})
-
-            # turn unpack into a true/false value
-            if isinstance(details['unpack'], basestring):
-                details['unpack'] = details['unpack'].lower() == 'true'
         except Exception, e:
-            raise AddonFormatError(str(e))
+            raise AddonFormatError, str(e), sys.exc_info()[2]
+
+        # turn unpack into a true/false value
+        if isinstance(details['unpack'], basestring):
+            details['unpack'] = details['unpack'].lower() == 'true'
+
+        # If no ID is set, the add-on is invalid
+        if details.get('id') is None:
+            raise AddonFormatError('Add-on id could not be found.')
 
         return details
 
@@ -303,10 +320,15 @@ class AddonManager(object):
         addons = [path]
 
         # if path is not an add-on, try to install all contained add-ons
-        if not self.is_addon(path):
+        try:
+            self.addon_details(path)
+        except AddonFormatError, e:
+            module_logger.warning('Could not install %s: %s' % (path, str(e)))
+
             # If the path doesn't exist, then we don't really care, just return
             if not os.path.isdir(path):
                 return
+
             addons = [os.path.join(path, x) for x in os.listdir(path) if
                       self.is_addon(os.path.join(path, x))]
             addons.sort()
@@ -316,7 +338,6 @@ class AddonManager(object):
             # determine the addon id
             addon_details = self.addon_details(addon)
             addon_id = addon_details.get('id')
-            assert addon_id, 'The addon id could not be found: %s' % addon
 
             # if the add-on has to be unpacked force it now
             # note: we might want to let Firefox do it in case of addon details

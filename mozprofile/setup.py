@@ -10,8 +10,9 @@ PACKAGE_VERSION = '0.17'
 # we only support python 2 right now
 assert sys.version_info[0] == 2
 
-deps = ["ManifestDestiny >= 0.5.4",
-        "mozfile >= 0.12"]
+deps = ['ManifestDestiny >= 0.5.4',
+        'mozfile >= 0.12',
+        'mozlog']
 
 setup(name='mozprofile',
       version=PACKAGE_VERSION,
