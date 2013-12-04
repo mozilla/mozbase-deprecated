@@ -116,10 +116,13 @@ class Profile(object):
         if self.restore:
             # If copies of those class instances exist ensure we correctly
             # reset them all (see bug 934484)
-            self.addon_manager.clean()
             self.clean_preferences()
-            self.permissions.clean_db()
-            self.webapps.clean()
+            if getattr(self, 'addon_manager', None) is not None:
+                self.addon_manager.clean()
+            if getattr(self, 'permissions', None) is not None:
+                self.permissions.clean_db()
+            if getattr(self, 'webapps', None) is not None:
+                self.webapps.clean()
 
             # If it's a temporary profile we have to remove it
             if self.create_new:
