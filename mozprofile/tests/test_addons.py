@@ -13,6 +13,7 @@ import urllib2
 from manifestparser import ManifestParser
 import mozfile
 import mozhttpd
+import mozlog
 import mozprofile
 
 from addon_stubs import generate_addon, generate_manifest
@@ -25,6 +26,9 @@ class TestAddonsManager(unittest.TestCase):
     """ Class to test mozprofile.addons.AddonManager """
 
     def setUp(self):
+        self.logger = mozlog.getLogger('mozprofile.addons')
+        self.logger.setLevel(mozlog.ERROR)
+
         self.profile = mozprofile.profile.Profile()
         self.am = self.profile.addon_manager
 
@@ -319,7 +323,8 @@ class TestAddonsManager(unittest.TestCase):
                           self.am.addon_details, invalid_addon)
 
         # Check invalid path
-        self.assertRaises(IOError, self.am.addon_details, '')
+        self.assertRaises(mozprofile.addons.AddonFormatError,
+                          self.am.addon_details, '')
 
     @unittest.skip("Bug 900154")
     def test_clean_addons(self):
