@@ -113,9 +113,8 @@ class Runner(object):
         """
         if self.process_handler is None:
             return
-        self.process_handler.kill(sig=sig)
+        self.returncode = self.process_handler.kill(sig=sig)
         self.process_handler = None
-        self.returncode = -sig
 
     def reset(self):
         """

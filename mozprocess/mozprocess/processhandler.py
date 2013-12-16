@@ -137,8 +137,7 @@ class ProcessHandlerMixin(object):
                             print >> sys.stdout, "Could not kill process, could not find pid: %s, assuming it's already dead" % self.pid
                 else:
                     os.kill(self.pid, sig)
-                if self.returncode is None:
-                    self.returncode = subprocess.Popen._internal_poll(self)
+                self.returncode = -sig
 
             self._cleanup()
             return self.returncode
