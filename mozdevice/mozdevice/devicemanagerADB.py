@@ -262,11 +262,11 @@ class DeviceManagerADB(DeviceManager):
 
     def removeFile(self, filename):
         if self.fileExists(filename):
-            self._runCmd(["shell", "rm", filename])
+            self._checkCmd(["shell", "rm", filename])
 
     def removeDir(self, remoteDir):
-        if (self.dirExists(remoteDir)):
-            self._runCmd(["shell", "rm", "-r", remoteDir]).wait()
+        if self.dirExists(remoteDir):
+            self._checkCmd(["shell", "rm", "-r", remoteDir])
         else:
             self.removeFile(remoteDir.strip())
 
