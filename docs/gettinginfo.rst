@@ -10,3 +10,4 @@ behaviour.
 
    mozinfo
    moznetwork
+   mozversion
