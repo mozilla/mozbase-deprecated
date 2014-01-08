@@ -34,5 +34,8 @@ class LoggingMixin(object):
     def error(self, *args, **kwargs):
         self._log_msg("error", *args, **kwargs)
 
+    def warn(self, *args, **kwargs):
+        self._log_msg("warn", *args, **kwargs)
+
     def log_structured(self, *args, **kwargs):
         self._log_msg("log_structured", *args, **kwargs)
