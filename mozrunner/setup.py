@@ -6,7 +6,7 @@ import sys
 from setuptools import setup
 
 PACKAGE_NAME = 'mozrunner'
-PACKAGE_VERSION = '5.28'
+PACKAGE_VERSION = '5.29'
 
 desc = """Reliable start/stop/configuration of Mozilla Applications (Firefox, Thunderbird, etc.)"""
 
@@ -14,7 +14,7 @@ deps = ['mozcrash >= 0.11',
         'mozdevice >= 0.30',
         'mozfile >= 1.0',
         'mozinfo >= 0.7',
-        'mozlog >= 1.3',
+        'mozlog >= 1.5',
         'mozprocess >= 0.13',
         'mozprofile >= 0.18',
        ]
