@@ -10,10 +10,11 @@ import shutil
 import stat
 import tarfile
 import tempfile
+import time
 import urlparse
 import urllib2
+import warnings
 import zipfile
-import time
 
 __all__ = ['extract_tarball',
            'extract_zip',
@@ -128,6 +129,8 @@ def rmtree(dir):
     :param dir: directory to be removed
     """
 
+    warnings.warn("mozfile.rmtree() is deprecated in favor of mozfile.remove()",
+                  PendingDeprecationWarning, stacklevel=2)
     return remove(dir)
 
 
@@ -168,16 +171,29 @@ def remove(path):
         return
 
     path_stats = os.stat(path)
+    file_mode = path_stats.st_mode | stat.S_IRUSR | stat.S_IWUSR
+    dir_mode = file_mode | stat.S_IXUSR
+
+    # Sets specified pemissions depending on filetype.
+    def update_permissions(path):
+        mode = dir_mode if os.path.isdir(path) else file_mode
+        os.chmod(path, mode)
 
     if os.path.isfile(path) or os.path.islink(path):
         # Verify the file or link is read/write for the current user
-        os.chmod(path, path_stats.st_mode | stat.S_IRUSR | stat.S_IWUSR)
+        update_permissions(path)
         _call_with_windows_retry(os.remove, path)
 
     elif os.path.isdir(path):
         # Verify the directory is read/write/execute for the current user
-        os.chmod(path, path_stats.st_mode | stat.S_IRUSR | stat.S_IWUSR | stat.S_IXUSR)
+        update_permissions(path)
+
+        # We're ensuring that every nested item has writable permission.
+        for root, dirs, files in os.walk(path):
+            for entry in dirs + files:
+                update_permissions(os.path.join(root, entry))
         _call_with_windows_retry(shutil.rmtree, path)
+
 
 def depth(directory):
     """returns the integer depth of a directory or path relative to '/' """
@@ -190,6 +206,7 @@ def depth(directory):
         if not remainder:
             break
     return level
+
 
 # ASCII delimeters
 ascii_delimeters = {

@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 
 import os
+import stat
 import shutil
 import tempfile
 import unittest
@@ -9,6 +10,15 @@ import mozfile
 import mozinfo
 
 import stubs
+
+
+def mark_readonly(path):
+    """Removes all write permissions from given file/directory.
+
+    :param path: path of directory/file of which modes must be changed
+    """
+    mode = os.stat(path)[stat.ST_MODE]
+    os.chmod(path, mode & ~stat.S_IWUSR & ~stat.S_IWGRP & ~stat.S_IWOTH)
 
 
 class TestRemoveTree(unittest.TestCase):
@@ -58,3 +68,24 @@ class TestRemoveTree(unittest.TestCase):
 
         # Check deletion is successful
         self.assertFalse(os.path.exists(self.tempdir))
+
+    def test_remove_readonly_tree(self):
+        """ Test that the mozfile.remove is able to remove readonly dirs """
+
+        dirpath = os.path.join(self.tempdir, "nested_tree")
+        mark_readonly(dirpath)
+
+        # However, mozfile should change write permissions and remove dir.
+        mozfile.remove(dirpath)
+
+        self.assertFalse(os.path.exists(dirpath))
+
+    def test_remove_readonly_file(self):
+        """ Test that the mozfile.remove can remove readonly files """
+        filepath = os.path.join(self.tempdir, *stubs.files[1])
+        mark_readonly(filepath)
+
+        # However, mozfile should change write permission and then remove file.
+        mozfile.remove(filepath)
+
+        self.assertFalse(os.path.exists(filepath))
