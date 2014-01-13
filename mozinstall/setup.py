@@ -14,7 +14,9 @@ except IOError:
 PACKAGE_VERSION = '1.9'
 
 deps = ['mozinfo >= 0.7',
-        'mozfile >= 1.0'
+        'mozfile >= 1.0',
+        'mozprocess >= 0.15',
+        'pefile >= 1.2.10'
        ]
 
 setup(name='mozInstall',

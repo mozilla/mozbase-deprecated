@@ -1,0 +1,14 @@
+VERSION_INFO VERSIONINFO
+FILEFLAGSMASK 0x3fL
+FILEOS 0x4L
+FILETYPE 0x1L
+FILESUBTYPE 0x0L
+{
+    BLOCK "StringFileInfo"
+    {
+        BLOCK "040904b0"
+        {
+            VALUE "BuildID", "123456789\0"
+        }
+    }
+}

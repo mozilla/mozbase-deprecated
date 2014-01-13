@@ -18,6 +18,8 @@ import zipfile
 import mozfile
 import mozinfo
 
+import pefile
+
 if mozinfo.isMac:
     from plistlib import readPlist
 
@@ -105,8 +107,7 @@ def install(src, dest):
     dest = os.path.realpath(dest)
 
     if not is_installer(src):
-        raise InvalidSource(src + ' is not a recognized file type ' +
-                                  '(zip, exe, tar.gz, tar.bz2 or dmg)')
+        raise InvalidSource(src + ' is not valid installer file.')
 
     if not os.path.exists(dest):
         os.makedirs(dest)
@@ -133,6 +134,23 @@ def install(src, dest):
         # http://docs.python.org/library/sys.html#sys.exc_info
         del trbk
 
+def _get_pe_metadata(src):
+    """Returns metadata stored in PE headers of given executable file.
+
+    Arguments:
+    src -- path to file
+
+    """
+    pe_data = pefile.PE(src)
+    data = {}
+
+    for info in getattr(pe_data, 'FileInfo', []):
+        if info.Key == 'StringFileInfo':
+            for string in info.StringTable:
+                data.update(string.entries)
+
+    return data
+
 
 def is_installer(src):
     """Tests if the given file is a valid installer package.
@@ -153,10 +171,16 @@ def is_installer(src):
 
     if mozinfo.isLinux:
         return tarfile.is_tarfile(src)
+
     elif mozinfo.isMac:
         return src.lower().endswith('.dmg')
+
     elif mozinfo.isWin:
-        return src.lower().endswith('.exe') or zipfile.is_zipfile(src)
+        if src.lower().endswith('.exe'):
+            file_metadata = _get_pe_metadata(src)
+            return 'BuildID' not in file_metadata
+
+        return zipfile.is_zipfile(src)
 
 
 def uninstall(install_folder):

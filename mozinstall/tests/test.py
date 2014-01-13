@@ -76,8 +76,13 @@ class TestMozInstall(unittest.TestCase):
         if mozinfo.isWin:
             # test zip installer
             self.assertTrue(mozinstall.is_installer(self.zipfile))
+
             # test exe installer
             self.assertTrue(mozinstall.is_installer(self.exe))
+
+            # test stub browser file
+            stub_exe = os.path.join(here, 'build_stub', 'firefox.exe')
+            self.assertFalse(mozinstall.is_installer(stub_exe))
 
         if mozinfo.isMac:
             self.assertTrue(mozinstall.is_installer(self.dmg))
