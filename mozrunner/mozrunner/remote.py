@@ -106,6 +106,10 @@ class B2GRunner(RemoteRunner):
                      'MOZ_CRASHREPORTER_NO_REPORT': '1',
                      'MOZ_HIDE_RESULTS_TABLE': '1',
                      'MOZ_PROCESS_LOG': processLog,
+                     'NSPR_LOG_MODULES': 'signaling:5,mtransport:3',
+                     'R_LOG_LEVEL': '5',
+                     'R_LOG_DESTINATION': 'stderr',
+                     'R_LOG_VERBOSE': '1',
                      'NO_EM_RESTART': '1', }
         self.env.update(tmp_env)
         self.last_test = "automation"
