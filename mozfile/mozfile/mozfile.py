@@ -5,6 +5,7 @@
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 from contextlib import contextmanager
+import errno
 import os
 import shutil
 import stat
@@ -26,11 +27,6 @@ __all__ = ['extract_tarball',
            'tree',
            'NamedTemporaryFile',
            'TemporaryDirectory']
-
-try:
-    WindowsError
-except NameError:
-    WindowsError = None # so we can unconditionally catch it later...
 
 
 ### utilities for extracting archives
@@ -152,19 +148,25 @@ def remove(path):
         retry_count = 0
         while True:
             try:
-                func(path)
+                # We have to check for existence of the path because another
+                # process could have already removed it
+                if os.path.exists(path):
+                    func(path)
                 break
-            except WindowsError as e:
-                # Error   5 == Access is denied
-                # Error  32 == The process cannot access the file because it is
-                #              being used by another process
-                # Error 145 == The directory is not empty
 
-                if retry_count == retry_max or e.winerror not in [5, 32, 145]:
+            except OSError, e:
+                # Error codes are defined in:
+                # http://docs.python.org/2/library/errno.html#module-errno
+                if e.errno not in [errno.ENOENT, errno.EACCES, errno.ENOTEMPTY]:
                     raise
+
+                if retry_count == retry_max:
+                    raise
+
                 retry_count += 1
 
-                print 'Retrying to remove "%s" because it is in use.' % path
+                print 'Retrying to remove "%s". Reason: %s (%s)' % \
+                    (path, e.strerror, e.errno)
                 time.sleep(retry_delay)
 
     if not os.path.exists(path):
@@ -176,6 +178,9 @@ def remove(path):
 
     # Sets specified pemissions depending on filetype.
     def update_permissions(path):
+        if not os.path.exists(path):
+            return
+
         mode = dir_mode if os.path.isdir(path) else file_mode
         os.chmod(path, mode)
 
