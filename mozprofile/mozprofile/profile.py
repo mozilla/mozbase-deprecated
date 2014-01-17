@@ -329,6 +329,8 @@ class FirefoxProfile(Profile):
                    # see: https://developer.mozilla.org/en/Installing_extensions
                    'extensions.enabledScopes' : 5,
                    'extensions.autoDisableScopes' : 10,
+                   # Don't send the list of installed addons to AMO
+                   'extensions.getAddons.cache.enabled' : False,
                    # Don't install distribution add-ons from the app folder
                    'extensions.installDistroAddons' : False,
                    # Dont' run the add-on compatibility check during start-up
@@ -369,6 +371,8 @@ class MetroFirefoxProfile(Profile):
                    # see: https://developer.mozilla.org/en/Installing_extensions
                    'extensions.enabledScopes' : 5,
                    'extensions.autoDisableScopes' : 10,
+                   # Don't send the list of installed addons to AMO
+                   'extensions.getAddons.cache.enabled' : False,
                    # Don't install distribution add-ons from the app folder
                    'extensions.installDistroAddons' : False,
                    # Dont' run the add-on compatibility check during start-up
