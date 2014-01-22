@@ -2,23 +2,28 @@
 # License, v. 2.0. If a copy of the MPL was not distributed with this file,
 # You can obtain one at http://mozilla.org/MPL/2.0/.
 
-from StringIO import StringIO
 import ConfigParser
 import os
 import posixpath
 import re
 import shutil
 import signal
+from StringIO import StringIO
 import subprocess
 import tempfile
 import time
 
-from runner import Runner
 from mozdevice import DMError
 import mozfile
 import mozlog
 
-__all__ = ['RemoteRunner', 'B2GRunner', 'remote_runners']
+from .base import Runner
+
+
+__all__ = ['B2GRunner',
+           'RemoteRunner',
+           'remote_runners']
+
 
 class RemoteRunner(Runner):
 
@@ -31,8 +36,8 @@ class RemoteRunner(Runner):
                        restore=True,
                        **kwargs):
 
-        super(RemoteRunner, self).__init__(profile, clean_profile=clean_profile,
-                                           process_class=process_class, env=env, **kwargs)
+        Runner.__init__(self, profile, clean_profile=clean_profile,
+                        process_class=process_class, env=env, **kwargs)
         self.log = mozlog.getLogger('RemoteRunner')
 
         self.dm = devicemanager
@@ -61,8 +66,8 @@ class RemoteRunner(Runner):
             local_dump_dir = tempfile.mkdtemp()
             self.dm.getDirectory(remote_dump_dir, local_dump_dir)
 
-            crashed = super(RemoteRunner, self).check_for_crashes(local_dump_dir, \
-                                                                  test_name=last_test)
+            crashed = Runner.check_for_crashes(self, local_dump_dir, \
+                                               test_name=last_test)
             mozfile.remove(local_dump_dir)
             self.dm.removeDir(remote_dump_dir)
 
@@ -72,7 +77,7 @@ class RemoteRunner(Runner):
         if not self.restore:
             return
 
-        super(RemoteRunner, self).cleanup()
+        Runner.cleanup(self)
 
         self.dm.remount()
         for backup_file in self.backup_files:
@@ -91,12 +96,13 @@ class RemoteRunner(Runner):
         # Remove the test profile
         self.dm.removeDir(self.remote_profile)
 
+
 class B2GRunner(RemoteRunner):
 
     def __init__(self, profile, devicemanager, marionette, context_chrome=True,
                  test_script=None, test_script_args=None, **kwargs):
 
-        super(B2GRunner, self).__init__(profile, devicemanager, **kwargs)
+        RemoteRunner.__init__(self, profile, devicemanager, **kwargs)
         self.log = mozlog.getLogger('B2GRunner')
 
         tmpfd, processLog = tempfile.mkstemp(suffix='pidlog')
@@ -272,9 +278,7 @@ class B2GRunner(RemoteRunner):
         return active
 
     def _setup_remote_profile(self):
-        """
-        Copy profile and update the remote profiles ini file to point to the new profile
-        """
+        """Copy profile and update the remote profiles.ini to point to the new profile"""
         self.dm.remount()
 
         # copy the profile to the device.
@@ -326,15 +330,19 @@ class B2GRunner(RemoteRunner):
         self.dm.pushFile(os.path.join(self.profile.profile, "user.js"), self.user_js)
 
     def cleanup(self):
-        super(B2GRunner, self).cleanup()
+        RemoteRunner.cleanup(self)
         if getattr(self.marionette, 'instance', False):
             self.marionette.instance.close()
         del self.marionette
 
+
 class ProfileConfigParser(ConfigParser.RawConfigParser):
-    """Subclass of RawConfigParser that outputs .ini files in the exact
-       format expected for profiles.ini, which is slightly different
-       than the default format.
+    """Class to create profiles.ini config files
+
+    Subclass of RawConfigParser that outputs .ini files in the exact
+    format expected for profiles.ini, which is slightly different
+    than the default format.
+
     """
 
     def optionxform(self, optionstr):

@@ -1,8 +1,11 @@
 language: python
 python:
   - "2.7"
+before_install:
+  - "export DISPLAY=:99.0"
+  - "sh -e /etc/init.d/xvfb start"
 install: python setup_development.py
-script: python test.py
+script: python test.py -b $(which firefox)
 notifications:
   irc:
     channels:
