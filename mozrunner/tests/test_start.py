@@ -30,7 +30,6 @@ class MozrunnerStartTestCase(mozrunnertest.MozrunnerTestCase):
         finally:
             process_handler.kill()
 
-    @unittest.skip("Bug 962495 - Mozrunner fails in handling timeout parameter")
     def test_start_with_timeout(self):
         """Start the process and set a timeout"""
         self.runner.start(timeout=2)
@@ -38,7 +37,6 @@ class MozrunnerStartTestCase(mozrunnertest.MozrunnerTestCase):
 
         self.assertFalse(self.runner.is_running())
 
-    @unittest.skip("Bug 962495 - Mozrunner fails in handling outputTimeout parameter")
     def test_start_with_outputTimeout(self):
         """Start the process and set a timeout"""
         self.runner.start(outputTimeout=2)

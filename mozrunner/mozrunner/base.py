@@ -120,7 +120,11 @@ class Runner(object):
         returns True if the process is active
 
         """
-        return self.process_handler is not None
+        if isinstance(self.process_handler, subprocess.Popen):
+            return self.process_handler.poll() is None
+        elif isinstance(self.process_handler, ProcessHandler):
+            return self.process_handler.proc.poll() is None
+        return False
 
 
     def stop(self, sig=None):
