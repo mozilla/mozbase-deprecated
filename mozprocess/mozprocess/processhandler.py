@@ -39,7 +39,7 @@ class ProcessHandlerMixin(object):
     :param env: is the environment to use for the process (defaults to os.environ).
     :param ignore_children: causes system to ignore child processes when True, defaults to False (which tracks child processes).
     :param kill_on_timeout: when True, the process will be killed when a timeout is reached. When False, the caller is responsible for killing the process. Failure to do so could cause a call to wait() to hang indefinitely. (Defaults to True.)
-    :param processOutputLine: function to be called for each line of output produced by the process (defaults to None).
+    :param processOutputLine: function or list of functions to be called for each line of output produced by the process (defaults to None).
     :param onTimeout: function to be called when the process times out.
     :param onFinish: function to be called when the process terminates normally without timing out.
     :param kwargs: additional keyword args to pass directly into Popen.
@@ -589,6 +589,8 @@ falling back to not using job objects for managing child processes"""
         self.env = env
 
         # handlers
+        if callable(processOutputLine):
+            processOutputLine = [processOutputLine]
         self.processOutputLineHandlers = list(processOutputLine)
         self.onTimeoutHandlers = list(onTimeout)
         self.onFinishHandlers = list(onFinish)
@@ -880,9 +882,9 @@ class ProcessHandler(ProcessHandlerMixin):
     Convenience class for handling processes with default output handlers.
 
     If no processOutputLine keyword argument is specified, write all
-    output to stdout.  Otherwise, the function specified by this argument
-    will be called for each line of output; the output will not be written
-    to stdout automatically.
+    output to stdout.  Otherwise, the function or the list of functions
+    specified by this argument will be called for each line of output;
+    the output will not be written to stdout automatically.
 
     If storeOutput==True, the output produced by the process will be saved
     as self.output.
@@ -893,6 +895,8 @@ class ProcessHandler(ProcessHandlerMixin):
 
     def __init__(self, cmd, logfile=None, storeOutput=True, **kwargs):
         kwargs.setdefault('processOutputLine', [])
+        if callable(kwargs['processOutputLine']):
+            kwargs['processOutputLine'] = [kwargs['processOutputLine']]
 
         # Print to standard output only if no outputline provided
         if not kwargs['processOutputLine']:
