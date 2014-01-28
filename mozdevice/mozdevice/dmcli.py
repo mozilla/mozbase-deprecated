@@ -97,7 +97,11 @@ class DMCli(object):
                                            'help': 'clear the logcat'
                                          },
                           'reboot': { 'function': self.reboot,
-                                      'help': 'reboot the device'
+                                      'help': 'reboot the device',
+                                      'args': [ { 'name': '--wait',
+                                                  'action': 'store_true',
+                                                  'help': 'Wait for device to come back up before exiting' } ]
+
                                    },
                           'isfile': { 'function': self.isfile,
                                       'args': [ { 'name': 'remote_file' } ],
@@ -280,7 +284,7 @@ class DMCli(object):
         self.dm.recordLogcat()
 
     def reboot(self, args):
-        self.dm.reboot()
+        self.dm.reboot(wait=args.wait)
 
     def processlist(self, args):
         pslist = self.dm.getProcessList()

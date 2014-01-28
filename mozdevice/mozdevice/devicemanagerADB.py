@@ -500,9 +500,8 @@ class DeviceManagerADB(DeviceManager):
 
     def reboot(self, wait = False, **kwargs):
         self._checkCmd(["reboot"])
-        if not wait:
-            return
-        self._checkCmd(["wait-for-device", "shell", "ls", "/sbin"])
+        if wait:
+            self._checkCmd(["wait-for-device", "shell", "ls", "/sbin"])
 
     def updateApp(self, appBundlePath, **kwargs):
         return self._runCmd(["install", "-r", appBundlePath]).stdout.read()
