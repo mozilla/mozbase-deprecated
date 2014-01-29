@@ -14,8 +14,20 @@ import mozrunner
 class MozrunnerTestCase(unittest.TestCase):
 
     def setUp(self):
+        self.pids = []
+        self.threads = [ ]
+
         self.profile = mozprofile.FirefoxProfile()
         self.runner = mozrunner.FirefoxRunner(self.profile)
 
     def tearDown(self):
+        for thread in self.threads:
+            thread.join()
+
         self.runner.cleanup()
+
+        # Clean-up any left over and running processes
+        for pid in self.pids:
+            # TODO: Bug 925408
+            # mozprocess is not able yet to kill specific processes
+            pass

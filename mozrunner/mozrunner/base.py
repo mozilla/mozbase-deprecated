@@ -98,12 +98,12 @@ class Runner(object):
 
         """
         if self.is_running():
-            # In interactive mode the user closes the application.
-            # So no timeout is necessary for wait.
+            # The interactive mode uses directly a Popen process instance. It's
+            # wait() method doesn't have any parameters. So handle it separately.
             if isinstance(self.process_handler, subprocess.Popen):
-                timeout = None
-
-            self.returncode = self.process_handler.wait(timeout)
+                self.returncode = self.process_handler.wait()
+            else:
+                self.returncode = self.process_handler.wait(timeout)
 
             # If the process has been exited, clear the process handler
             if self.returncode is not None:
@@ -135,7 +135,13 @@ class Runner(object):
         if not self.is_running():
             return
 
-        self.returncode = self.process_handler.kill(sig=sig)
+        # The interactive mode uses directly a Popen process instance. It's
+        # kill() method doesn't have any parameters. So handle it separately.
+        if isinstance(self.process_handler, subprocess.Popen):
+            self.returncode = self.process_handler.kill()
+        else:
+            self.returncode = self.process_handler.kill(sig=sig)
+
         self.process_handler = None
 
         return self.returncode

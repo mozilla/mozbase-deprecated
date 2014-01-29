@@ -26,17 +26,6 @@ class RunnerThread(threading.Thread):
 
 class MozrunnerThreadsTestCase(mozrunnertest.MozrunnerTestCase):
 
-    def setUp(self):
-        mozrunnertest.MozrunnerTestCase.setUp(self)
-
-        self.threads = []
-
-    def tearDown(self):
-        for thread in self.threads:
-            thread.join()
-
-        mozrunnertest.MozrunnerTestCase.tearDown(self)
-
     def test_process_start_via_thread(self):
         """Start the runner via a thread"""
         thread = RunnerThread(self.runner, True, 2)
