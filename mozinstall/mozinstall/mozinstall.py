@@ -18,7 +18,11 @@ import zipfile
 import mozfile
 import mozinfo
 
-import pefile
+try:
+    import pefile
+    has_pefile = True
+except ImportError:
+    has_pefile = False
 
 if mozinfo.isMac:
     from plistlib import readPlist
@@ -54,10 +58,8 @@ def get_binary(path, app_name):
     """Find the binary in the specified path, and return its path. If binary is
     not found throw an InvalidBinary exception.
 
-    Arguments:
-    path -- the path within to search for the binary
-    app_name -- application binary without file extension to look for
-
+    :param path: Path within to search for the binary
+    :param app_name: Application binary without file extension to look for
     """
     binary = None
 
@@ -97,11 +99,9 @@ def install(src, dest):
     """Install a zip, exe, tar.gz, tar.bz2 or dmg file, and return the path of
     the installation folder.
 
-    Arguments:
-    src  -- the path to the install file
-    dest -- the path to install to (to ensure we do not overwrite any existent
-                                    files the folder should not exist yet)
-
+    :param src: Path to the install file
+    :param dest: Path to install to (to ensure we do not overwrite any existent
+                 files the folder should not exist yet)
     """
     src = os.path.realpath(src)
     dest = os.path.realpath(dest)
@@ -134,23 +134,6 @@ def install(src, dest):
         # http://docs.python.org/library/sys.html#sys.exc_info
         del trbk
 
-def _get_pe_metadata(src):
-    """Returns metadata stored in PE headers of given executable file.
-
-    Arguments:
-    src -- path to file
-
-    """
-    pe_data = pefile.PE(src)
-    data = {}
-
-    for info in getattr(pe_data, 'FileInfo', []):
-        if info.Key == 'StringFileInfo':
-            for string in info.StringTable:
-                data.update(string.entries)
-
-    return data
-
 
 def is_installer(src):
     """Tests if the given file is a valid installer package.
@@ -160,9 +143,10 @@ def is_installer(src):
     Mac:     dmg
     Windows: zip, exe
 
-    Arguments:
-    src -- the path to the install file
+    On Windows pefile will be used to determine if the executable is the
+    right type, if it is installed on the system.
 
+    :param src: Path to the install file.
     """
     src = os.path.realpath(src)
 
@@ -171,24 +155,34 @@ def is_installer(src):
 
     if mozinfo.isLinux:
         return tarfile.is_tarfile(src)
-
     elif mozinfo.isMac:
         return src.lower().endswith('.dmg')
-
     elif mozinfo.isWin:
-        if src.lower().endswith('.exe'):
-            file_metadata = _get_pe_metadata(src)
-            return 'BuildID' not in file_metadata
+        if zipfile.is_zipfile(src):
+            return True
 
-        return zipfile.is_zipfile(src)
+        if os.access(src, os.X_OK) and src.lower().endswith('.exe'):
+            if has_pefile:
+                # try to determine if binary is actually a gecko installer
+                pe_data = pefile.PE(src)
+                data = {}
+                for info in getattr(pe_data, 'FileInfo', []):
+                    if info.Key == 'StringFileInfo':
+                        for string in info.StringTable:
+                            data.update(string.entries)
+                return 'BuildID' not in data
+            else:
+                # pefile not available, just assume a proper binary was passed in
+                return True
+
+        return False
 
 
 def uninstall(install_folder):
     """Uninstalls the application in the specified path. If it has been
     installed via an installer on Windows, use the uninstaller first.
 
-    Arguments:
-    install_folder -- the path of the installation folder
+    :param install_folder: Path of the installation folder
 
     """
     install_folder = os.path.realpath(install_folder)
@@ -238,7 +232,6 @@ def _install_dmg(src, dest):
     """Extract a dmg file into the destination folder and return the
     application folder.
 
-    Arguments:
     src -- DMG image which has to be extracted
     dest -- the path to extract to
 

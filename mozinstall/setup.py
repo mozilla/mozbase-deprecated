@@ -15,8 +15,6 @@ PACKAGE_VERSION = '0.10'
 
 deps = ['mozinfo >= 0.7',
         'mozfile >= 1.0',
-        'mozprocess >= 0.15',
-        'pefile >= 1.2.10'
        ]
 
 setup(name='mozInstall',
@@ -41,6 +39,7 @@ setup(name='mozInstall',
       include_package_data=True,
       zip_safe=False,
       install_requires=deps,
+      tests_require=['mozprocess >= 0.15',],
       # we have to generate two more executables for those systems that cannot run as Administrator
       # and the filename containing "install" triggers the UAC
       entry_points="""

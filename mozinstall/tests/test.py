@@ -80,9 +80,14 @@ class TestMozInstall(unittest.TestCase):
             # test exe installer
             self.assertTrue(mozinstall.is_installer(self.exe))
 
-            # test stub browser file
-            stub_exe = os.path.join(here, 'build_stub', 'firefox.exe')
-            self.assertFalse(mozinstall.is_installer(stub_exe))
+            try:
+                # test stub browser file
+                # without pefile on the system this test will fail
+                import pefile
+                stub_exe = os.path.join(here, 'build_stub', 'firefox.exe')
+                self.assertFalse(mozinstall.is_installer(stub_exe))
+            except ImportError:
+                pass
 
         if mozinfo.isMac:
             self.assertTrue(mozinstall.is_installer(self.dmg))
