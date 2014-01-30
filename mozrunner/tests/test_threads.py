@@ -51,7 +51,7 @@ class MozrunnerThreadsTestCase(mozrunnertest.MozrunnerTestCase):
 
         self.assertNotIn(returncode, [None, 0])
         self.assertEqual(self.runner.returncode, returncode)
-        self.assertIsNone(self.runner.process_handler)
+        self.assertIsNotNone(self.runner.process_handler)
         self.assertEqual(self.runner.wait(10), returncode)
 
     def test_process_post_stop_via_thread(self):
@@ -68,5 +68,5 @@ class MozrunnerThreadsTestCase(mozrunnertest.MozrunnerTestCase):
 
         self.assertNotIn(returncode, [None, 0])
         self.assertEqual(self.runner.returncode, returncode)
-        self.assertIsNone(self.runner.process_handler)
+        self.assertIsNotNone(self.runner.process_handler)
         self.assertEqual(self.runner.wait(10), returncode)

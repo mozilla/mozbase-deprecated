@@ -36,7 +36,6 @@ class Runner(object):
         self.kp_kwargs = kp_kwargs or {}
         self.process_class = process_class or ProcessHandler
         self.process_handler = None
-        self.returncode = None
         self.profile = profile
         self.log = mozlog.getLogger('MozRunner')
         self.symbols_path = symbols_path
@@ -48,6 +47,15 @@ class Runner(object):
     @property
     def command(self):
         pass
+
+    @property
+    def returncode(self):
+        if isinstance(self.process_handler, subprocess.Popen):
+            return self.process_handler.poll()
+        elif isinstance(self.process_handler, ProcessHandler):
+            return self.process_handler.proc.poll()
+        else:
+            raise RunnerNotStartedError("returncode retrieved before process started")
 
     def start(self, debug_args=None, interactive=False, timeout=None, outputTimeout=None):
         """Run self.command in the proper environment
@@ -101,15 +109,11 @@ class Runner(object):
             # The interactive mode uses directly a Popen process instance. It's
             # wait() method doesn't have any parameters. So handle it separately.
             if isinstance(self.process_handler, subprocess.Popen):
-                self.returncode = self.process_handler.wait()
+                self.process_handler.wait()
             else:
-                self.returncode = self.process_handler.wait(timeout)
+                self.process_handler.wait(timeout)
 
-            # If the process has been exited, clear the process handler
-            if self.returncode is not None:
-                self.process_handler = None
-
-        elif self.returncode is None:
+        elif not self.process_handler:
             raise RunnerNotStartedError("Wait() called before process started")
 
         return self.returncode
@@ -120,12 +124,7 @@ class Runner(object):
         returns True if the process is active
 
         """
-        if isinstance(self.process_handler, subprocess.Popen):
-            return self.process_handler.poll() is None
-        elif isinstance(self.process_handler, ProcessHandler):
-            return self.process_handler.proc.poll() is None
-        return False
-
+        return self.returncode is None
 
     def stop(self, sig=None):
         """Kill the process
@@ -136,17 +135,19 @@ class Runner(object):
                     (has no effect on Windows).
 
         """
-        if not self.is_running():
+        try:
+            if not self.is_running():
+                return
+        except RunnerNotStartedError:
             return
+
 
         # The interactive mode uses directly a Popen process instance. It's
         # kill() method doesn't have any parameters. So handle it separately.
         if isinstance(self.process_handler, subprocess.Popen):
-            self.returncode = self.process_handler.kill()
+            self.process_handler.kill()
         else:
-            self.returncode = self.process_handler.kill(sig=sig)
-
-        self.process_handler = None
+            self.process_handler.kill(sig=sig)
 
         return self.returncode
 
@@ -177,8 +178,7 @@ class Runner(object):
 
     def cleanup(self):
         """Cleanup all runner state"""
-        if self.is_running():
-            self.stop()
+        self.stop()
 
         if getattr(self, 'profile', False) and self.clean_profile:
             self.profile.cleanup()

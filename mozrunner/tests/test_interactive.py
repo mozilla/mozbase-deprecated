@@ -41,3 +41,14 @@ class MozrunnerInteractiveTestCase(mozrunnertest.MozrunnerTestCase):
         self.pids.append(pid)
 
         self.runner.stop()
+
+    def test_wait_after_process_finished(self):
+        """Wait after the process has been stopped should not raise an error"""
+        self.runner.start(interactive=True)
+        sleep(5)
+        self.runner.process_handler.kill()
+
+        returncode = self.runner.wait(1)
+
+        self.assertNotIn(returncode, [None, 0])
+        self.assertIsNotNone(self.runner.process_handler)

@@ -19,9 +19,13 @@ class MozrunnerStopTestCase(mozrunnertest.MozrunnerTestCase):
         self.assertFalse(self.runner.is_running())
         self.assertNotIn(returncode, [None, 0])
         self.assertEqual(self.runner.returncode, returncode)
-        self.assertIsNone(self.runner.process_handler)
+        self.assertIsNotNone(self.runner.process_handler)
 
         self.assertEqual(self.runner.wait(1), returncode)
+
+    def test_stop_before_start(self):
+        """Stop the process before it gets started should not raise an error"""
+        returncode = self.runner.stop()
 
     def test_stop_process_custom_signal(self):
         """Stop the process via a custom signal and test properties"""
@@ -31,6 +35,6 @@ class MozrunnerStopTestCase(mozrunnertest.MozrunnerTestCase):
         self.assertFalse(self.runner.is_running())
         self.assertNotIn(returncode, [None, 0])
         self.assertEqual(self.runner.returncode, returncode)
-        self.assertIsNone(self.runner.process_handler)
+        self.assertIsNotNone(self.runner.process_handler)
 
         self.assertEqual(self.runner.wait(1), returncode)

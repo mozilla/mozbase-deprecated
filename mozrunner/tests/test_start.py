@@ -11,6 +11,8 @@ class MozrunnerStartTestCase(mozrunnertest.MozrunnerTestCase):
 
     def test_start_process(self):
         """Start the process and test properties"""
+        self.assertIsNone(self.runner.process_handler)
+
         self.runner.start()
 
         self.assertTrue(self.runner.is_running())
