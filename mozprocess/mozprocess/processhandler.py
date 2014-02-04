@@ -709,6 +709,25 @@ falling back to not using job objects for managing child processes"""
         for handler in self.onFinishHandlers:
             handler()
 
+    def poll(self):
+        """Check if child process has terminated
+
+        Returns the current returncode value:
+        - None if the process hasn't terminated yet
+        - A negative number if the process was killed by signal N (Unix only)
+        - '0' if the process ended without failures
+
+        """
+        # Ensure that we first check for the outputThread status. Otherwise
+        # we might mark the process as finished while output is still getting
+        # processed.
+        if self.outThread and self.outThread.isAlive():
+            return None
+        elif hasattr(self, "returncode"):
+            return self.returncode
+        else:
+            return self.proc.poll()
+
     def processOutput(self, timeout=None, outputTimeout=None):
         """
         Handle process output until the process terminates or times out.
@@ -767,9 +786,11 @@ falling back to not using job objects for managing child processes"""
         This timeout only causes the wait function to return and
         does not kill the process.
 
-        Returns the process' exit code. A None value indicates the
-        process hasn't terminated yet. A negative value -N indicates
-        the process was killed by signal N (Unix only).
+        Returns the process exit code value:
+        - None if the process hasn't terminated yet
+        - A negative number if the process was killed by signal N (Unix only)
+        - '0' if the process ended without failures
+
         """
         if self.outThread:
             # Thread.join() blocks the main thread until outThread is finished
