@@ -15,7 +15,7 @@ deps = ['mozcrash >= 0.11',
         'mozfile >= 1.0',
         'mozinfo >= 0.7',
         'mozlog >= 1.5',
-        'mozprocess >= 0.15',
+        'mozprocess >= 0.17',
         'mozprofile >= 0.18',
        ]
 
