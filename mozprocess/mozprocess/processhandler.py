@@ -158,12 +158,23 @@ class ProcessHandlerMixin(object):
 
         if isWin:
             # Redefine the execute child so that we can track process groups
-            def _execute_child(self, args, executable, preexec_fn, close_fds,
-                               cwd, env, universal_newlines, startupinfo,
-                               creationflags, shell,
-                               p2cread, p2cwrite,
-                               c2pread, c2pwrite,
-                               errread, errwrite):
+            def _execute_child(self, *args_tuple):
+                # workaround for bug 950894
+                if sys.hexversion < 0x02070600: # prior to 2.7.6
+                    (args, executable, preexec_fn, close_fds,
+                     cwd, env, universal_newlines, startupinfo,
+                     creationflags, shell,
+                     p2cread, p2cwrite,
+                     c2pread, c2pwrite,
+                     errread, errwrite) = args_tuple
+                    to_close = set()
+                else: # 2.7.6 and later
+                    (args, executable, preexec_fn, close_fds,
+                     cwd, env, universal_newlines, startupinfo,
+                     creationflags, shell, to_close,
+                     p2cread, p2cwrite,
+                     c2pread, c2pwrite,
+                     errread, errwrite) = args_tuple
                 if not isinstance(args, basestring):
                     args = subprocess.list2cmdline(args)
 
