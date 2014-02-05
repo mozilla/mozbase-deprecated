@@ -50,8 +50,10 @@ class Runner(object):
 
     @property
     def returncode(self):
-        if self.process_handler:
+        if isinstance(self.process_handler, subprocess.Popen):
             return self.process_handler.poll()
+        elif isinstance(self.process_handler, ProcessHandler):
+            return self.process_handler.proc.poll()
         else:
             raise RunnerNotStartedError("returncode retrieved before process started")
 
