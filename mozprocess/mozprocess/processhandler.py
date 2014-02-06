@@ -112,7 +112,6 @@ class ProcessHandlerMixin(object):
                 subprocess.Popen.__del__(self)
 
         def kill(self, sig=None):
-            self.returncode = 0
             if isWin:
                 if not self._ignore_children and self._handle and self._job:
                     winprocess.TerminateJobObject(self._job, winprocess.ERROR_CONTROL_C_EXIT)
@@ -131,16 +130,16 @@ class ProcessHandlerMixin(object):
                 sig = sig or signal.SIGKILL
                 if not self._ignore_children:
                     try:
-                        os.killpg(self.pid, sig)
+                        self.returncode = os.killpg(self.pid, sig)
                     except BaseException, e:
                         if getattr(e, "errno", None) != 3:
                             # Error 3 is "no such process", which is ok
                             print >> sys.stdout, "Could not kill process, could not find pid: %s, assuming it's already dead" % self.pid
                 else:
-                    os.kill(self.pid, sig)
-                self.returncode = -sig
+                    self.returncode = os.kill(self.pid, sig)
 
             self._cleanup()
+
             return self.returncode
 
         def wait(self):
@@ -672,7 +671,12 @@ falling back to not using job objects for managing child processes"""
                     (has no effect on Windows)
         """
         try:
-            return self.proc.kill(sig=sig)
+            self.proc.kill(sig=sig)
+
+            # When we kill the the managed process we also have to wait for the
+            # outThread to be finished. Otherwise consumers would have to assume
+            # that it still has not completely shutdown.
+            return self.wait()
         except AttributeError:
             # Try to print a relevant error message.
             if not self.proc:
