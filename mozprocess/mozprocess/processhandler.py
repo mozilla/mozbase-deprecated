@@ -553,7 +553,8 @@ falling back to not using job objects for managing child processes"""
                             # close
                             print >> sys.stderr, "Encountered error waiting for pid to close: %s" % e
                             raise
-                        return 0
+
+                        return self.returncode
 
                 else:
                     # For non-group wait, call base class
