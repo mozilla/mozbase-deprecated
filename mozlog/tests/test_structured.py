@@ -113,15 +113,22 @@ class TestStructuredLog(BaseStructuredTest):
     def test_logging_adapter(self):
         import logging
         logging.basicConfig(level="DEBUG")
+        old_level = logging.root.getEffectiveLevel()
+        logging.root.setLevel("DEBUG")
+
         std_logger = logging.getLogger("test")
+        std_logger.setLevel("DEBUG")
 
         logger = structuredlog.std_logging_adapter(std_logger)
 
-        for level in ["critical", "error", "warning", "info", "debug"]:
-            getattr(logger, level)("message")
-            self.assert_log_equals({"action": "log",
-                                    "level": level.upper(),
-                                    "message": "message"})
+        try:
+            for level in ["critical", "error", "warning", "info", "debug"]:
+                getattr(logger, level)("message")
+                self.assert_log_equals({"action": "log",
+                                        "level": level.upper(),
+                                        "message": "message"})
+        finally:
+            logging.root.setLevel(old_level)
 
     def test_add_remove_handlers(self):
         handler = TestHandler()
