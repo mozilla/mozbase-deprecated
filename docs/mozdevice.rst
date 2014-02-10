@@ -112,10 +112,10 @@ Android extensions
 For Android, we provide two variants of the `DeviceManager` interface
 with extensions useful for that platform. These classes are called
 DroidADB and DroidSUT. They inherit all methods from DeviceManagerADB
-and DeviceManagerSUT, with the addition of two methods:
-launchApplication and launchFennec. Here is the interface for DroidADB:
+and DeviceManagerSUT. Here is the interface for DroidADB:
 
 .. automethod:: mozdevice.DroidADB.launchApplication
 .. automethod:: mozdevice.DroidADB.launchFennec
+.. automethod:: mozdevice.DroidADB.getInstalledApps
 
-These exact two methods are also found in the DroidSUT class.
+These methods are also found in the DroidSUT class.

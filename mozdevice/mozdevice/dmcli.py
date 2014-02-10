@@ -40,6 +40,8 @@ class DMCli(object):
                                                      'help': 'Don\'t fail if application is already running' }
                                                 ],
                                       'help': 'launches application on device' },
+                          'listapps': { 'function': self.listapps,
+                                        'help': 'list applications on device' },
                           'push': { 'function': self.push,
                                     'args': [ { 'name': 'local_file' },
                                               { 'name': 'remote_file' }
@@ -254,6 +256,10 @@ class DMCli(object):
         self.dm.launchApplication(args.appname, args.activity_name,
                                   args.intent, url=args.url,
                                   failIfRunning=(not args.no_fail_if_running))
+
+    def listapps(self, args):
+        for app in self.dm.getInstalledApps():
+            print app
 
     def kill(self, args):
         for name in args.process_name:
