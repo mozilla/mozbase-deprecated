@@ -2,7 +2,7 @@
 # License, v. 2.0. If a copy of the MPL was not distributed with this file,
 # You can obtain one at http://mozilla.org/MPL/2.0/.
 
-from setuptools import setup
+from setuptools import setup, find_packages
 
 PACKAGE_NAME = 'mozlog'
 PACKAGE_VERSION = '1.5'
@@ -15,7 +15,7 @@ setup(name=PACKAGE_NAME,
       author_email='tools@lists.mozilla.org',
       url='https://wiki.mozilla.org/Auto-tools/Projects/Mozbase',
       license='MPL 1.1/GPL 2.0/LGPL 2.1',
-      packages=['mozlog'],
+      packages=find_packages(),
       zip_safe=False,
       tests_require=['mozfile'],
       platforms =['Any'],
