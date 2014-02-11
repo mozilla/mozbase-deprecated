@@ -4,6 +4,8 @@ import os
 import stat
 import shutil
 import tempfile
+import threading
+import time
 import unittest
 
 import mozfile
@@ -21,8 +23,26 @@ def mark_readonly(path):
     os.chmod(path, mode & ~stat.S_IWUSR & ~stat.S_IWGRP & ~stat.S_IWOTH)
 
 
-class TestRemoveTree(unittest.TestCase):
-    """test our ability to remove a directory tree"""
+class FileOpenCloseThread(threading.Thread):
+    """Helper thread for asynchronous file handling"""
+    def __init__(self, path, delay, delete=False):
+        threading.Thread.__init__(self)
+        self.delay = delay
+        self.path = path
+        self.delete = delete
+
+    def run(self):
+        with open(self.path) as f:
+            time.sleep(self.delay)
+        if self.delete:
+            try:
+                os.remove(self.path)
+            except:
+                pass
+
+
+class MozfileRemoveTestCase(unittest.TestCase):
+    """Test our ability to remove directories and files"""
 
     def setUp(self):
         # Generate a stub
@@ -33,13 +53,13 @@ class TestRemoveTree(unittest.TestCase):
             shutil.rmtree(self.tempdir)
 
     def test_remove_directory(self):
+        """Test the removal of a directory"""
         self.assertTrue(os.path.isdir(self.tempdir))
         mozfile.remove(self.tempdir)
         self.assertFalse(os.path.exists(self.tempdir))
 
     def test_remove_directory_with_open_file(self):
-        """ Tests handling when removing a directory tree
-            which has a file in it is still open """
+        """Test removing a directory with an open file"""
         # Open a file in the generated stub
         filepath = os.path.join(self.tempdir, *stubs.files[1])
         f = file(filepath, 'w')
@@ -48,29 +68,57 @@ class TestRemoveTree(unittest.TestCase):
         # keep file open and then try removing the dir-tree
         if mozinfo.isWin:
             # On the Windows family WindowsError should be raised.
-            self.assertRaises(WindowsError, mozfile.remove, self.tempdir)
+            self.assertRaises(OSError, mozfile.remove, self.tempdir)
             self.assertTrue(os.path.exists(self.tempdir))
         else:
             # Folder should be deleted on all other platforms
             mozfile.remove(self.tempdir)
             self.assertFalse(os.path.exists(self.tempdir))
 
-    def test_remove_directory_after_closing_file(self):
-        """ Test that the call to mozfile.rmtree succeeds on
-            all platforms after file is closed """
-
+    def test_remove_closed_file(self):
+        """Test removing a closed file"""
+        # Open a file in the generated stub
         filepath = os.path.join(self.tempdir, *stubs.files[1])
         with open(filepath, 'w') as f:
             f.write('foo-bar')
 
-        # Delete directory tree
+        # Folder should be deleted on all platforms
         mozfile.remove(self.tempdir)
-
-        # Check deletion is successful
         self.assertFalse(os.path.exists(self.tempdir))
 
+    def test_removing_open_file_with_retry(self):
+        """Test removing a file in use with retry"""
+        filepath = os.path.join(self.tempdir, *stubs.files[1])
+
+        thread = FileOpenCloseThread(filepath, 1)
+        thread.start()
+
+        # Wait a bit so we can be sure the file has been opened
+        time.sleep(.5)
+        mozfile.remove(filepath)
+        thread.join()
+
+        # Check deletion was successful
+        self.assertFalse(os.path.exists(filepath))
+
+    def test_removing_already_deleted_file_with_retry(self):
+        """Test removing a meanwhile removed file with retry"""
+        filepath = os.path.join(self.tempdir, *stubs.files[1])
+
+        thread = FileOpenCloseThread(filepath, .8, True)
+        thread.start()
+
+        # Wait a bit so we can be sure the file has been opened and gets deleted
+        # while remove() waits for the next retry
+        time.sleep(.5)
+        mozfile.remove(filepath)
+        thread.join()
+
+        # Check deletion was successful
+        self.assertFalse(os.path.exists(filepath))
+
     def test_remove_readonly_tree(self):
-        """ Test that the mozfile.remove is able to remove readonly dirs """
+        """Test removing a read-only directory"""
 
         dirpath = os.path.join(self.tempdir, "nested_tree")
         mark_readonly(dirpath)
@@ -81,7 +129,7 @@ class TestRemoveTree(unittest.TestCase):
         self.assertFalse(os.path.exists(dirpath))
 
     def test_remove_readonly_file(self):
-        """ Test that the mozfile.remove can remove readonly files """
+        """Test removing read-only files"""
         filepath = os.path.join(self.tempdir, *stubs.files[1])
         mark_readonly(filepath)
 

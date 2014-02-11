@@ -139,7 +139,7 @@ def remove(path):
     :param path: path to be removed
     """
 
-    def _call_with_windows_retry(func, path, retry_max=5, retry_delay=0.5):
+    def _call_with_windows_retry(func, args=(), retry_max=5, retry_delay=0.5):
         """
         It's possible to see spurious errors on Windows due to various things
         keeping a handle to the directory open (explorer, virus scanners, etc)
@@ -148,16 +148,15 @@ def remove(path):
         retry_count = 0
         while True:
             try:
-                # We have to check for existence of the path because another
-                # process could have already removed it
-                if os.path.exists(path):
-                    func(path)
-                break
-
+                func(*args)
             except OSError, e:
+                # The file or directory to be removed doesn't exist anymore
+                if e.errno == errno.ENOENT:
+                    break
+
                 # Error codes are defined in:
                 # http://docs.python.org/2/library/errno.html#module-errno
-                if e.errno not in [errno.ENOENT, errno.EACCES, errno.ENOTEMPTY]:
+                if e.errno not in [errno.EACCES, errno.ENOTEMPTY]:
                     raise
 
                 if retry_count == retry_max:
@@ -165,9 +164,17 @@ def remove(path):
 
                 retry_count += 1
 
-                print 'Retrying to remove "%s". Reason: %s (%s)' % \
-                    (path, e.strerror, e.errno)
+                print '%s() failed for "%s". Reason: %s (%s). Retrying...' % \
+                        (func.__name__, args, e.strerror, e.errno)
                 time.sleep(retry_delay)
+            else:
+                # If no exception has been thrown it should be done
+                break
+
+    def _update_permissions(path):
+        """Sets specified pemissions depending on filetype"""
+        mode = dir_mode if os.path.isdir(path) else file_mode
+        _call_with_windows_retry(os.chmod, (path, mode))
 
     if not os.path.exists(path):
         return
@@ -176,28 +183,20 @@ def remove(path):
     file_mode = path_stats.st_mode | stat.S_IRUSR | stat.S_IWUSR
     dir_mode = file_mode | stat.S_IXUSR
 
-    # Sets specified pemissions depending on filetype.
-    def update_permissions(path):
-        if not os.path.exists(path):
-            return
-
-        mode = dir_mode if os.path.isdir(path) else file_mode
-        os.chmod(path, mode)
-
     if os.path.isfile(path) or os.path.islink(path):
         # Verify the file or link is read/write for the current user
-        update_permissions(path)
-        _call_with_windows_retry(os.remove, path)
+        _update_permissions(path)
+        _call_with_windows_retry(os.remove, (path,))
 
     elif os.path.isdir(path):
         # Verify the directory is read/write/execute for the current user
-        update_permissions(path)
+        _update_permissions(path)
 
         # We're ensuring that every nested item has writable permission.
         for root, dirs, files in os.walk(path):
             for entry in dirs + files:
-                update_permissions(os.path.join(root, entry))
-        _call_with_windows_retry(shutil.rmtree, path)
+                _update_permissions(os.path.join(root, entry))
+        _call_with_windows_retry(shutil.rmtree, (path,))
 
 
 def depth(directory):
