@@ -10,10 +10,15 @@ for logging test results and events.
 
 The structured submodule takes a different approach and implements a
 JSON-based logging protocol designed for recording test results.
- """
+"""
 
 from logger import *
 from loglistener import LogMessageServer
 from loggingmixin import LoggingMixin
 
-import structured
+try:
+    import structured
+except ImportError:
+    # Structured logging doesn't work on python 2.6 which is still used on some
+    # legacy test machines; https://bugzilla.mozilla.org/show_bug.cgi?id=864866
+    pass

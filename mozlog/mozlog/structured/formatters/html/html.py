@@ -4,9 +4,7 @@
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 import sys
-import json
 import datetime
-import pkg_resources
 import os
 
 from .. import base
