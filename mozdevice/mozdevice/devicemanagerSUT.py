@@ -745,13 +745,15 @@ class DeviceManagerSUT(DeviceManager):
         return serverSocket
 
     def _waitForRebootPing(self, serverSocket):
+        conn = None
         data = None
         startTime = datetime.datetime.now()
         waitTime = datetime.timedelta(seconds=self.reboot_timeout)
         while not data and datetime.datetime.now() - startTime < waitTime:
             self._logger.info("Waiting for reboot callback ping from device...")
             try:
-                conn, _ = serverSocket.accept()
+                if not conn:
+                    conn, _ = serverSocket.accept()
                 # Receiving any data is good enough.
                 data = conn.recv(1024)
                 if data:
