@@ -27,6 +27,10 @@ class SourcesTest(unittest.TestCase):
         self.cwd = os.getcwd()
         self.tempdir = tempfile.mkdtemp()
 
+        self.binary = os.path.join(self.tempdir, 'binary')
+        with open(self.binary, 'w') as f:
+            f.write('foobar')
+
     def tearDown(self):
         os.chdir(self.cwd)
         mozfile.remove(self.tempdir)
@@ -35,7 +39,7 @@ class SourcesTest(unittest.TestCase):
         with open(os.path.join(self.tempdir, 'application.ini'), 'w') as f:
             f.writelines(self.application_ini)
 
-        sources = tempfile.mkstemp(dir=self.tempdir)[1]
+        sources = os.path.join(self.tempdir, 'sources.xml')
         with open(sources, 'w') as f:
             f.writelines(self.sources_xml)
 
@@ -53,13 +57,11 @@ class SourcesTest(unittest.TestCase):
         self._check_version(get_version())
 
     def test_invalid_sources_path(self):
-        binary = tempfile.mkstemp(dir=self.tempdir)[1]
-        v = get_version(binary, os.path.join(self.tempdir, 'invalid'))
+        v = get_version(self.binary, os.path.join(self.tempdir, 'invalid'))
         self.assertEqual(v, {})
 
     def test_missing_sources_file(self):
-        binary = tempfile.mkstemp(dir=self.tempdir)[1]
-        v = get_version(binary)
+        v = get_version(self.binary)
         self.assertEqual(v, {})
 
     def _check_version(self, version):

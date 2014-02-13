@@ -18,7 +18,11 @@ class SourcesTest(unittest.TestCase):
 
     def setUp(self):
         self.tempdir = tempfile.mkdtemp()
-        self.binary = tempfile.mkstemp(dir=self.tempdir)[1]
+
+        self.binary = os.path.join(self.tempdir, 'binary')
+        with open(self.binary, 'w') as f:
+            f.write('foobar')
+
         with open(os.path.join(self.tempdir, 'application.ini'), 'w') as f:
             f.writelines("""[App]\nName = B2G\n""")
 

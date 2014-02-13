@@ -32,20 +32,22 @@ SourceRepository = PlatformSourceRepo
         self.cwd = os.getcwd()
         self.tempdir = tempfile.mkdtemp()
 
+        self.binary = os.path.join(self.tempdir, 'binary')
+        with open(self.binary, 'w') as f:
+            f.write('foobar')
+
     def tearDown(self):
         os.chdir(self.cwd)
         mozfile.remove(self.tempdir)
 
     def test_binary(self):
-        binary = tempfile.mkstemp(dir=self.tempdir)[1]
-
         with open(os.path.join(self.tempdir, 'application.ini'), 'w') as f:
             f.writelines(self.application_ini)
 
         with open(os.path.join(self.tempdir, 'platform.ini'), 'w') as f:
             f.writelines(self.platform_ini)
 
-        self._check_version(get_version(binary))
+        self._check_version(get_version(self.binary))
 
     def test_binary_in_current_path(self):
         with open(os.path.join(self.tempdir, 'application.ini'), 'w') as f:
@@ -53,17 +55,15 @@ SourceRepository = PlatformSourceRepo
 
         with open(os.path.join(self.tempdir, 'platform.ini'), 'w') as f:
             f.writelines(self.platform_ini)
-
         os.chdir(self.tempdir)
         self._check_version(get_version())
 
     def test_invalid_binary_path(self):
-        self.assertRaises(
-            IOError, get_version, os.path.join(self.tempdir, 'invalid'))
+        self.assertRaises(IOError, get_version,
+                          os.path.join(self.tempdir, 'invalid'))
 
     def test_missing_ini_files(self):
-        binary = tempfile.mkstemp(dir=self.tempdir)[1]
-        v = get_version(binary)
+        v = get_version(self.binary)
         self.assertEqual(v, {})
 
     def _check_version(self, version):
