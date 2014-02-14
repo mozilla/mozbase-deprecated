@@ -738,8 +738,8 @@ falling back to not using job objects for managing child processes"""
         # processed.
         if self.outThread and self.outThread.isAlive():
             return None
-        elif hasattr(self, "returncode"):
-            return self.returncode
+        elif hasattr(self.proc, "returncode"):
+            return self.proc.returncode
         else:
             return self.proc.poll()
 
