@@ -5,17 +5,23 @@
 import unittest
 import time
 
+try:
+    from unittest import TextTestResult
+except ImportError:
+    # bug 971243 - python 2.6 compatibilty
+    from unittest import _TextTestResult as TextTestResult
+
 """Adapter used to output structuredlog messages from unittest
 testsuites"""
 
 
-class StructuredTestResult(unittest.TextTestResult):
+class StructuredTestResult(TextTestResult):
     def __init__(self, *args, **kwargs):
         self.logger = kwargs.pop('logger')
         self.result_callbacks = kwargs.pop('result_callbacks', [])
         self.passed = 0
         self.testsRun = 0
-        unittest.TextTestResult.__init__(self, *args, **kwargs)
+        TextTestResult.__init__(self, *args, **kwargs)
 
     def call_callbacks(self, test, status):
         debug_info = {}
