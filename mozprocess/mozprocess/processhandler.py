@@ -122,7 +122,7 @@ class ProcessHandlerMixin(object):
                         winprocess.TerminateProcess(self._handle, winprocess.ERROR_CONTROL_C_EXIT)
                     except:
                         err = "Could not terminate process"
-                    self.returncode = winprocess.GetExitCodeProcess(self._handle)
+                    winprocess.GetExitCodeProcess(self._handle)
                     self._cleanup()
                     if err is not None:
                         raise OSError(err)
@@ -130,16 +130,16 @@ class ProcessHandlerMixin(object):
                 sig = sig or signal.SIGKILL
                 if not self._ignore_children:
                     try:
-                        self.returncode = os.killpg(self.pid, sig)
+                        os.killpg(self.pid, sig)
                     except BaseException, e:
                         if getattr(e, "errno", None) != 3:
                             # Error 3 is "no such process", which is ok
                             print >> sys.stdout, "Could not kill process, could not find pid: %s, assuming it's already dead" % self.pid
                 else:
-                    self.returncode = os.kill(self.pid, sig)
+                    os.kill(self.pid, sig)
 
+            self.returncode = self.wait()
             self._cleanup()
-
             return self.returncode
 
         def poll(self):
