@@ -80,10 +80,11 @@ class RemoteRunner(Runner):
         Runner.cleanup(self)
 
         self.dm.remount()
+        # Restore the original profiles.ini
         for backup_file in self.backup_files:
-            # Restore the original profiles.ini
-            self.dm.shellCheckOutput(['dd', 'if=%s.orig' % backup_file, 'of=%s' % backup_file])
-            self.dm.removeFile("%s.orig" % backup_file)
+            if self.dm.fileExists('%s.orig' % backup_file):
+                self.dm.shellCheckOutput(['dd', 'if=%s.orig' % backup_file, 'of=%s' % backup_file])
+                self.dm.removeFile("%s.orig" % backup_file)
 
         # Delete any bundled extensions
         extension_dir = posixpath.join(self.remote_profile, 'extensions', 'staged')
