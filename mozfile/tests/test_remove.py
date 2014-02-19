@@ -137,3 +137,48 @@ class MozfileRemoveTestCase(unittest.TestCase):
         mozfile.remove(filepath)
 
         self.assertFalse(os.path.exists(filepath))
+
+    @unittest.skipIf(mozinfo.isWin, "Symlinks are not supported on Windows")
+    def test_remove_symlink(self):
+        """Test removing a symlink"""
+        file_path = os.path.join(self.tempdir, *stubs.files[1])
+        symlink_path = os.path.join(self.tempdir, 'symlink')
+
+        os.symlink(file_path, symlink_path)
+        self.assertTrue(os.path.islink(symlink_path))
+
+        # The linked folder and files should not be deleted
+        mozfile.remove(symlink_path)
+        self.assertFalse(os.path.exists(symlink_path))
+        self.assertTrue(os.path.exists(file_path))
+
+    @unittest.skipIf(mozinfo.isWin, "Symlinks are not supported on Windows")
+    def test_remove_symlink_in_subfolder(self):
+        """Test removing a folder with an contained symlink"""
+        file_path = os.path.join(self.tempdir, *stubs.files[0])
+        dir_path = os.path.dirname(os.path.join(self.tempdir, *stubs.files[1]))
+        symlink_path = os.path.join(dir_path, 'symlink')
+
+        os.symlink(file_path, symlink_path)
+        self.assertTrue(os.path.islink(symlink_path))
+
+        # The folder with the contained symlink will be deleted but not the
+        # original linked file
+        mozfile.remove(dir_path)
+        self.assertFalse(os.path.exists(dir_path))
+        self.assertFalse(os.path.exists(symlink_path))
+        self.assertTrue(os.path.exists(file_path))
+
+    @unittest.skipIf(mozinfo.isWin or not os.geteuid(),
+                     "Symlinks are not supported on Windows and cannot run test as root")
+    def test_remove_symlink_for_system_path(self):
+        """Test removing a symlink which points to a system folder"""
+        symlink_path = os.path.join(self.tempdir, 'symlink')
+
+        os.symlink(os.path.dirname(self.tempdir), symlink_path)
+        self.assertTrue(os.path.islink(symlink_path))
+
+        # The folder with the contained symlink will be deleted but not the
+        # original linked file
+        mozfile.remove(symlink_path)
+        self.assertFalse(os.path.exists(symlink_path))

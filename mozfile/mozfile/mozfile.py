@@ -173,15 +173,25 @@ def remove(path):
 
     def _update_permissions(path):
         """Sets specified pemissions depending on filetype"""
-        mode = dir_mode if os.path.isdir(path) else file_mode
+        if os.path.islink(path):
+            # Path is a symlink which we don't have to modify
+            # because it should already have all the needed permissions
+            return
+
+        stats = os.stat(path)
+
+        if os.path.isfile(path):
+            mode = stats.st_mode | stat.S_IWUSR
+        elif os.path.isdir(path):
+            mode = stats.st_mode | stat.S_IWUSR | stat.S_IXUSR
+        else:
+            # Not supported type
+            return
+
         _call_with_windows_retry(os.chmod, (path, mode))
 
     if not os.path.exists(path):
         return
-
-    path_stats = os.stat(path)
-    file_mode = path_stats.st_mode | stat.S_IRUSR | stat.S_IWUSR
-    dir_mode = file_mode | stat.S_IXUSR
 
     if os.path.isfile(path) or os.path.islink(path):
         # Verify the file or link is read/write for the current user
